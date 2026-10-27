@@ -1,0 +1,1 @@
+Herramienta Draw.io para representar la bd 
