@@ -1,0 +1,15 @@
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+@Component({selector:'app-inicio',standalone:true,imports:[RouterLink],template:`
+<section class="hero"><div class="shell hero-grid"><div class="hero-copy">
+ <div class="eyebrow"><span class="dot"></span> LA SOLUCIÓN ESTÁ MÁS CERCA</div>
+ <h1>Tu hogar en buenas <span>manos.</span></h1>
+ <p>Encuentra técnicos para reparar, instalar o mejorar tu hogar. Publica lo que necesitas, recibe presupuestos y elige con tranquilidad.</p>
+ <div class="hero-actions"><a class="btn btn-primary btn-lg" routerLink="/registro">Solicitar un servicio <span>↗</span></a><a class="btn btn-light btn-lg" routerLink="/cliente">Explorar técnicos</a></div>
+ <div class="hero-foot"><div class="mini-avatars"><span>JG</span><span>FM</span><span>IQ</span></div><div><strong>Servicios a tu alcance</strong><small>Plomería · Electricidad · Reparaciones</small></div></div>
+ </div><div class="hero-illustration"><div class="art-glow"></div><div class="art-building"><div class="roof"></div><div class="house"><div class="window one">✦</div><div class="window two">✦</div><div class="door"></div></div></div><div class="floating floating-top"><span class="f-icon">✓</span><div><strong>Técnicos revisados</strong><small>Perfiles aprobados</small></div></div><div class="floating floating-bottom"><span class="f-icon orange">⚡</span><div><strong>Solicita en minutos</strong><small>Simple, claro y directo</small></div></div></div></div></section>
+<section class="services-section"><div class="shell"><div class="section-head"><div><span class="kicker">SERVICIOS</span><h2>¿Qué necesitas arreglar?</h2></div><p>Desde una fuga inesperada hasta una instalación nueva. Empieza por la categoría que buscas.</p></div>
+<div class="category-grid"><a routerLink="/cliente" class="category"><span class="category-ic c-blue">💧</span><strong>Plomería</strong><small>Grifos, tuberías, fugas</small><b>↗</b></a><a routerLink="/cliente" class="category"><span class="category-ic c-yellow">⚡</span><strong>Electricidad</strong><small>Luces, enchufes, cableado</small><b>↗</b></a><a routerLink="/cliente" class="category"><span class="category-ic c-purple">🧱</span><strong>Albañilería</strong><small>Muros y reparaciones</small><b>↗</b></a><a routerLink="/cliente" class="category"><span class="category-ic c-green">🔧</span><strong>Electrodomésticos</strong><small>Equipos y mantenimiento</small><b>↗</b></a></div>
+</div></section>
+<section class="steps-section"><div class="shell"><div class="section-head"><div><span class="kicker">ASÍ DE FÁCIL</span><h2>Resuélvelo en tres pasos</h2></div></div><div class="steps-grid"><div><span class="step-num">01</span><h3>Describe tu problema</h3><p>Publica una solicitud con ubicación, horario y detalles.</p></div><div><span class="step-num">02</span><h3>Compara propuestas</h3><p>Consulta el precio, la visita y los materiales antes de elegir.</p></div><div><span class="step-num">03</span><h3>Coordina tu servicio</h3><p>Ponte de acuerdo con el técnico y realiza el seguimiento.</p></div></div></div></section>
+`}) export class InicioComponent {}
