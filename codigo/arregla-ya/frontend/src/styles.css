@@ -212,3 +212,182 @@ select:focus {
 .footer .brand-accent {
     color: var(--ay-violeta);
 }
+
+/* ===================================== */
+/* CORRECCION DE ESTILOS GENERALES       */
+/* ===================================== */
+
+/* 1. CONFIGURACION BASICA */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'DM Sans', Arial, sans-serif;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.shell {
+    width: min(1190px, calc(100% - 40px));
+    margin: 0 auto;
+}
+
+
+/* ===================================== */
+/* 2. MENU SUPERIOR                      */
+/* ===================================== */
+
+.header .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 80px;
+    gap: 18px;
+}
+
+.header .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.header .brand-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    background: #6d5ef5;
+    border-radius: 10px;
+    color: white;
+    font-size: 22px;
+}
+
+.header .brand-accent {
+    color: #d8ff69;
+}
+
+
+/* 3. ENLACES DE NAVEGACION */
+
+.header .links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.header .links a {
+    display: inline-block;
+    padding: 10px 13px;
+    border-radius: 25px;
+    color: #d3d4ec;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.header .links a:hover {
+    background: #41476c;
+    color: white;
+}
+
+
+/* 4. BOTONES DEL MENU */
+
+.header .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    padding: 13px 20px;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.btn-sm {
+    padding: 10px 15px;
+    font-size: 12px;
+}
+
+.btn-primary {
+    background: #6d5ef5;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5544d8;
+}
+
+.header .btn-quiet {
+    background: transparent;
+    color: white;
+}
+
+.header .btn-quiet:hover {
+    background: #343858;
+}
+
+
+/* ===================================== */
+/* 5. PANTALLAS PEQUENAS                  */
+/* ===================================== */
+
+@media (max-width: 900px) {
+
+    .header .links {
+        display: none;
+    }
+
+}
+
+@media (max-width: 560px) {
+
+    .header .nav {
+        min-height: 70px;
+        gap: 8px;
+    }
+
+    .header .brand {
+        font-size: 18px;
+    }
+
+    .header .nav-right {
+        gap: 4px;
+    }
+
+    .header .btn-sm {
+        padding: 9px;
+        font-size: 10px;
+    }
+
+}
+
