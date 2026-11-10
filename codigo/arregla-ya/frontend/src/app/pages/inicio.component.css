@@ -1,0 +1,530 @@
+
+/* ====================================== */
+/* ARREGLA YA - NUEVA PAGINA DE INICIO    */
+/* ====================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:host {
+    display: block;
+}
+
+/* ====================================== */
+/* 1. PORTADA                             */
+/* ====================================== */
+
+.home-portada {
+    background: #f6f6ff;
+    color: #161a37;
+    padding: 30px 0 70px;
+}
+
+.home-superior {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid #d8d9e7;
+    color: #64678b;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.home-cuadricula {
+    display: grid;
+    grid-template-columns: 1fr 0.92fr;
+    gap: 45px;
+    align-items: center;
+    padding-top: 55px;
+}
+
+.home-presentacion {
+    padding: 15px 0;
+}
+
+.home-sello {
+    display: inline-block;
+    background: #eeecff;
+    color: #6252d8;
+    border: 1px solid #bdbaf5;
+    border-radius: 30px;
+    padding: 10px 14px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.home-presentacion h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(46px, 5.2vw, 76px);
+    line-height: 1.05;
+    letter-spacing: -3px;
+    margin: 30px 0;
+}
+
+.home-presentacion h1 span {
+    display: block;
+    color: #6d5ef5;
+}
+
+.home-presentacion p {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #747591;
+    max-width: 460px;
+}
+
+.home-botones {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 35px;
+}
+
+.home-boton-principal {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background: #6d5ef5;
+    color: white;
+    padding: 17px 23px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.home-boton-secundario {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    color: #202345;
+    padding: 17px 23px;
+    border: 1px solid #d9d9e8;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.home-boton-principal:hover {
+    background: #5544d8;
+}
+
+.home-boton-secundario:hover {
+    background: #eeecff;
+}
+
+.home-nota {
+    margin-top: 38px;
+    color: #8586a2;
+    font-size: 12px;
+}
+
+/* ====================================== */
+/* 2. PANEL OSCURO DE LA DERECHA          */
+/* ====================================== */
+
+.home-panel {
+    background: #151936;
+    color: white;
+    padding: 26px;
+    border-radius: 28px;
+    min-height: 500px;
+    box-shadow: 16px 17px 0 #e7e5ff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.home-panel-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #b8bddc;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.home-panel-icono {
+    display: grid;
+    place-items: center;
+    background: #d8ff69;
+    color: #151936;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 24px;
+}
+
+.home-panel-titulo {
+    margin: 35px 0 25px;
+}
+
+.home-panel-titulo small {
+    color: #d8ff69;
+    letter-spacing: 2px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.home-panel-titulo h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 45px;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin: 15px 0;
+}
+
+.home-panel-tarjetas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+    margin-bottom: 32px;
+}
+
+.home-mini-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 18px;
+    min-height: 210px;
+    color: #1d1d3c;
+}
+
+.home-mini-violeta {
+    background: #c5bdff;
+}
+
+.home-mini-lima {
+    background: #d8ff69;
+}
+
+.home-mini-card small {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.home-mini-icono {
+    font-size: 38px;
+    margin: 14px 0;
+}
+
+.home-mini-card strong {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+}
+
+.home-mini-card p {
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 7px;
+}
+
+.home-mini-flecha {
+    position: absolute;
+    right: 15px;
+    bottom: 12px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.home-panel-pie {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid #3f4363;
+    padding-top: 15px;
+    color: #b8bddc;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* ====================================== */
+/* 3. SERVICIOS EN FORMA DE MOSAICO       */
+/* ====================================== */
+
+.home-servicios {
+    background: white;
+    padding: 95px 0;
+}
+
+.home-seccion-titulo {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 35px;
+    margin-bottom: 32px;
+}
+
+.home-marcador {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #6d5ef5;
+}
+
+.home-seccion-titulo h2,
+.home-final h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(34px, 4vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin: 16px 0;
+}
+
+.home-seccion-titulo p {
+    color: #797b92;
+    font-size: 13px;
+    line-height: 1.8;
+    max-width: 295px;
+}
+
+.home-mosaico {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-rows: repeat(2, 220px);
+    gap: 16px;
+}
+
+.home-servicio {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 25px;
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+.home-servicio:hover {
+    transform: translateY(-4px);
+}
+
+.home-plomeria {
+    grid-row: span 2;
+    background: #6d5ef5;
+    color: white;
+}
+
+.home-electricidad {
+    grid-column: span 2;
+    background: #eaffad;
+    color: #1a2141;
+}
+
+.home-albanileria {
+    background: #dcecff;
+    color: #1a2141;
+}
+
+.home-electro {
+    background: #ffe5d9;
+    color: #1a2141;
+}
+
+.home-servicio-num {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.home-servicio-icono {
+    position: absolute;
+    top: 45px;
+    right: 35px;
+    font-size: 80px;
+}
+
+.home-plomeria .home-servicio-icono {
+    top: 115px;
+    font-size: 120px;
+}
+
+.home-servicio h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px;
+    margin: 0 0 8px;
+}
+
+.home-servicio p {
+    font-size: 12px;
+    margin: 0;
+}
+
+.home-servicio-ir {
+    position: absolute;
+    right: 22px;
+    bottom: 20px;
+    font-size: 25px;
+}
+
+/* ====================================== */
+/* 4. COMO FUNCIONA                       */
+/* ====================================== */
+
+.home-proceso {
+    background: #121631;
+    color: white;
+    padding: 90px 0;
+}
+
+.home-proceso-encabezado span {
+    color: #d8ff69;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.home-proceso-encabezado h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(34px, 4vw, 50px);
+    margin: 15px 0 40px;
+}
+
+.home-pasos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.home-paso {
+    border-top: 1px solid #515674;
+    padding: 24px 12px 0 0;
+}
+
+.home-paso > span {
+    color: #d8ff69;
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.home-paso h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 19px;
+}
+
+.home-paso p {
+    color: #afb3d0;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+/* ====================================== */
+/* 5. SECCION FINAL                        */
+/* ====================================== */
+
+.home-final {
+    background: #ebe9ff;
+    padding: 75px 0;
+}
+
+.home-final-contenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+/* ====================================== */
+/* 6. DISEÑO PARA TABLET Y CELULAR         */
+/* ====================================== */
+
+@media (max-width: 1000px) {
+
+    .home-cuadricula {
+        grid-template-columns: 1fr;
+    }
+
+    .home-panel {
+        max-width: 650px;
+    }
+
+    .home-mosaico {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+    }
+
+    .home-plomeria {
+        grid-row: auto;
+    }
+
+    .home-electricidad {
+        grid-column: auto;
+    }
+
+    .home-servicio {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .home-superior span:last-child {
+        display: none;
+    }
+
+    .home-cuadricula {
+        gap: 25px;
+        padding-top: 35px;
+    }
+
+    .home-presentacion h1 {
+        font-size: 45px;
+        letter-spacing: -2px;
+    }
+
+    .home-panel {
+        padding: 18px;
+        min-height: 460px;
+        box-shadow: 7px 8px 0 #e7e5ff;
+    }
+
+    .home-panel-titulo h2 {
+        font-size: 34px;
+    }
+
+    .home-mini-card {
+        padding: 14px;
+    }
+
+    .home-mini-card strong {
+        font-size: 15px;
+    }
+
+    .home-botones {
+        flex-direction: column;
+    }
+
+    .home-servicios,
+    .home-proceso {
+        padding: 65px 0;
+    }
+
+    .home-seccion-titulo {
+        display: block;
+    }
+
+    .home-mosaico,
+    .home-pasos {
+        grid-template-columns: 1fr;
+    }
+
+    .home-servicio {
+        min-height: 235px;
+    }
+
+    .home-servicio-icono,
+    .home-plomeria .home-servicio-icono {
+        top: 45px;
+        font-size: 80px;
+    }
+
+    .home-final-contenido {
+        display: block;
+    }
+
+    .home-final-contenido .home-boton-principal {
+        margin-top: 25px;
+    }
+}
