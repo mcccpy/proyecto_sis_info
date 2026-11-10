@@ -1,285 +1,92 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+
+import {
+    Component,
+    inject,
+    OnInit,
+    signal
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
+
 import { RouterLink } from '@angular/router';
-import { ApiService, AuthService, mensajeError } from '../core/api';
-import { Categoria, Propuesta, Solicitud, Trabajador } from '../core/models';
+
+import {
+    ApiService,
+    AuthService,
+    mensajeError
+} from '../core/api';
+
+import {
+    Categoria,
+    Propuesta,
+    Solicitud,
+    Trabajador
+} from '../core/models';
+
+
+// ======================================
+// COMPONENTE DEL CLIENTE
+// ======================================
 
 @Component({
     selector: 'app-cliente',
     standalone: true,
     imports: [FormsModule, RouterLink],
-    template: `
-        <main class="page shell">
-            <div class="page-top">
-                <div>
-                    <span class="kicker">ÁREA DE CLIENTES</span>
-                    <h1>Encuentra ayuda para tu hogar</h1>
-                    <p class="subtle">Busca técnicos, publica una solicitud y compara sus propuestas.</p>
-                </div>
-                <span class="page-icon">⌂</span>
-            </div>
-
-            @if (!auth.usuario()) {
-                <div class="alert info">
-                    Puedes explorar técnicos sin cuenta. Para publicar una solicitud,
-                    <a routerLink="/ingresar">inicia sesión</a>.
-                </div>
-            }
-
-            @if (error()) {
-                <div class="alert error">{{ error() }}</div>
-            }
-
-            @if (exito()) {
-                <div class="alert success">{{ exito() }}</div>
-            }
-
-            <div class="tabs">
-                <button [class.active]="vista() === 'buscar'"
-                        (click)="vista.set('buscar')">
-                    Buscar técnicos
-                </button>
-
-                <button [class.active]="vista() === 'publicar'"
-                        (click)="vista.set('publicar')">
-                    Publicar solicitud
-                </button>
-
-                <button [class.active]="vista() === 'mias'"
-                        (click)="abrirMias()">
-                    Mis solicitudes
-                </button>
-            </div>
-
-            @if (vista() === 'buscar') {
-                <section class="panel">
-                    <h2>Busca a tu especialista</h2>
-
-                    <div class="search-grid">
-                        <label>
-                            Especialidad
-                            <select [(ngModel)]="filtroCategoria">
-                                <option [ngValue]="0">Todas las especialidades</option>
-                                @for (c of categorias(); track c.id) {
-                                    <option [ngValue]="c.id">{{ c.nombre }}</option>
-                                }
-                            </select>
-                        </label>
-
-                        <label>
-                            Zona
-                            <input [(ngModel)]="filtroZona"
-                                   placeholder="Ej. Centro, Queru Queru">
-                        </label>
-
-                        <button class="btn btn-primary" (click)="buscar()">
-                            Buscar →
-                        </button>
-                    </div>
-                </section>
-
-                <div class="result-title">
-                    <h3>Técnicos disponibles</h3>
-                    <span>{{ trabajadores().length }} resultado(s)</span>
-                </div>
-
-                <div class="cards-grid">
-                    @for (t of trabajadores(); track t.id) {
-                        <article class="worker-card">
-                            <div class="worker-head">
-                                <div class="worker-avatar">
-                                    {{ t.nombre.substring(0, 1).toUpperCase() }}
-                                </div>
-                                <span class="status-pill">✓ Aprobado</span>
-                            </div>
-
-                            <h3>{{ t.nombre }}</h3>
-                            <p class="role-label">{{ t.categoria }}</p>
-
-                            <div class="worker-meta">
-                                <span>📍 {{ t.zona }}</span>
-                                <span>◷ {{ t.disponibilidad }}</span>
-                            </div>
-
-                            <p class="worker-exp">{{ t.experiencia }}</p>
-                        </article>
-                    } @empty {
-                        <div class="empty">
-                            No hay técnicos aprobados para esos filtros.
-                            Puedes volver a intentarlo más tarde.
-                        </div>
-                    }
-                </div>
-            }
-
-            @if (vista() === 'publicar') {
-                <section class="panel form-card">
-                    <h2>Publicar una solicitud</h2>
-                    <p class="subtle">
-                        Cuéntanos qué necesitas reparar. La dirección exacta
-                        no aparecerá en los listados públicos.
-                    </p>
-
-                    <form (ngSubmit)="crear()">
-                        <div class="form-grid">
-                            <label>
-                                Título
-                                <input name="titulo"
-                                       [(ngModel)]="form.titulo"
-                                       required minlength="5"
-                                       placeholder="Ej. Fuga en el lavaplatos">
-                            </label>
-
-                            <label>
-                                Especialidad
-                                <select name="categoriaId"
-                                        [(ngModel)]="form.categoriaId"
-                                        required>
-                                    <option [ngValue]="0">Selecciona una categoría</option>
-                                    @for (c of categorias(); track c.id) {
-                                        <option [ngValue]="c.id">{{ c.nombre }}</option>
-                                    }
-                                </select>
-                            </label>
-
-                            <label class="full">
-                                Descripción
-                                <textarea name="descripcion"
-                                          [(ngModel)]="form.descripcion"
-                                          required minlength="15" rows="4"
-                                          placeholder="Explica el problema con detalle..."></textarea>
-                            </label>
-
-                            <label>
-                                Zona general
-                                <input name="zona"
-                                       [(ngModel)]="form.zona"
-                                       required placeholder="Ej. Cala Cala">
-                            </label>
-
-                            <label>
-                                Dirección exacta (privada)
-                                <input name="direccion"
-                                       [(ngModel)]="form.direccion"
-                                       required placeholder="Dirección del trabajo">
-                            </label>
-
-                            <label class="full">
-                                Fecha u horario disponible
-                                <input name="disponibilidad"
-                                       [(ngModel)]="form.disponibilidad"
-                                       required placeholder="Ej. Sábado por la mañana">
-                            </label>
-
-                            <label class="full">
-                                URL de fotografía (opcional, demo)
-                                <input name="fotoUrl"
-                                       [(ngModel)]="form.fotoUrl"
-                                       type="url" placeholder="https://...">
-                            </label>
-                        </div>
-
-                        <p class="help">
-                            En esta primera versión se admite el enlace de una foto;
-                            subir archivos directamente será una mejora posterior.
-                        </p>
-
-                        <button type="submit" class="btn btn-primary"
-                                [disabled]="guardando()">
-                            {{ guardando() ? 'Publicando...' : 'Publicar solicitud →' }}
-                        </button>
-                    </form>
-                </section>
-            }
-
-            @if (vista() === 'mias') {
-                <div class="result-title">
-                    <h3>Mis solicitudes</h3>
-                    <span>{{ mias().length }} solicitudes</span>
-                </div>
-
-                <div class="list-stack">
-                    @for (s of mias(); track s.id) {
-                        <article class="job-card">
-                            <div class="job-main">
-                                <div>
-                                    <span class="kicker">SOLICITUD #{{ s.id }}</span>
-                                    <h3>{{ s.titulo }}</h3>
-                                    <p>{{ s.descripcion }}</p>
-
-                                    <div class="job-tags">
-                                        <span>📍 {{ s.zona }}</span>
-                                        <span>◷ {{ s.disponibilidad }}</span>
-                                    </div>
-                                </div>
-                                <span class="status-pill">{{ s.estado }}</span>
-                            </div>
-
-                            <div class="job-actions">
-                                <button class="btn btn-outline btn-sm"
-                                        (click)="verPropuestas(s.id)">
-                                    Ver propuestas
-                                </button>
-                            </div>
-
-                            @if (seleccionada() === s.id) {
-                                <div class="offers">
-                                    <h4>Propuestas recibidas</h4>
-
-                                    @for (o of ofertas(); track o.id) {
-                                        <div class="offer">
-                                            <div>
-                                                <strong>{{ o.trabajador?.nombre }}</strong>
-                                                <small>
-                                                    Bs {{ o.precio }} ·
-                                                    Visita: Bs {{ o.costoVisita }} ·
-                                                    Materiales:
-                                                    {{ o.materialesIncluidos ? 'incluidos' : 'no incluidos' }}
-                                                </small>
-                                                <small>{{ o.detalleMateriales }}</small>
-                                            </div>
-
-                                            @if (o.estado === 'PENDIENTE' && s.estado === 'ACTIVA') {
-                                                <button class="btn btn-primary btn-sm"
-                                                        (click)="aceptar(o.id, s.id)">
-                                                    Aceptar
-                                                </button>
-                                            } @else {
-                                                <span class="status-pill">{{ o.estado }}</span>
-                                            }
-                                        </div>
-                                    } @empty {
-                                        <p class="subtle">
-                                            Todavía no hay propuestas para esta solicitud.
-                                        </p>
-                                    }
-                                </div>
-                            }
-                        </article>
-                    } @empty {
-                        <div class="empty">Todavía no has publicado solicitudes.</div>
-                    }
-                </div>
-            }
-        </main>
-    `
+    templateUrl: './cliente.component.html'
 })
+
 export class ClienteComponent implements OnInit {
+
+
+    // ==================================
+    // 1. SERVICIOS
+    // ==================================
+
     api = inject(ApiService);
+
     auth = inject(AuthService);
 
+
+    // ==================================
+    // 2. VARIABLES
+    // ==================================
+
+    // Pantalla que se esta mostrando
     vista = signal<'buscar' | 'publicar' | 'mias'>('buscar');
+
+    // Listas de datos
     categorias = signal<Categoria[]>([]);
+
     trabajadores = signal<Trabajador[]>([]);
+
     mias = signal<Solicitud[]>([]);
+
     ofertas = signal<Propuesta[]>([]);
+
+
+    // Solicitud seleccionada
     seleccionada = signal<number | null>(null);
+
+
+    // Mensajes
     error = signal('');
+
     exito = signal('');
+
+
+    // Indica si se esta publicando
     guardando = signal(false);
 
+
+    // Filtros para buscar
     filtroCategoria = 0;
+
     filtroZona = '';
+
+
+    // ==================================
+    // 3. FORMULARIO DE SOLICITUD
+    // ==================================
 
     form = {
         titulo: '',
@@ -291,43 +98,92 @@ export class ClienteComponent implements OnInit {
         fotoUrl: ''
     };
 
+
+    // ==================================
+    // 4. INICIAR LA PANTALLA
+    // ==================================
+
     async ngOnInit() {
+
         try {
-            this.categorias.set(await this.api.categorias());
+
+            // Obtener las categorias
+            const lista = await this.api.categorias();
+
+            this.categorias.set(lista);
+
+            // Buscar trabajadores al iniciar
             await this.buscar();
+
         } catch (e) {
+
             this.error.set(mensajeError(e));
+
         }
     }
+
+
+    // ==================================
+    // 5. BUSCAR TRABAJADORES
+    // ==================================
 
     async buscar() {
+
+        // Limpiar errores
         this.error.set('');
 
         try {
-            this.trabajadores.set(
-                await this.api.trabajadores({
-                    categoria: this.filtroCategoria,
-                    zona: this.filtroZona
-                })
-            );
+
+            // Buscar usando los filtros
+            const lista = await this.api.trabajadores({
+                categoria: this.filtroCategoria,
+                zona: this.filtroZona
+            });
+
+            // Guardar resultados
+            this.trabajadores.set(lista);
+
         } catch (e) {
+
             this.error.set(mensajeError(e));
+
         }
     }
 
+
+    // ==================================
+    // 6. PUBLICAR UNA SOLICITUD
+    // ==================================
+
     async crear() {
+
+        // Limpiar mensajes anteriores
         this.error.set('');
+
         this.exito.set('');
+
+        // Bloquear boton mientras guarda
         this.guardando.set(true);
 
         try {
+
+            // Verificar inicio de sesion
             if (!this.auth.usuario()) {
                 throw new Error('LOGIN');
             }
 
-            const r = await this.api.crearSolicitud(this.form);
-            this.exito.set(`Solicitud #${r.id} creada correctamente`);
+            // Enviar solicitud al servidor
+            const respuesta = await this.api.crearSolicitud(
+                this.form
+            );
 
+            // Mostrar mensaje de exito
+            this.exito.set(
+                `Solicitud #${respuesta.id} creada correctamente`
+            );
+
+
+            // Limpiar formulario
             this.form = {
                 titulo: '',
                 descripcion: '',
@@ -338,59 +194,144 @@ export class ClienteComponent implements OnInit {
                 fotoUrl: ''
             };
 
+
+            // Abrir la lista de solicitudes
             await this.abrirMias();
+
         } catch (e) {
-            this.error.set(
-                e instanceof Error && e.message === 'LOGIN'
-                    ? 'Debes iniciar sesión como cliente para publicar.'
-                    : mensajeError(e)
-            );
+
+            // Si no inicio sesion
+            if (e instanceof Error && e.message === 'LOGIN') {
+
+                this.error.set(
+                    'Debes iniciar sesión como cliente para publicar.'
+                );
+
+            } else {
+
+                // Otros errores
+                this.error.set(mensajeError(e));
+
+            }
+
         } finally {
+
+            // Habilitar nuevamente el boton
             this.guardando.set(false);
+
         }
     }
 
+
+    // ==================================
+    // 7. VER MIS SOLICITUDES
+    // ==================================
+
     async abrirMias() {
+
+        // Cambiar de pantalla
         this.vista.set('mias');
+
+        // Limpiar errores
         this.error.set('');
 
+
+        // Verificar sesion
         if (!this.auth.usuario()) {
             return;
         }
 
+
         try {
-            this.mias.set(await this.api.misSolicitudes());
+
+            // Obtener solicitudes del cliente
+            const lista = await this.api.misSolicitudes();
+
+            // Guardar las solicitudes
+            this.mias.set(lista);
+
         } catch (e) {
+
             this.error.set(mensajeError(e));
+
         }
     }
 
+
+    // ==================================
+    // 8. VER PROPUESTAS
+    // ==================================
+
     async verPropuestas(id: number) {
+
         this.error.set('');
 
+
+        // Si ya estaba abierta, cerrarla
         if (this.seleccionada() === id) {
+
             this.seleccionada.set(null);
+
             return;
         }
 
+
         try {
-            this.ofertas.set(await this.api.propuestas(id));
+
+            // Consultar propuestas
+            const lista = await this.api.propuestas(id);
+
+            // Guardar propuestas
+            this.ofertas.set(lista);
+
+            // Marcar solicitud seleccionada
             this.seleccionada.set(id);
+
         } catch (e) {
+
             this.error.set(mensajeError(e));
+
         }
     }
 
+
+    // ==================================
+    // 9. ACEPTAR UNA PROPUESTA
+    // ==================================
+
     async aceptar(id: number, solicitudId: number) {
+
         this.error.set('');
 
         try {
+
+            // Aceptar propuesta en el backend
             await this.api.aceptar(id);
-            this.exito.set('Propuesta aceptada y solicitud asignada');
-            this.mias.set(await this.api.misSolicitudes());
-            this.ofertas.set(await this.api.propuestas(solicitudId));
+
+            // Mostrar mensaje de exito
+            this.exito.set(
+                'Propuesta aceptada y solicitud asignada'
+            );
+
+
+            // Actualizar las solicitudes
+            const listaSolicitudes =
+                await this.api.misSolicitudes();
+
+            this.mias.set(listaSolicitudes);
+
+
+            // Actualizar las propuestas
+            const listaPropuestas =
+                await this.api.propuestas(solicitudId);
+
+            this.ofertas.set(listaPropuestas);
+
         } catch (e) {
+
             this.error.set(mensajeError(e));
+
         }
     }
+
 }
