@@ -1,0 +1,4553 @@
+{
+  "schemaVersion": "1",
+  "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "calificacion": {
+      "model": "Calificacion",
+      "namespace": "public"
+    },
+    "categoria": {
+      "model": "Categoria",
+      "namespace": "public"
+    },
+    "categoria_reparador": {
+      "model": "CategoriaReparador",
+      "namespace": "public"
+    },
+    "categoria_trabajo": {
+      "model": "CategoriaTrabajo",
+      "namespace": "public"
+    },
+    "disponibilidad": {
+      "model": "Disponibilidad",
+      "namespace": "public"
+    },
+    "documento_trabajo": {
+      "model": "DocumentoTrabajo",
+      "namespace": "public"
+    },
+    "documento_usuario": {
+      "model": "DocumentoUsuario",
+      "namespace": "public"
+    },
+    "evento_trabajo": {
+      "model": "EventoTrabajo",
+      "namespace": "public"
+    },
+    "incremento_presupuesto": {
+      "model": "IncrementoPresupuesto",
+      "namespace": "public"
+    },
+    "pago": {
+      "model": "Pago",
+      "namespace": "public"
+    },
+    "perfil_trabajador": {
+      "model": "PerfilTrabajador",
+      "namespace": "public"
+    },
+    "propuesta": {
+      "model": "Propuesta",
+      "namespace": "public"
+    },
+    "reclamo": {
+      "model": "Reclamo",
+      "namespace": "public"
+    },
+    "reclamo_accion": {
+      "model": "ReclamoAccion",
+      "namespace": "public"
+    },
+    "rol": {
+      "model": "Rol",
+      "namespace": "public"
+    },
+    "servicio": {
+      "model": "Servicio",
+      "namespace": "public"
+    },
+    "trabajo": {
+      "model": "Trabajo",
+      "namespace": "public"
+    },
+    "usuario": {
+      "model": "Usuario",
+      "namespace": "public"
+    },
+    "usuario_rol": {
+      "model": "UsuarioRol",
+      "namespace": "public"
+    },
+    "visita": {
+      "model": "Visita",
+      "namespace": "public"
+    },
+    "zona": {
+      "model": "Zona",
+      "namespace": "public"
+    },
+    "zona_reparador": {
+      "model": "ZonaReparador",
+      "namespace": "public"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Calificacion": {
+            "fields": {
+              "comentario": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fecha": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idCalificacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idEvaluado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idEvaluador": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idServicio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "puntuacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int2@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "servicio": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Servicio",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idEvaluado"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              },
+              "usuarioUsuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idEvaluador"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "comentario": {
+                  "column": "comentario"
+                },
+                "fecha": {
+                  "column": "fecha"
+                },
+                "idCalificacion": {
+                  "column": "id_calificacion"
+                },
+                "idEvaluado": {
+                  "column": "id_evaluado"
+                },
+                "idEvaluador": {
+                  "column": "id_evaluador"
+                },
+                "idServicio": {
+                  "column": "id_servicio"
+                },
+                "puntuacion": {
+                  "column": "puntuacion"
+                }
+              },
+              "namespaceId": "public",
+              "table": "calificacion"
+            }
+          },
+          "Categoria": {
+            "fields": {
+              "idCategoria": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "nombre": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 100
+                  }
+                }
+              }
+            },
+            "relations": {
+              "categoriaReparadors": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idCategoria"
+                  ],
+                  "targetFields": [
+                    "idCategoria"
+                  ]
+                },
+                "to": {
+                  "model": "CategoriaReparador",
+                  "namespace": "public"
+                }
+              },
+              "categoriaTrabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idCategoria"
+                  ],
+                  "targetFields": [
+                    "idCategoria"
+                  ]
+                },
+                "to": {
+                  "model": "CategoriaTrabajo",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idCategoria": {
+                  "column": "id_categoria"
+                },
+                "nombre": {
+                  "column": "nombre"
+                }
+              },
+              "namespaceId": "public",
+              "table": "categoria"
+            }
+          },
+          "CategoriaReparador": {
+            "fields": {
+              "idCategoria": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idReparador": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "categoria": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idCategoria"
+                  ],
+                  "targetFields": [
+                    "idCategoria"
+                  ]
+                },
+                "to": {
+                  "model": "Categoria",
+                  "namespace": "public"
+                }
+              },
+              "perfilTrabajador": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idReparador"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "PerfilTrabajador",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idCategoria": {
+                  "column": "id_categoria"
+                },
+                "idReparador": {
+                  "column": "id_reparador"
+                }
+              },
+              "namespaceId": "public",
+              "table": "categoria_reparador"
+            }
+          },
+          "CategoriaTrabajo": {
+            "fields": {
+              "idCategoria": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idTrabajo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "categoria": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idCategoria"
+                  ],
+                  "targetFields": [
+                    "idCategoria"
+                  ]
+                },
+                "to": {
+                  "model": "Categoria",
+                  "namespace": "public"
+                }
+              },
+              "trabajo": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Trabajo",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idCategoria": {
+                  "column": "id_categoria"
+                },
+                "idTrabajo": {
+                  "column": "id_trabajo"
+                }
+              },
+              "namespaceId": "public",
+              "table": "categoria_trabajo"
+            }
+          },
+          "Disponibilidad": {
+            "fields": {
+              "diaSemana": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int2@1",
+                  "kind": "scalar"
+                }
+              },
+              "horaFin": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/time-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "horaInicio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/time-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "idDisponibilidad": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idReparador": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "perfilTrabajador": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idReparador"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "PerfilTrabajador",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "diaSemana": {
+                  "column": "dia_semana"
+                },
+                "horaFin": {
+                  "column": "hora_fin"
+                },
+                "horaInicio": {
+                  "column": "hora_inicio"
+                },
+                "idDisponibilidad": {
+                  "column": "id_disponibilidad"
+                },
+                "idReparador": {
+                  "column": "id_reparador"
+                }
+              },
+              "namespaceId": "public",
+              "table": "disponibilidad"
+            }
+          },
+          "DocumentoTrabajo": {
+            "fields": {
+              "archivoUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fechaSubida": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idDocumento": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idTrabajo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tipoDocumento": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              }
+            },
+            "relations": {
+              "trabajo": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Trabajo",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "archivoUrl": {
+                  "column": "archivo_url"
+                },
+                "fechaSubida": {
+                  "column": "fecha_subida"
+                },
+                "idDocumento": {
+                  "column": "id_documento"
+                },
+                "idTrabajo": {
+                  "column": "id_trabajo"
+                },
+                "tipoDocumento": {
+                  "column": "tipo_documento"
+                }
+              },
+              "namespaceId": "public",
+              "table": "documento_trabajo"
+            }
+          },
+          "DocumentoUsuario": {
+            "fields": {
+              "archivoUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_aprobacion_enum"
+                  }
+                }
+              },
+              "fechaSubida": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idDocumentoUs": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idUsuario": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tipoDocumento": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              }
+            },
+            "relations": {
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "archivoUrl": {
+                  "column": "archivo_url"
+                },
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaSubida": {
+                  "column": "fecha_subida"
+                },
+                "idDocumentoUs": {
+                  "column": "id_documento_us"
+                },
+                "idUsuario": {
+                  "column": "id_usuario"
+                },
+                "tipoDocumento": {
+                  "column": "tipo_documento"
+                }
+              },
+              "namespaceId": "public",
+              "table": "documento_usuario"
+            }
+          },
+          "EventoTrabajo": {
+            "fields": {
+              "detalle": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fechaEvento": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idEvento": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idTrabajo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idUsuario": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tipoEvento": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 60
+                  }
+                }
+              }
+            },
+            "relations": {
+              "trabajo": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Trabajo",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "detalle": {
+                  "column": "detalle"
+                },
+                "fechaEvento": {
+                  "column": "fecha_evento"
+                },
+                "idEvento": {
+                  "column": "id_evento"
+                },
+                "idTrabajo": {
+                  "column": "id_trabajo"
+                },
+                "idUsuario": {
+                  "column": "id_usuario"
+                },
+                "tipoEvento": {
+                  "column": "tipo_evento"
+                }
+              },
+              "namespaceId": "public",
+              "table": "evento_trabajo"
+            }
+          },
+          "IncrementoPresupuesto": {
+            "fields": {
+              "estadoAprobacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_aprobacion_enum"
+                  }
+                }
+              },
+              "fechaRespuesta": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "fechaSolicitud": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idIncremento": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idServicio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "montoNuevo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "motivo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "servicio": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Servicio",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "estadoAprobacion": {
+                  "column": "estado_aprobacion"
+                },
+                "fechaRespuesta": {
+                  "column": "fecha_respuesta"
+                },
+                "fechaSolicitud": {
+                  "column": "fecha_solicitud"
+                },
+                "idIncremento": {
+                  "column": "id_incremento"
+                },
+                "idServicio": {
+                  "column": "id_servicio"
+                },
+                "montoNuevo": {
+                  "column": "monto_nuevo"
+                },
+                "motivo": {
+                  "column": "motivo"
+                }
+              },
+              "namespaceId": "public",
+              "table": "incremento_presupuesto"
+            }
+          },
+          "Pago": {
+            "fields": {
+              "comprobanteUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_pago_enum"
+                  }
+                }
+              },
+              "fechaConfirmacion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "fechaDeclaracion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idPago": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idServicio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "metodo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "metodo_pago_enum"
+                  }
+                }
+              },
+              "monto": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              }
+            },
+            "relations": {
+              "servicio": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Servicio",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "comprobanteUrl": {
+                  "column": "comprobante_url"
+                },
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaConfirmacion": {
+                  "column": "fecha_confirmacion"
+                },
+                "fechaDeclaracion": {
+                  "column": "fecha_declaracion"
+                },
+                "idPago": {
+                  "column": "id_pago"
+                },
+                "idServicio": {
+                  "column": "id_servicio"
+                },
+                "metodo": {
+                  "column": "metodo"
+                },
+                "monto": {
+                  "column": "monto"
+                }
+              },
+              "namespaceId": "public",
+              "table": "pago"
+            }
+          },
+          "PerfilTrabajador": {
+            "fields": {
+              "estadoAprobacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_aprobacion_enum"
+                  }
+                }
+              },
+              "experiencia": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "idUsuario": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "categoriaReparadors": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idReparador"
+                  ]
+                },
+                "to": {
+                  "model": "CategoriaReparador",
+                  "namespace": "public"
+                }
+              },
+              "disponibilidads": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idReparador"
+                  ]
+                },
+                "to": {
+                  "model": "Disponibilidad",
+                  "namespace": "public"
+                }
+              },
+              "propuestas": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idReparador"
+                  ]
+                },
+                "to": {
+                  "model": "Propuesta",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              },
+              "zonaReparadors": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idReparador"
+                  ]
+                },
+                "to": {
+                  "model": "ZonaReparador",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "estadoAprobacion": {
+                  "column": "estado_aprobacion"
+                },
+                "experiencia": {
+                  "column": "experiencia"
+                },
+                "idUsuario": {
+                  "column": "id_usuario"
+                }
+              },
+              "namespaceId": "public",
+              "table": "perfil_trabajador"
+            }
+          },
+          "Propuesta": {
+            "fields": {
+              "costoVisita": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "detalleMateriales": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_propuesta_enum"
+                  }
+                }
+              },
+              "fechaPropuesta": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idPropuesta": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idReparador": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idTrabajo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "materialesIncluidos": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "precioTotal": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              }
+            },
+            "relations": {
+              "perfilTrabajador": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idReparador"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "PerfilTrabajador",
+                  "namespace": "public"
+                }
+              },
+              "servicio": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "idPropuesta"
+                  ],
+                  "targetFields": [
+                    "idPropuesta"
+                  ]
+                },
+                "to": {
+                  "model": "Servicio",
+                  "namespace": "public"
+                }
+              },
+              "trabajo": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Trabajo",
+                  "namespace": "public"
+                }
+              },
+              "visitas": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idPropuesta"
+                  ],
+                  "targetFields": [
+                    "idPropuesta"
+                  ]
+                },
+                "to": {
+                  "model": "Visita",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "costoVisita": {
+                  "column": "costo_visita"
+                },
+                "detalleMateriales": {
+                  "column": "detalle_materiales"
+                },
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaPropuesta": {
+                  "column": "fecha_propuesta"
+                },
+                "idPropuesta": {
+                  "column": "id_propuesta"
+                },
+                "idReparador": {
+                  "column": "id_reparador"
+                },
+                "idTrabajo": {
+                  "column": "id_trabajo"
+                },
+                "materialesIncluidos": {
+                  "column": "materiales_incluidos"
+                },
+                "precioTotal": {
+                  "column": "precio_total"
+                }
+              },
+              "namespaceId": "public",
+              "table": "propuesta"
+            }
+          },
+          "Reclamo": {
+            "fields": {
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_reclamo_enum"
+                  }
+                }
+              },
+              "fechaCreacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idReclamo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idTrabajo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idUsuario": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "motivo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "reclamoAccions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idReclamo"
+                  ],
+                  "targetFields": [
+                    "idReclamo"
+                  ]
+                },
+                "to": {
+                  "model": "ReclamoAccion",
+                  "namespace": "public"
+                }
+              },
+              "trabajo": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Trabajo",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaCreacion": {
+                  "column": "fecha_creacion"
+                },
+                "idReclamo": {
+                  "column": "id_reclamo"
+                },
+                "idTrabajo": {
+                  "column": "id_trabajo"
+                },
+                "idUsuario": {
+                  "column": "id_usuario"
+                },
+                "motivo": {
+                  "column": "motivo"
+                }
+              },
+              "namespaceId": "public",
+              "table": "reclamo"
+            }
+          },
+          "ReclamoAccion": {
+            "fields": {
+              "descripcion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fechaAccion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idAccion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idReclamo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idSoporte": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "reclamo": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idReclamo"
+                  ],
+                  "targetFields": [
+                    "idReclamo"
+                  ]
+                },
+                "to": {
+                  "model": "Reclamo",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idSoporte"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "descripcion": {
+                  "column": "descripcion"
+                },
+                "fechaAccion": {
+                  "column": "fecha_accion"
+                },
+                "idAccion": {
+                  "column": "id_accion"
+                },
+                "idReclamo": {
+                  "column": "id_reclamo"
+                },
+                "idSoporte": {
+                  "column": "id_soporte"
+                }
+              },
+              "namespaceId": "public",
+              "table": "reclamo_accion"
+            }
+          },
+          "Rol": {
+            "fields": {
+              "idRol": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "nombre": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 40
+                  }
+                }
+              }
+            },
+            "relations": {
+              "usuarioRols": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idRol"
+                  ],
+                  "targetFields": [
+                    "idRol"
+                  ]
+                },
+                "to": {
+                  "model": "UsuarioRol",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idRol": {
+                  "column": "id_rol"
+                },
+                "nombre": {
+                  "column": "nombre"
+                }
+              },
+              "namespaceId": "public",
+              "table": "rol"
+            }
+          },
+          "Servicio": {
+            "fields": {
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_servicio_enum"
+                  }
+                }
+              },
+              "fechaCreacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "fechaFinalizacion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idPropuesta": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idServicio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "calificacions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Calificacion",
+                  "namespace": "public"
+                }
+              },
+              "incrementoPresupuestos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "IncrementoPresupuesto",
+                  "namespace": "public"
+                }
+              },
+              "pagos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Pago",
+                  "namespace": "public"
+                }
+              },
+              "propuesta": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idPropuesta"
+                  ],
+                  "targetFields": [
+                    "idPropuesta"
+                  ]
+                },
+                "to": {
+                  "model": "Propuesta",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaCreacion": {
+                  "column": "fecha_creacion"
+                },
+                "fechaFinalizacion": {
+                  "column": "fecha_finalizacion"
+                },
+                "idPropuesta": {
+                  "column": "id_propuesta"
+                },
+                "idServicio": {
+                  "column": "id_servicio"
+                }
+              },
+              "namespaceId": "public",
+              "table": "servicio"
+            }
+          },
+          "Trabajo": {
+            "fields": {
+              "deletedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "descripcion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "direccion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "estadoPublicacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_publicacion_enum"
+                  }
+                }
+              },
+              "fechaCreacion": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "fechaPreferida": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idCliente": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idTrabajo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "latitud": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                }
+              },
+              "longitud": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                }
+              },
+              "titulo": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 150
+                  }
+                }
+              }
+            },
+            "relations": {
+              "categoriaTrabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "CategoriaTrabajo",
+                  "namespace": "public"
+                }
+              },
+              "documentoTrabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "DocumentoTrabajo",
+                  "namespace": "public"
+                }
+              },
+              "eventoTrabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "EventoTrabajo",
+                  "namespace": "public"
+                }
+              },
+              "propuestas": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Propuesta",
+                  "namespace": "public"
+                }
+              },
+              "reclamos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idTrabajo"
+                  ],
+                  "targetFields": [
+                    "idTrabajo"
+                  ]
+                },
+                "to": {
+                  "model": "Reclamo",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idCliente"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "deletedAt": {
+                  "column": "deleted_at"
+                },
+                "descripcion": {
+                  "column": "descripcion"
+                },
+                "direccion": {
+                  "column": "direccion"
+                },
+                "estadoPublicacion": {
+                  "column": "estado_publicacion"
+                },
+                "fechaCreacion": {
+                  "column": "fecha_creacion"
+                },
+                "fechaPreferida": {
+                  "column": "fecha_preferida"
+                },
+                "idCliente": {
+                  "column": "id_cliente"
+                },
+                "idTrabajo": {
+                  "column": "id_trabajo"
+                },
+                "latitud": {
+                  "column": "latitud"
+                },
+                "longitud": {
+                  "column": "longitud"
+                },
+                "titulo": {
+                  "column": "titulo"
+                }
+              },
+              "namespaceId": "public",
+              "table": "trabajo"
+            }
+          },
+          "Usuario": {
+            "fields": {
+              "deletedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "email": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 180
+                  }
+                }
+              },
+              "fechaRegistro": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idUsuario": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "nombre": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 120
+                  }
+                }
+              },
+              "passwordHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 255
+                  }
+                }
+              },
+              "telefono": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 25
+                  }
+                }
+              }
+            },
+            "relations": {
+              "calificacions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idEvaluado"
+                  ]
+                },
+                "to": {
+                  "model": "Calificacion",
+                  "namespace": "public"
+                }
+              },
+              "calificacionsCalificacion": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idEvaluador"
+                  ]
+                },
+                "to": {
+                  "model": "Calificacion",
+                  "namespace": "public"
+                }
+              },
+              "documentoUsuarios": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "DocumentoUsuario",
+                  "namespace": "public"
+                }
+              },
+              "eventoTrabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "EventoTrabajo",
+                  "namespace": "public"
+                }
+              },
+              "perfilTrabajador": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "PerfilTrabajador",
+                  "namespace": "public"
+                }
+              },
+              "reclamoAccions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idSoporte"
+                  ]
+                },
+                "to": {
+                  "model": "ReclamoAccion",
+                  "namespace": "public"
+                }
+              },
+              "reclamos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Reclamo",
+                  "namespace": "public"
+                }
+              },
+              "trabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idCliente"
+                  ]
+                },
+                "to": {
+                  "model": "Trabajo",
+                  "namespace": "public"
+                }
+              },
+              "usuarioRols": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "UsuarioRol",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "deletedAt": {
+                  "column": "deleted_at"
+                },
+                "email": {
+                  "column": "email"
+                },
+                "fechaRegistro": {
+                  "column": "fecha_registro"
+                },
+                "idUsuario": {
+                  "column": "id_usuario"
+                },
+                "nombre": {
+                  "column": "nombre"
+                },
+                "passwordHash": {
+                  "column": "password_hash"
+                },
+                "telefono": {
+                  "column": "telefono"
+                }
+              },
+              "namespaceId": "public",
+              "table": "usuario"
+            }
+          },
+          "UsuarioRol": {
+            "fields": {
+              "idRol": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idUsuario": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "rol": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idRol"
+                  ],
+                  "targetFields": [
+                    "idRol"
+                  ]
+                },
+                "to": {
+                  "model": "Rol",
+                  "namespace": "public"
+                }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idRol": {
+                  "column": "id_rol"
+                },
+                "idUsuario": {
+                  "column": "id_usuario"
+                }
+              },
+              "namespaceId": "public",
+              "table": "usuario_rol"
+            }
+          },
+          "Visita": {
+            "fields": {
+              "estado": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "estado_visita_enum"
+                  }
+                }
+              },
+              "fechaFin": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "fechaInicio": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6
+                  }
+                }
+              },
+              "idPropuesta": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idVisita": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "propuesta": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idPropuesta"
+                  ],
+                  "targetFields": [
+                    "idPropuesta"
+                  ]
+                },
+                "to": {
+                  "model": "Propuesta",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "estado": {
+                  "column": "estado"
+                },
+                "fechaFin": {
+                  "column": "fecha_fin"
+                },
+                "fechaInicio": {
+                  "column": "fecha_inicio"
+                },
+                "idPropuesta": {
+                  "column": "id_propuesta"
+                },
+                "idVisita": {
+                  "column": "id_visita"
+                }
+              },
+              "namespaceId": "public",
+              "table": "visita"
+            }
+          },
+          "Zona": {
+            "fields": {
+              "idZona": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "nombre": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 100
+                  }
+                }
+              }
+            },
+            "relations": {
+              "zonaReparadors": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idZona"
+                  ],
+                  "targetFields": [
+                    "idZona"
+                  ]
+                },
+                "to": {
+                  "model": "ZonaReparador",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idZona": {
+                  "column": "id_zona"
+                },
+                "nombre": {
+                  "column": "nombre"
+                }
+              },
+              "namespaceId": "public",
+              "table": "zona"
+            }
+          },
+          "ZonaReparador": {
+            "fields": {
+              "idReparador": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idZona": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "perfilTrabajador": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idReparador"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "PerfilTrabajador",
+                  "namespace": "public"
+                }
+              },
+              "zona": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "idZona"
+                  ],
+                  "targetFields": [
+                    "idZona"
+                  ]
+                },
+                "to": {
+                  "model": "Zona",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "idReparador": {
+                  "column": "id_reparador"
+                },
+                "idZona": {
+                  "column": "id_zona"
+                }
+              },
+              "namespaceId": "public",
+              "table": "zona_reparador"
+            }
+          }
+        }
+      }
+    }
+  },
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "extension": {
+            "pgcrypto": {
+              "kind": "extension",
+              "name": "pgcrypto"
+            }
+          },
+          "native_enum": {
+            "estado_aprobacion_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "pendiente",
+                "aprobado",
+                "rechazado"
+              ],
+              "typeName": "estado_aprobacion_enum"
+            },
+            "estado_pago_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "declarado",
+                "confirmado",
+                "rechazado"
+              ],
+              "typeName": "estado_pago_enum"
+            },
+            "estado_propuesta_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "pendiente",
+                "aceptada",
+                "rechazada",
+                "retirada"
+              ],
+              "typeName": "estado_propuesta_enum"
+            },
+            "estado_publicacion_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "abierto",
+                "cerrado",
+                "cancelado"
+              ],
+              "typeName": "estado_publicacion_enum"
+            },
+            "estado_reclamo_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "abierto",
+                "en_revision",
+                "resuelto",
+                "rechazado"
+              ],
+              "typeName": "estado_reclamo_enum"
+            },
+            "estado_servicio_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "programado",
+                "en_progreso",
+                "completado",
+                "cancelado"
+              ],
+              "typeName": "estado_servicio_enum"
+            },
+            "estado_visita_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "programada",
+                "realizada",
+                "cancelada"
+              ],
+              "typeName": "estado_visita_enum"
+            },
+            "metodo_pago_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "efectivo",
+                "qr",
+                "transferencia"
+              ],
+              "typeName": "metodo_pago_enum"
+            }
+          },
+          "table": {
+            "calificacion": {
+              "checks": [
+                {
+                  "expression": "(id_evaluador <> id_evaluado)",
+                  "name": "calificacion_check"
+                },
+                {
+                  "expression": "((puntuacion >= 1) AND (puntuacion <= 5))",
+                  "name": "calificacion_puntuacion_check"
+                }
+              ],
+              "columns": {
+                "comentario": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "fecha": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_calificacion": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_evaluado": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_evaluador": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_servicio": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "puntuacion": {
+                  "codecId": "pg/int2@1",
+                  "dataType": "pg/int2",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "calificacion_id_evaluado_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_evaluado"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "calificacion"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                },
+                {
+                  "name": "calificacion_id_evaluador_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_evaluador"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "calificacion"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                },
+                {
+                  "index": {
+                    "unique": [
+                      "id_servicio",
+                      "id_evaluador"
+                    ]
+                  },
+                  "name": "calificacion_id_servicio_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "calificacion"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "servicio"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_calificacion"
+                ],
+                "name": "calificacion_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "id_servicio",
+                    "id_evaluador"
+                  ],
+                  "name": "calificacion_id_servicio_id_evaluador_key"
+                }
+              ]
+            },
+            "categoria": {
+              "columns": {
+                "id_categoria": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "nombre": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 100
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_categoria"
+                ],
+                "name": "categoria_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "nombre"
+                  ],
+                  "name": "categoria_nombre_key"
+                }
+              ]
+            },
+            "categoria_reparador": {
+              "columns": {
+                "id_categoria": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_reparador": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "primaryKey": true
+                  },
+                  "name": "categoria_reparador_id_categoria_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_categoria"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "categoria_reparador"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_categoria"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "categoria"
+                  }
+                },
+                {
+                  "name": "categoria_reparador_id_reparador_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_reparador"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "categoria_reparador"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "perfil_trabajador"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_categoria",
+                  "id_reparador"
+                ],
+                "name": "categoria_reparador_pkey"
+              },
+              "uniques": []
+            },
+            "categoria_trabajo": {
+              "columns": {
+                "id_categoria": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_trabajo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "primaryKey": true
+                  },
+                  "name": "categoria_trabajo_id_categoria_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_categoria"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "categoria_trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_categoria"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "categoria"
+                  }
+                },
+                {
+                  "name": "categoria_trabajo_id_trabajo_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "categoria_trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trabajo"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_categoria",
+                  "id_trabajo"
+                ],
+                "name": "categoria_trabajo_pkey"
+              },
+              "uniques": []
+            },
+            "disponibilidad": {
+              "checks": [
+                {
+                  "expression": "(hora_fin > hora_inicio)",
+                  "name": "disponibilidad_check"
+                },
+                {
+                  "expression": "((dia_semana >= 1) AND (dia_semana <= 7))",
+                  "name": "disponibilidad_dia_semana_check"
+                }
+              ],
+              "columns": {
+                "dia_semana": {
+                  "codecId": "pg/int2@1",
+                  "dataType": "pg/int2",
+                  "nullable": false
+                },
+                "hora_fin": {
+                  "codecId": "pg/time-string@1",
+                  "dataType": "pg/time",
+                  "nullable": false
+                },
+                "hora_inicio": {
+                  "codecId": "pg/time-string@1",
+                  "dataType": "pg/time",
+                  "nullable": false
+                },
+                "id_disponibilidad": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_reparador": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "id_reparador",
+                      "dia_semana",
+                      "hora_inicio"
+                    ]
+                  },
+                  "name": "disponibilidad_id_reparador_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_reparador"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "disponibilidad"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "perfil_trabajador"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_disponibilidad"
+                ],
+                "name": "disponibilidad_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "id_reparador",
+                    "dia_semana",
+                    "hora_inicio"
+                  ],
+                  "name": "disponibilidad_id_reparador_dia_semana_hora_inicio_key"
+                }
+              ]
+            },
+            "documento_trabajo": {
+              "columns": {
+                "archivo_url": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "fecha_subida": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_documento": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_trabajo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "tipo_documento": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": true,
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "documento_trabajo_id_trabajo_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "documento_trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trabajo"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_documento"
+                ],
+                "name": "documento_trabajo_pkey"
+              },
+              "uniques": []
+            },
+            "documento_usuario": {
+              "columns": {
+                "archivo_url": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "estado": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "pendiente"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_aprobacion_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoAprobacionEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_subida": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_documento_us": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_usuario": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "tipo_documento": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "documento_usuario_id_usuario_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "documento_usuario"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_documento_us"
+                ],
+                "name": "documento_usuario_pkey"
+              },
+              "uniques": []
+            },
+            "evento_trabajo": {
+              "columns": {
+                "detalle": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "fecha_evento": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_evento": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_trabajo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_usuario": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "tipo_evento": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 60
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "evento_trabajo_id_trabajo_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "evento_trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trabajo"
+                  }
+                },
+                {
+                  "name": "evento_trabajo_id_usuario_fkey",
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "evento_trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_evento"
+                ],
+                "name": "evento_trabajo_pkey"
+              },
+              "uniques": []
+            },
+            "incremento_presupuesto": {
+              "checks": [
+                {
+                  "expression": "(monto_nuevo > (0)::numeric)",
+                  "name": "incremento_presupuesto_monto_nuevo_check"
+                }
+              ],
+              "columns": {
+                "estado_aprobacion": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "pendiente"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_aprobacion_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoAprobacionEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_respuesta": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "fecha_solicitud": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_incremento": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_servicio": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "monto_nuevo": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "motivo": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "incremento_presupuesto_id_servicio_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "incremento_presupuesto"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "servicio"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_incremento"
+                ],
+                "name": "incremento_presupuesto_pkey"
+              },
+              "uniques": []
+            },
+            "pago": {
+              "checks": [
+                {
+                  "expression": "((fecha_confirmacion IS NULL) OR (fecha_confirmacion >= fecha_declaracion))",
+                  "name": "pago_check"
+                },
+                {
+                  "expression": "(monto > (0)::numeric)",
+                  "name": "pago_monto_check"
+                }
+              ],
+              "columns": {
+                "comprobante_url": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "estado": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "declarado"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_pago_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoPagoEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_confirmacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "fecha_declaracion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_pago": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_servicio": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "metodo": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "metodo_pago_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "MetodoPagoEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "monto": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "pago_id_servicio_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "pago"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "servicio"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_pago"
+                ],
+                "name": "pago_pkey"
+              },
+              "uniques": []
+            },
+            "perfil_trabajador": {
+              "columns": {
+                "estado_aprobacion": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "pendiente"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_aprobacion_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoAprobacionEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "experiencia": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "id_usuario": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "primaryKey": true
+                  },
+                  "name": "perfil_trabajador_id_usuario_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "perfil_trabajador"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_usuario"
+                ],
+                "name": "perfil_trabajador_pkey"
+              },
+              "uniques": []
+            },
+            "propuesta": {
+              "checks": [
+                {
+                  "expression": "(costo_visita >= (0)::numeric)",
+                  "name": "propuesta_costo_visita_check"
+                },
+                {
+                  "expression": "(precio_total >= (0)::numeric)",
+                  "name": "propuesta_precio_total_check"
+                }
+              ],
+              "columns": {
+                "costo_visita": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0.00"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "detalle_materiales": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "estado": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "pendiente"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_propuesta_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoPropuestaEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_propuesta": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_propuesta": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_reparador": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_trabajo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "materiales_incluidos": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nullable": false
+                },
+                "precio_total": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "propuesta_id_reparador_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_reparador"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "propuesta"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "perfil_trabajador"
+                  }
+                },
+                {
+                  "index": {
+                    "unique": [
+                      "id_trabajo",
+                      "id_reparador"
+                    ]
+                  },
+                  "name": "propuesta_id_trabajo_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "propuesta"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trabajo"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_propuesta"
+                ],
+                "name": "propuesta_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "id_trabajo",
+                    "id_reparador"
+                  ],
+                  "name": "propuesta_id_trabajo_id_reparador_key"
+                }
+              ]
+            },
+            "reclamo": {
+              "columns": {
+                "estado": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "abierto"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_reclamo_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoReclamoEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_creacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_reclamo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_trabajo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_usuario": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "motivo": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "reclamo_id_trabajo_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reclamo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_trabajo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trabajo"
+                  }
+                },
+                {
+                  "name": "reclamo_id_usuario_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reclamo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_reclamo"
+                ],
+                "name": "reclamo_pkey"
+              },
+              "uniques": []
+            },
+            "reclamo_accion": {
+              "columns": {
+                "descripcion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "fecha_accion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_accion": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "id_reclamo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_soporte": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "reclamo_accion_id_reclamo_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_reclamo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reclamo_accion"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_reclamo"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reclamo"
+                  }
+                },
+                {
+                  "name": "reclamo_accion_id_soporte_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_soporte"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "reclamo_accion"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_accion"
+                ],
+                "name": "reclamo_accion_pkey"
+              },
+              "uniques": []
+            },
+            "rol": {
+              "columns": {
+                "id_rol": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "nombre": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 40
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_rol"
+                ],
+                "name": "rol_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "nombre"
+                  ],
+                  "name": "rol_nombre_key"
+                }
+              ]
+            },
+            "servicio": {
+              "columns": {
+                "estado": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "programado"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_servicio_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoServicioEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_creacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "fecha_finalizacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_propuesta": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_servicio": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "id_propuesta"
+                    ]
+                  },
+                  "name": "servicio_id_propuesta_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_propuesta"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "servicio"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_propuesta"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "propuesta"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_servicio"
+                ],
+                "name": "servicio_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "id_propuesta"
+                  ],
+                  "name": "servicio_id_propuesta_key"
+                }
+              ]
+            },
+            "trabajo": {
+              "checks": [
+                {
+                  "expression": "((latitud >= ('-90'::integer)::numeric) AND (latitud <= (90)::numeric))",
+                  "name": "trabajo_latitud_check"
+                },
+                {
+                  "expression": "((longitud >= ('-180'::integer)::numeric) AND (longitud <= (180)::numeric))",
+                  "name": "trabajo_longitud_check"
+                }
+              ],
+              "columns": {
+                "deleted_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "descripcion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "direccion": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "estado_publicacion": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "abierto"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_publicacion_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoPublicacionEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_creacion": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "fecha_preferida": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_cliente": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_trabajo": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "latitud": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                },
+                "longitud": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                },
+                "titulo": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 150
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "trabajo_id_cliente_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "id_cliente"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_trabajo"
+                ],
+                "name": "trabajo_pkey"
+              },
+              "uniques": []
+            },
+            "usuario": {
+              "columns": {
+                "deleted_at": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "email": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 180
+                  }
+                },
+                "fecha_registro": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_usuario": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "nombre": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 120
+                  }
+                },
+                "password_hash": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 255
+                  }
+                },
+                "telefono": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": true,
+                  "typeParams": {
+                    "length": 25
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_usuario"
+                ],
+                "name": "usuario_pkey"
+              },
+              "uniques": []
+            },
+            "usuario_rol": {
+              "columns": {
+                "id_rol": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_usuario": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "usuario_rol_id_rol_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_rol"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario_rol"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_rol"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "rol"
+                  }
+                },
+                {
+                  "index": {
+                    "primaryKey": true
+                  },
+                  "name": "usuario_rol_id_usuario_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario_rol"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_usuario",
+                  "id_rol"
+                ],
+                "name": "usuario_rol_pkey"
+              },
+              "uniques": []
+            },
+            "visita": {
+              "checks": [
+                {
+                  "expression": "((fecha_fin IS NULL) OR (fecha_fin > fecha_inicio))",
+                  "name": "visita_check"
+                }
+              ],
+              "columns": {
+                "estado": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "programada"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "estado_visita_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EstadoVisitaEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fecha_fin": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "fecha_inicio": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 6
+                  }
+                },
+                "id_propuesta": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_visita": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "visita_id_propuesta_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_propuesta"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "visita"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_propuesta"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "propuesta"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_visita"
+                ],
+                "name": "visita_pkey"
+              },
+              "uniques": []
+            },
+            "zona": {
+              "columns": {
+                "id_zona": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "nombre": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 100
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_zona"
+                ],
+                "name": "zona_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "nombre"
+                  ],
+                  "name": "zona_nombre_key"
+                }
+              ]
+            },
+            "zona_reparador": {
+              "columns": {
+                "id_reparador": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_zona": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "zona_reparador_id_reparador_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_reparador"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "zona_reparador"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "perfil_trabajador"
+                  }
+                },
+                {
+                  "index": {
+                    "primaryKey": true
+                  },
+                  "name": "zona_reparador_id_zona_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_zona"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "zona_reparador"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_zona"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "zona"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id_zona",
+                  "id_reparador"
+                ],
+                "name": "zona_reparador_pkey"
+              },
+              "uniques": []
+            }
+          },
+          "valueSet": {
+            "EstadoAprobacionEnum": {
+              "kind": "valueSet",
+              "values": [
+                "pendiente",
+                "aprobado",
+                "rechazado"
+              ]
+            },
+            "EstadoPagoEnum": {
+              "kind": "valueSet",
+              "values": [
+                "declarado",
+                "confirmado",
+                "rechazado"
+              ]
+            },
+            "EstadoPropuestaEnum": {
+              "kind": "valueSet",
+              "values": [
+                "pendiente",
+                "aceptada",
+                "rechazada",
+                "retirada"
+              ]
+            },
+            "EstadoPublicacionEnum": {
+              "kind": "valueSet",
+              "values": [
+                "abierto",
+                "cerrado",
+                "cancelado"
+              ]
+            },
+            "EstadoReclamoEnum": {
+              "kind": "valueSet",
+              "values": [
+                "abierto",
+                "en_revision",
+                "resuelto",
+                "rechazado"
+              ]
+            },
+            "EstadoServicioEnum": {
+              "kind": "valueSet",
+              "values": [
+                "programado",
+                "en_progreso",
+                "completado",
+                "cancelado"
+              ]
+            },
+            "EstadoVisitaEnum": {
+              "kind": "valueSet",
+              "values": [
+                "programada",
+                "realizada",
+                "cancelada"
+              ]
+            },
+            "MetodoPagoEnum": {
+              "kind": "valueSet",
+              "values": [
+                "efectivo",
+                "qr",
+                "transferencia"
+              ]
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "befc28be41cc87be189166cc704d5b48e279573b55948c7f35184e463c4f5cbd"
+  },
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "forKeyShare": true,
+      "forNoKeyUpdate": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "checkConstraint": true,
+      "defaultInInsert": true,
+      "enums": true,
+      "forShare": true,
+      "forUpdate": true,
+      "insertOnConflictSkip": true,
+      "insertOnConflictTarget": true,
+      "insertOnConflictWithoutTarget": true,
+      "lateral": true,
+      "lockNowait": true,
+      "lockOf": true,
+      "lockSkipLocked": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "extensions": {},
+  "meta": {},
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma contract emit\".",
+    "regenerate": "To regenerate, run: prisma contract emit"
+  }
+}
