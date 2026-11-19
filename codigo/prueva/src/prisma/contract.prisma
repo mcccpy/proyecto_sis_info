@@ -49,6 +49,7 @@ namespace public {
     fechaCreacion     DateTime(precision: 6)                @default(now()) @map("fecha_creacion")
     estadoPublicacion pg.enum(EstadoPublicacionEnum)        @default("abierto") @map("estado_publicacion")
     deletedAt         DateTime(precision: 6)?               @map("deleted_at")
+    tipoSolicitud     pg.enum(TipoSolicitudEnum)            @default("abierta") @map("tipo_solicitud")
     categoriaTrabajos CategoriaTrabajo[]
     documentoTrabajos DocumentoTrabajo[]
     eventoTrabajos    EventoTrabajo[]
@@ -369,5 +370,11 @@ namespace public {
     qr = "qr"
     transferencia = "transferencia"
     @@map("metodo_pago_enum")
+  }
+
+  native_enum TipoSolicitudEnum {
+    abierta = "abierta"
+    directa = "directa"
+    @@map("tipo_solicitud_enum")
   }
 }

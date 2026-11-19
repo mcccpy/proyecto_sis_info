@@ -1843,6 +1843,16 @@
                   }
                 }
               },
+              "tipoSolicitud": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/enum@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "typeName": "tipo_solicitud_enum"
+                  }
+                }
+              },
               "titulo": {
                 "nullable": false,
                 "type": {
@@ -1978,6 +1988,9 @@
                 },
                 "longitud": {
                   "column": "longitud"
+                },
+                "tipoSolicitud": {
+                  "column": "tipo_solicitud"
                 },
                 "titulo": {
                   "column": "titulo"
@@ -2635,6 +2648,14 @@
                 "transferencia"
               ],
               "typeName": "metodo_pago_enum"
+            },
+            "tipo_solicitud_enum": {
+              "kind": "postgres-enum",
+              "members": [
+                "abierta",
+                "directa"
+              ],
+              "typeName": "tipo_solicitud_enum"
             }
           },
           "table": {
@@ -4177,6 +4198,24 @@
                     "scale": 6
                   }
                 },
+                "tipo_solicitud": {
+                  "codecId": "pg/enum@1",
+                  "dataType": "pg/enum",
+                  "default": {
+                    "kind": "literal",
+                    "value": "abierta"
+                  },
+                  "nullable": false,
+                  "typeParams": {
+                    "typeName": "tipo_solicitud_enum"
+                  },
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "TipoSolicitudEnum",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "titulo": {
                   "codecId": "sql/varchar@1",
                   "dataType": "pg/varchar",
@@ -4663,6 +4702,13 @@
                 "qr",
                 "transferencia"
               ]
+            },
+            "TipoSolicitudEnum": {
+              "kind": "valueSet",
+              "values": [
+                "abierta",
+                "directa"
+              ]
             }
           }
         },
@@ -4670,7 +4716,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a77d88c0dfc41245b4a607e04661e7d7fbf43cd84c4c27921986618aa79ae6c0"
+    "storageHash": "f809c3efde19b4a085a5cc9a207375becd9683b5c97bdd217a2805e136ce81e0"
   },
   "capabilities": {
     "postgres": {
