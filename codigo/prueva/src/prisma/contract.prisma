@@ -25,7 +25,7 @@ namespace public {
 
   model PerfilTrabajador {
     idUsuario           Int                           @id(map: "perfil_trabajador_pkey") @map("id_usuario")
-    experiencia         String?
+    experienciaAnios    Int(storage: int2)?           @map("experiencia_anios")
     estadoAprobacion    pg.enum(EstadoAprobacionEnum) @default("pendiente") @map("estado_aprobacion")
     categoriaReparadors CategoriaReparador[]
     disponibilidads     Disponibilidad[]
@@ -33,6 +33,7 @@ namespace public {
     zonaReparadors      ZonaReparador[]
     usuario             Usuario                       @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade, map: "perfil_trabajador_id_usuario_fkey")
 
+    @@check(expression: sql`((experiencia_anios >= 0) AND (experiencia_anios <= 100))`, map: "perfil_trabajador_experiencia_anios_check")
     @@map("perfil_trabajador")
   }
 
@@ -157,24 +158,26 @@ namespace public {
   }
 
   model DocumentoTrabajo {
-    idDocumento   Int                                   @id(map: "documento_trabajo_pkey") @default(autoincrement()) @map("id_documento")
-    idTrabajo     Int                                   @map("id_trabajo")
-    tipoDocumento String(storage: varchar, length: 50)? @map("tipo_documento")
-    archivoUrl    String                                @map("archivo_url")
-    fechaSubida   DateTime(precision: 6)                @default(now()) @map("fecha_subida")
-    trabajo       Trabajo                               @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Cascade, map: "documento_trabajo_id_trabajo_fkey", index: false)
+    idDocumento      Int                                   @id(map: "documento_trabajo_pkey") @default(autoincrement()) @map("id_documento")
+    idTrabajo        Int                                   @map("id_trabajo")
+    tipoDocumento    String(storage: varchar, length: 50)? @map("tipo_documento")
+    ubucacionArchivo String                                @map("ubucacion_archivo")
+    urlYN            Boolean                               @default(false) @map("url_y_n")
+    fechaSubida      DateTime(precision: 6)                @default(now()) @map("fecha_subida")
+    trabajo          Trabajo                               @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Cascade, map: "documento_trabajo_id_trabajo_fkey", index: false)
 
     @@map("documento_trabajo")
   }
 
   model DocumentoUsuario {
-    idDocumentoUs Int                                  @id(map: "documento_usuario_pkey") @default(autoincrement()) @map("id_documento_us")
-    idUsuario     Int                                  @map("id_usuario")
-    tipoDocumento String(storage: varchar, length: 50) @map("tipo_documento")
-    archivoUrl    String                               @map("archivo_url")
-    estado        pg.enum(EstadoAprobacionEnum)        @default("pendiente")
-    fechaSubida   DateTime(precision: 6)               @default(now()) @map("fecha_subida")
-    usuario       Usuario                              @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade, map: "documento_usuario_id_usuario_fkey", index: false)
+    idDocumentoUs    Int                                  @id(map: "documento_usuario_pkey") @default(autoincrement()) @map("id_documento_us")
+    idUsuario        Int                                  @map("id_usuario")
+    tipoDocumento    String(storage: varchar, length: 50) @map("tipo_documento")
+    ubucacionArchivo String                               @map("ubucacion_archivo")
+    urlYN            Boolean                              @default(false) @map("url_y_n")
+    estado           pg.enum(EstadoAprobacionEnum)        @default("pendiente")
+    fechaSubida      DateTime(precision: 6)               @default(now()) @map("fecha_subida")
+    usuario          Usuario                              @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade, map: "documento_usuario_id_usuario_fkey", index: false)
 
     @@map("documento_usuario")
   }
@@ -281,8 +284,18 @@ namespace public {
   model Zona {
     idZona         Int                                   @id(map: "zona_pkey") @default(autoincrement()) @map("id_zona")
     nombre         String(storage: varchar, length: 100) @unique(map: "zona_nombre_key")
+    latitud        Decimal(precision: 9, scale: 6)?
+    longitud       Decimal(precision: 9, scale: 6)?
+    radioGood      Int                                   @map("radio_good")
+    radioMedio     Int                                   @map("radio_medio")
+    radioDab       BigInt                                @map("radio_dab")
     zonaReparadors ZonaReparador[]
 
+    @@check(expression: sql`((latitud >= ('-90'::integer)::numeric) AND (latitud <= (90)::numeric))`, map: "zona_latitud_check")
+    @@check(expression: sql`((longitud >= ('-180'::integer)::numeric) AND (longitud <= (180)::numeric))`, map: "zona_longitud_check")
+    @@check(expression: sql`(radio_dab > 0)`, map: "zona_radio_dab_check")
+    @@check(expression: sql`(radio_good > 0)`, map: "zona_radio_good_check")
+    @@check(expression: sql`(radio_medio > 0)`, map: "zona_radio_medio_check")
     @@map("zona")
   }
 

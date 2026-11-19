@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'befc28be41cc87be189166cc704d5b48e279573b55948c7f35184e463c4f5cbd'>;
+  StorageHashBase<'a77d88c0dfc41245b4a607e04661e7d7fbf43cd84c4c27921986618aa79ae6c0'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -476,21 +476,23 @@ export namespace Models {
     readonly [RelationKeys]?: 'perfilTrabajador';
   };
   export type public_DocumentoTrabajo = {
-    archivoUrl: FieldOutputTypes['public']['DocumentoTrabajo']['archivoUrl'];
     fechaSubida: FieldOutputTypes['public']['DocumentoTrabajo']['fechaSubida'];
     idDocumento: FieldOutputTypes['public']['DocumentoTrabajo']['idDocumento'];
     idTrabajo: FieldOutputTypes['public']['DocumentoTrabajo']['idTrabajo'];
     tipoDocumento: FieldOutputTypes['public']['DocumentoTrabajo']['tipoDocumento'];
+    ubucacionArchivo: FieldOutputTypes['public']['DocumentoTrabajo']['ubucacionArchivo'];
+    urlYN: FieldOutputTypes['public']['DocumentoTrabajo']['urlYN'];
     trabajo: public_Trabajo;
     readonly [RelationKeys]?: 'trabajo';
   };
   export type public_DocumentoUsuario = {
-    archivoUrl: FieldOutputTypes['public']['DocumentoUsuario']['archivoUrl'];
     estado: FieldOutputTypes['public']['DocumentoUsuario']['estado'];
     fechaSubida: FieldOutputTypes['public']['DocumentoUsuario']['fechaSubida'];
     idDocumentoUs: FieldOutputTypes['public']['DocumentoUsuario']['idDocumentoUs'];
     idUsuario: FieldOutputTypes['public']['DocumentoUsuario']['idUsuario'];
     tipoDocumento: FieldOutputTypes['public']['DocumentoUsuario']['tipoDocumento'];
+    ubucacionArchivo: FieldOutputTypes['public']['DocumentoUsuario']['ubucacionArchivo'];
+    urlYN: FieldOutputTypes['public']['DocumentoUsuario']['urlYN'];
     usuario: public_Usuario;
     readonly [RelationKeys]?: 'usuario';
   };
@@ -530,7 +532,7 @@ export namespace Models {
   };
   export type public_PerfilTrabajador = {
     estadoAprobacion: FieldOutputTypes['public']['PerfilTrabajador']['estadoAprobacion'];
-    experiencia: FieldOutputTypes['public']['PerfilTrabajador']['experiencia'];
+    experienciaAnios: FieldOutputTypes['public']['PerfilTrabajador']['experienciaAnios'];
     idUsuario: FieldOutputTypes['public']['PerfilTrabajador']['idUsuario'];
     categoriaReparadors: public_CategoriaReparador[];
     disponibilidads: public_Disponibilidad[];
@@ -668,7 +670,12 @@ export namespace Models {
   };
   export type public_Zona = {
     idZona: FieldOutputTypes['public']['Zona']['idZona'];
+    latitud: FieldOutputTypes['public']['Zona']['latitud'];
+    longitud: FieldOutputTypes['public']['Zona']['longitud'];
     nombre: FieldOutputTypes['public']['Zona']['nombre'];
+    radioDab: FieldOutputTypes['public']['Zona']['radioDab'];
+    radioGood: FieldOutputTypes['public']['Zona']['radioGood'];
+    radioMedio: FieldOutputTypes['public']['Zona']['radioMedio'];
     zonaReparadors: public_ZonaReparador[];
     readonly [RelationKeys]?: 'zonaReparadors';
   };
@@ -1026,12 +1033,6 @@ type ContractBase = Omit<
             };
             readonly documento_trabajo: {
               columns: {
-                readonly archivo_url: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
                 readonly fecha_subida: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
@@ -1063,6 +1064,22 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly length: 50 };
                   readonly many: false;
                 };
+                readonly ubucacion_archivo: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly url_y_n: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
+                  readonly many: false;
+                };
               };
               primaryKey: {
                 readonly columns: readonly ['id_documento'];
@@ -1088,12 +1105,6 @@ type ContractBase = Omit<
             };
             readonly documento_usuario: {
               columns: {
-                readonly archivo_url: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
                 readonly estado: {
                   readonly dataType: 'pg/enum';
                   readonly codecId: 'pg/enum@1';
@@ -1134,6 +1145,22 @@ type ContractBase = Omit<
                   readonly codecId: 'sql/varchar@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly length: 50 };
+                  readonly many: false;
+                };
+                readonly ubucacion_archivo: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly url_y_n: {
+                  readonly dataType: 'pg/bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
+                  };
                   readonly many: false;
                 };
               };
@@ -1417,9 +1444,9 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly typeName: 'estado_aprobacion_enum' };
                   readonly many: false;
                 };
-                readonly experiencia: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
+                readonly experiencia_anios: {
+                  readonly dataType: 'pg/int2';
+                  readonly codecId: 'pg/int2@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
@@ -2127,11 +2154,43 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
+                readonly latitud: {
+                  readonly dataType: 'pg/numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 9; readonly scale: 6 };
+                  readonly many: false;
+                };
+                readonly longitud: {
+                  readonly dataType: 'pg/numeric';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly nullable: true;
+                  readonly typeParams: { readonly precision: 9; readonly scale: 6 };
+                  readonly many: false;
+                };
                 readonly nombre: {
                   readonly dataType: 'pg/varchar';
                   readonly codecId: 'sql/varchar@1';
                   readonly nullable: false;
                   readonly typeParams: { readonly length: 100 };
+                  readonly many: false;
+                };
+                readonly radio_dab: {
+                  readonly dataType: 'pg/int8';
+                  readonly codecId: 'pg/int8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly radio_good: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly radio_medio: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
                   readonly many: false;
                 };
               };
@@ -2578,10 +2637,6 @@ type ContractBase = Omit<
           };
           readonly DocumentoTrabajo: {
             readonly fields: {
-              readonly archivoUrl: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
               readonly fechaSubida: {
                 readonly nullable: false;
                 readonly type: {
@@ -2606,6 +2661,14 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly length: 50 };
                 };
               };
+              readonly ubucacionArchivo: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly urlYN: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
             };
             readonly relations: {
               readonly trabajo: {
@@ -2625,20 +2688,17 @@ type ContractBase = Omit<
               readonly table: 'documento_trabajo';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly archivoUrl: { readonly column: 'archivo_url' };
                 readonly fechaSubida: { readonly column: 'fecha_subida' };
                 readonly idDocumento: { readonly column: 'id_documento' };
                 readonly idTrabajo: { readonly column: 'id_trabajo' };
                 readonly tipoDocumento: { readonly column: 'tipo_documento' };
+                readonly ubucacionArchivo: { readonly column: 'ubucacion_archivo' };
+                readonly urlYN: { readonly column: 'url_y_n' };
               };
             };
           };
           readonly DocumentoUsuario: {
             readonly fields: {
-              readonly archivoUrl: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
               readonly estado: {
                 readonly nullable: false;
                 readonly type: {
@@ -2671,6 +2731,14 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly length: 50 };
                 };
               };
+              readonly ubucacionArchivo: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly urlYN: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
             };
             readonly relations: {
               readonly usuario: {
@@ -2690,12 +2758,13 @@ type ContractBase = Omit<
               readonly table: 'documento_usuario';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly archivoUrl: { readonly column: 'archivo_url' };
                 readonly estado: { readonly column: 'estado' };
                 readonly fechaSubida: { readonly column: 'fecha_subida' };
                 readonly idDocumentoUs: { readonly column: 'id_documento_us' };
                 readonly idUsuario: { readonly column: 'id_usuario' };
                 readonly tipoDocumento: { readonly column: 'tipo_documento' };
+                readonly ubucacionArchivo: { readonly column: 'ubucacion_archivo' };
+                readonly urlYN: { readonly column: 'url_y_n' };
               };
             };
           };
@@ -2942,9 +3011,9 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly typeName: 'estado_aprobacion_enum' };
                 };
               };
-              readonly experiencia: {
+              readonly experienciaAnios: {
                 readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int2@1' };
               };
               readonly idUsuario: {
                 readonly nullable: false;
@@ -3014,7 +3083,7 @@ type ContractBase = Omit<
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly estadoAprobacion: { readonly column: 'estado_aprobacion' };
-                readonly experiencia: { readonly column: 'experiencia' };
+                readonly experienciaAnios: { readonly column: 'experiencia_anios' };
                 readonly idUsuario: { readonly column: 'id_usuario' };
               };
             };
@@ -3860,6 +3929,22 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
+              readonly latitud: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly typeParams: { readonly precision: 9; readonly scale: 6 };
+                };
+              };
+              readonly longitud: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/numeric@1';
+                  readonly typeParams: { readonly precision: 9; readonly scale: 6 };
+                };
+              };
               readonly nombre: {
                 readonly nullable: false;
                 readonly type: {
@@ -3867,6 +3952,18 @@ type ContractBase = Omit<
                   readonly codecId: 'sql/varchar@1';
                   readonly typeParams: { readonly length: 100 };
                 };
+              };
+              readonly radioDab: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int8@1' };
+              };
+              readonly radioGood: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly radioMedio: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
             };
             readonly relations: {
@@ -3887,7 +3984,12 @@ type ContractBase = Omit<
               readonly namespaceId: 'public';
               readonly fields: {
                 readonly idZona: { readonly column: 'id_zona' };
+                readonly latitud: { readonly column: 'latitud' };
+                readonly longitud: { readonly column: 'longitud' };
                 readonly nombre: { readonly column: 'nombre' };
+                readonly radioDab: { readonly column: 'radio_dab' };
+                readonly radioGood: { readonly column: 'radio_good' };
+                readonly radioMedio: { readonly column: 'radio_medio' };
               };
             };
           };

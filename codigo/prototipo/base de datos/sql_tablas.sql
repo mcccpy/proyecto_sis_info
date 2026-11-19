@@ -41,7 +41,7 @@ CREATE TABLE usuario_rol (
 -- Perfil 1:1 con usuario. id_reparador en el resto del esquema = perfil_trabajador.id_usuario
 CREATE TABLE perfil_trabajador (
     id_usuario         INT PRIMARY KEY REFERENCES usuario (id_usuario) ON DELETE CASCADE,
-    experiencia        TEXT,
+    experiencia_anios   SMALLINT CHECK ( experiencia_anios>= 0 AND experiencia_anios <= 100),
     estado_aprobacion  estado_aprobacion_enum NOT NULL DEFAULT 'pendiente'
 );
 
@@ -49,7 +49,7 @@ CREATE TABLE documento_usuario (
     id_documento_us  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_usuario       INT NOT NULL REFERENCES usuario (id_usuario) ON DELETE CASCADE,
     tipo_documento   VARCHAR(50) NOT NULL,
-    archivo_url      TEXT NOT NULL,
+    ubucacion_archivo      TEXT NOT NULL,
     estado           estado_aprobacion_enum NOT NULL DEFAULT 'pendiente',
     fecha_subida     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -60,15 +60,20 @@ CREATE TABLE categoria (
     nombre        VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE zona (
-    id_zona  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre   VARCHAR(100) NOT NULL UNIQUE
-);
-
 CREATE TABLE categoria_reparador (
     id_categoria  INT NOT NULL REFERENCES categoria (id_categoria)        ON DELETE CASCADE,
     id_reparador  INT NOT NULL REFERENCES perfil_trabajador (id_usuario)  ON DELETE CASCADE,
     PRIMARY KEY (id_categoria, id_reparador)
+);
+
+CREATE TABLE zona (
+    id_zona  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre   VARCHAR(100) NOT NULL UNIQUE,
+    latitud   NUMERIC(9,6) CHECK (latitud  BETWEEN -90  AND 90),
+    longitud  NUMERIC(9,6) CHECK (longitud BETWEEN -180 AND 180),
+    radio_good INT NOT NULL CHECK (radio_good > 0),
+    radio_medio INT NOT NULL CHECK (radio_medio > 0),
+    radio_dab BIGINT NOT NULL CHECK (radio_dab > 0)
 );
 
 CREATE TABLE zona_reparador (
