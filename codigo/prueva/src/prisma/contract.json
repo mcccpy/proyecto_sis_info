@@ -84,10 +84,6 @@
       "model": "Visita",
       "namespace": "public"
     },
-    "zona": {
-      "model": "Zona",
-      "namespace": "public"
-    },
     "zona_reparador": {
       "model": "ZonaReparador",
       "namespace": "public"
@@ -503,6 +499,13 @@
           },
           "DocumentoTrabajo": {
             "fields": {
+              "archivoUrl": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "fechaSubida": {
                 "nullable": false,
                 "type": {
@@ -536,20 +539,6 @@
                     "length": 50
                   }
                 }
-              },
-              "ubucacionArchivo": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "urlYN": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/bool@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
@@ -572,6 +561,9 @@
             },
             "storage": {
               "fields": {
+                "archivoUrl": {
+                  "column": "archivo_url"
+                },
                 "fechaSubida": {
                   "column": "fecha_subida"
                 },
@@ -583,12 +575,6 @@
                 },
                 "tipoDocumento": {
                   "column": "tipo_documento"
-                },
-                "ubucacionArchivo": {
-                  "column": "ubucacion_archivo"
-                },
-                "urlYN": {
-                  "column": "url_y_n"
                 }
               },
               "namespaceId": "public",
@@ -647,13 +633,6 @@
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
-              },
-              "urlYN": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/bool@1",
-                  "kind": "scalar"
-                }
               }
             },
             "relations": {
@@ -693,9 +672,6 @@
                 },
                 "ubucacionArchivo": {
                   "column": "ubucacion_archivo"
-                },
-                "urlYN": {
-                  "column": "url_y_n"
                 }
               },
               "namespaceId": "public",
@@ -858,6 +834,24 @@
                   "kind": "scalar"
                 }
               },
+              "idSolicitante": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "montoAnterior": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
               "montoNuevo": {
                 "nullable": false,
                 "type": {
@@ -893,6 +887,22 @@
                   "model": "Servicio",
                   "namespace": "public"
                 }
+              },
+              "usuario": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "idSolicitante"
+                  ],
+                  "targetFields": [
+                    "idUsuario"
+                  ]
+                },
+                "to": {
+                  "model": "Usuario",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -911,6 +921,12 @@
                 },
                 "idServicio": {
                   "column": "id_servicio"
+                },
+                "idSolicitante": {
+                  "column": "id_solicitante"
+                },
+                "montoAnterior": {
+                  "column": "monto_anterior"
                 },
                 "montoNuevo": {
                   "column": "monto_nuevo"
@@ -1296,21 +1312,6 @@
                   "model": "Trabajo",
                   "namespace": "public"
                 }
-              },
-              "visitas": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "idPropuesta"
-                  ],
-                  "targetFields": [
-                    "idPropuesta"
-                  ]
-                },
-                "to": {
-                  "model": "Visita",
-                  "namespace": "public"
-                }
               }
             },
             "storage": {
@@ -1376,7 +1377,7 @@
                   "kind": "scalar"
                 }
               },
-              "idTrabajo": {
+              "idServicio": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
@@ -1414,19 +1415,19 @@
                   "namespace": "public"
                 }
               },
-              "trabajo": {
+              "servicio": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "idTrabajo"
+                    "idServicio"
                   ],
                   "targetFields": [
-                    "idTrabajo"
+                    "idServicio"
                   ]
                 },
                 "to": {
-                  "model": "Trabajo",
+                  "model": "Servicio",
                   "namespace": "public"
                 }
               },
@@ -1458,8 +1459,8 @@
                 "idReclamo": {
                   "column": "id_reclamo"
                 },
-                "idTrabajo": {
-                  "column": "id_trabajo"
+                "idServicio": {
+                  "column": "id_servicio"
                 },
                 "idUsuario": {
                   "column": "id_usuario"
@@ -1727,6 +1728,36 @@
                   "model": "Propuesta",
                   "namespace": "public"
                 }
+              },
+              "reclamos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Reclamo",
+                  "namespace": "public"
+                }
+              },
+              "visitas": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Visita",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -1925,21 +1956,6 @@
                   "namespace": "public"
                 }
               },
-              "reclamos": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "idTrabajo"
-                  ],
-                  "targetFields": [
-                    "idTrabajo"
-                  ]
-                },
-                "to": {
-                  "model": "Reclamo",
-                  "namespace": "public"
-                }
-              },
               "usuario": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -2128,6 +2144,21 @@
                 },
                 "to": {
                   "model": "EventoTrabajo",
+                  "namespace": "public"
+                }
+              },
+              "incrementoPresupuestos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idUsuario"
+                  ],
+                  "targetFields": [
+                    "idSolicitante"
+                  ]
+                },
+                "to": {
+                  "model": "IncrementoPresupuesto",
                   "namespace": "public"
                 }
               },
@@ -2332,7 +2363,7 @@
                   }
                 }
               },
-              "idPropuesta": {
+              "idServicio": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
@@ -2348,19 +2379,19 @@
               }
             },
             "relations": {
-              "propuesta": {
+              "servicio": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "idPropuesta"
+                    "idServicio"
                   ],
                   "targetFields": [
-                    "idPropuesta"
+                    "idServicio"
                   ]
                 },
                 "to": {
-                  "model": "Propuesta",
+                  "model": "Servicio",
                   "namespace": "public"
                 }
               }
@@ -2376,8 +2407,8 @@
                 "fechaInicio": {
                   "column": "fecha_inicio"
                 },
-                "idPropuesta": {
-                  "column": "id_propuesta"
+                "idServicio": {
+                  "column": "id_servicio"
                 },
                 "idVisita": {
                   "column": "id_visita"
@@ -2387,9 +2418,26 @@
               "table": "visita"
             }
           },
-          "Zona": {
+          "ZonaReparador": {
             "fields": {
-              "idZona": {
+              "etiqueta": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 60
+                  }
+                }
+              },
+              "idReparador": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "idZonaRep": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
@@ -2397,7 +2445,7 @@
                 }
               },
               "latitud": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/numeric@1",
                   "kind": "scalar",
@@ -2408,7 +2456,7 @@
                 }
               },
               "longitud": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/numeric@1",
                   "kind": "scalar",
@@ -2418,20 +2466,10 @@
                   }
                 }
               },
-              "nombre": {
+              "radioBad": {
                 "nullable": false,
                 "type": {
-                  "codecId": "sql/varchar@1",
-                  "kind": "scalar",
-                  "typeParams": {
-                    "length": 100
-                  }
-                }
-              },
-              "radioDab": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int8@1",
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -2443,68 +2481,6 @@
                 }
               },
               "radioMedio": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {
-              "zonaReparadors": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "idZona"
-                  ],
-                  "targetFields": [
-                    "idZona"
-                  ]
-                },
-                "to": {
-                  "model": "ZonaReparador",
-                  "namespace": "public"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "idZona": {
-                  "column": "id_zona"
-                },
-                "latitud": {
-                  "column": "latitud"
-                },
-                "longitud": {
-                  "column": "longitud"
-                },
-                "nombre": {
-                  "column": "nombre"
-                },
-                "radioDab": {
-                  "column": "radio_dab"
-                },
-                "radioGood": {
-                  "column": "radio_good"
-                },
-                "radioMedio": {
-                  "column": "radio_medio"
-                }
-              },
-              "namespaceId": "public",
-              "table": "zona"
-            }
-          },
-          "ZonaReparador": {
-            "fields": {
-              "idReparador": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "idZona": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
@@ -2528,31 +2504,33 @@
                   "model": "PerfilTrabajador",
                   "namespace": "public"
                 }
-              },
-              "zona": {
-                "cardinality": "N:1",
-                "nullable": false,
-                "on": {
-                  "localFields": [
-                    "idZona"
-                  ],
-                  "targetFields": [
-                    "idZona"
-                  ]
-                },
-                "to": {
-                  "model": "Zona",
-                  "namespace": "public"
-                }
               }
             },
             "storage": {
               "fields": {
+                "etiqueta": {
+                  "column": "etiqueta"
+                },
                 "idReparador": {
                   "column": "id_reparador"
                 },
-                "idZona": {
-                  "column": "id_zona"
+                "idZonaRep": {
+                  "column": "id_zona_rep"
+                },
+                "latitud": {
+                  "column": "latitud"
+                },
+                "longitud": {
+                  "column": "longitud"
+                },
+                "radioBad": {
+                  "column": "radio_bad"
+                },
+                "radioGood": {
+                  "column": "radio_good"
+                },
+                "radioMedio": {
+                  "column": "radio_medio"
                 }
               },
               "namespaceId": "public",
@@ -3051,6 +3029,11 @@
             },
             "documento_trabajo": {
               "columns": {
+                "archivo_url": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
                 "fecha_subida": {
                   "codecId": "pg/timestamptz-date@1",
                   "dataType": "pg/timestamptz",
@@ -3084,20 +3067,6 @@
                   "typeParams": {
                     "length": 50
                   }
-                },
-                "ubucacion_archivo": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
-                "url_y_n": {
-                  "codecId": "pg/bool@1",
-                  "dataType": "pg/bool",
-                  "default": {
-                    "kind": "literal",
-                    "value": false
-                  },
-                  "nullable": false
                 }
               },
               "foreignKeys": [
@@ -3186,15 +3155,6 @@
                 "ubucacion_archivo": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
-                  "nullable": false
-                },
-                "url_y_n": {
-                  "codecId": "pg/bool@1",
-                  "dataType": "pg/bool",
-                  "default": {
-                    "kind": "literal",
-                    "value": false
-                  },
                   "nullable": false
                 }
               },
@@ -3324,6 +3284,10 @@
             "incremento_presupuesto": {
               "checks": [
                 {
+                  "expression": "(monto_anterior >= (0)::numeric)",
+                  "name": "incremento_presupuesto_monto_anterior_check"
+                },
+                {
                   "expression": "(monto_nuevo > (0)::numeric)",
                   "name": "incremento_presupuesto_monto_nuevo_check"
                 }
@@ -3381,6 +3345,20 @@
                   "dataType": "pg/int4",
                   "nullable": false
                 },
+                "id_solicitante": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "monto_anterior": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
                 "monto_nuevo": {
                   "codecId": "pg/numeric@1",
                   "dataType": "pg/numeric",
@@ -3413,6 +3391,23 @@
                     ],
                     "namespaceId": "public",
                     "tableName": "servicio"
+                  }
+                },
+                {
+                  "name": "incremento_presupuesto_id_solicitante_fkey",
+                  "source": {
+                    "columns": [
+                      "id_solicitante"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "incremento_presupuesto"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_usuario"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "usuario"
                   }
                 }
               ],
@@ -3816,7 +3811,7 @@
                   },
                   "nullable": false
                 },
-                "id_trabajo": {
+                "id_servicio": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
                   "nullable": false
@@ -3834,21 +3829,21 @@
               },
               "foreignKeys": [
                 {
-                  "name": "reclamo_id_trabajo_fkey",
+                  "name": "reclamo_id_servicio_fkey",
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
-                      "id_trabajo"
+                      "id_servicio"
                     ],
                     "namespaceId": "public",
                     "tableName": "reclamo"
                   },
                   "target": {
                     "columns": [
-                      "id_trabajo"
+                      "id_servicio"
                     ],
                     "namespaceId": "public",
-                    "tableName": "trabajo"
+                    "tableName": "servicio"
                   }
                 },
                 {
@@ -4434,7 +4429,7 @@
                     "precision": 6
                   }
                 },
-                "id_propuesta": {
+                "id_servicio": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
                   "nullable": false
@@ -4451,21 +4446,21 @@
               },
               "foreignKeys": [
                 {
-                  "name": "visita_id_propuesta_fkey",
+                  "name": "visita_id_servicio_fkey",
                   "onDelete": "cascade",
                   "source": {
                     "columns": [
-                      "id_propuesta"
+                      "id_servicio"
                     ],
                     "namespaceId": "public",
                     "tableName": "visita"
                   },
                   "target": {
                     "columns": [
-                      "id_propuesta"
+                      "id_servicio"
                     ],
                     "namespaceId": "public",
-                    "tableName": "propuesta"
+                    "tableName": "servicio"
                   }
                 }
               ],
@@ -4478,31 +4473,44 @@
               },
               "uniques": []
             },
-            "zona": {
+            "zona_reparador": {
               "checks": [
                 {
+                  "expression": "(radio_medio > radio_good)",
+                  "name": "zona_reparador_check"
+                },
+                {
+                  "expression": "(radio_bad > radio_medio)",
+                  "name": "zona_reparador_check1"
+                },
+                {
                   "expression": "((latitud >= ('-90'::integer)::numeric) AND (latitud <= (90)::numeric))",
-                  "name": "zona_latitud_check"
+                  "name": "zona_reparador_latitud_check"
                 },
                 {
                   "expression": "((longitud >= ('-180'::integer)::numeric) AND (longitud <= (180)::numeric))",
-                  "name": "zona_longitud_check"
-                },
-                {
-                  "expression": "(radio_dab > 0)",
-                  "name": "zona_radio_dab_check"
+                  "name": "zona_reparador_longitud_check"
                 },
                 {
                   "expression": "(radio_good > 0)",
-                  "name": "zona_radio_good_check"
-                },
-                {
-                  "expression": "(radio_medio > 0)",
-                  "name": "zona_radio_medio_check"
+                  "name": "zona_reparador_radio_good_check"
                 }
               ],
               "columns": {
-                "id_zona": {
+                "etiqueta": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": true,
+                  "typeParams": {
+                    "length": 60
+                  }
+                },
+                "id_reparador": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "id_zona_rep": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
                   "default": {
@@ -4514,7 +4522,7 @@
                 "latitud": {
                   "codecId": "pg/numeric@1",
                   "dataType": "pg/numeric",
-                  "nullable": true,
+                  "nullable": false,
                   "typeParams": {
                     "precision": 9,
                     "scale": 6
@@ -4523,23 +4531,15 @@
                 "longitud": {
                   "codecId": "pg/numeric@1",
                   "dataType": "pg/numeric",
-                  "nullable": true,
+                  "nullable": false,
                   "typeParams": {
                     "precision": 9,
                     "scale": 6
                   }
                 },
-                "nombre": {
-                  "codecId": "sql/varchar@1",
-                  "dataType": "pg/varchar",
-                  "nullable": false,
-                  "typeParams": {
-                    "length": 100
-                  }
-                },
-                "radio_dab": {
-                  "codecId": "pg/int8@1",
-                  "dataType": "pg/int8",
+                "radio_bad": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
                   "nullable": false
                 },
                 "radio_good": {
@@ -4548,36 +4548,6 @@
                   "nullable": false
                 },
                 "radio_medio": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "id_zona"
-                ],
-                "name": "zona_pkey"
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "nombre"
-                  ],
-                  "name": "zona_nombre_key"
-                }
-              ]
-            },
-            "zona_reparador": {
-              "columns": {
-                "id_reparador": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
-                  "nullable": false
-                },
-                "id_zona": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
                   "nullable": false
@@ -4601,34 +4571,12 @@
                     "namespaceId": "public",
                     "tableName": "perfil_trabajador"
                   }
-                },
-                {
-                  "index": {
-                    "primaryKey": true
-                  },
-                  "name": "zona_reparador_id_zona_fkey",
-                  "onDelete": "cascade",
-                  "source": {
-                    "columns": [
-                      "id_zona"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "zona_reparador"
-                  },
-                  "target": {
-                    "columns": [
-                      "id_zona"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "zona"
-                  }
                 }
               ],
               "indexes": [],
               "primaryKey": {
                 "columns": [
-                  "id_zona",
-                  "id_reparador"
+                  "id_zona_rep"
                 ],
                 "name": "zona_reparador_pkey"
               },
@@ -4716,7 +4664,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "f809c3efde19b4a085a5cc9a207375becd9683b5c97bdd217a2805e136ce81e0"
+    "storageHash": "a363b6d57d61fe8c5901bc512c0f00284c786a220378f3a7a9929362d2ada8e2"
   },
   "capabilities": {
     "postgres": {

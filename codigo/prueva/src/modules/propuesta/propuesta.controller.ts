@@ -6,9 +6,11 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PropuestaService } from './propuesta.service';
 import { CreatePropuestaDto } from './dto/create-propuesta.dto';
+import { RetirarPropuestaDto } from './dto/retirar-propuesta.dto';
 import { UpdatePropuestaDto } from './dto/update-propuesta.dto';
 
 /**
@@ -18,6 +20,18 @@ import { UpdatePropuestaDto } from './dto/update-propuesta.dto';
 @Controller('propuesta')
 export class PropuestaController {
   constructor(private readonly propuestaService: PropuestaService) {}
+
+  /** Retira una postulación si está pendiente y pertenece al reparador indicado. */
+  @Patch(':id_propuesta/retirar')
+  retirarPostulacion(
+    @Param('id_propuesta', ParseIntPipe) id_propuesta: number,
+    @Body() datos_retiro: RetirarPropuestaDto,
+  ) {
+    return this.propuestaService.retirarPostulacion(
+      datos_retiro.id_reparador,
+      id_propuesta,
+    );
+  }
 
   /** Recibe los datos para crear un registro y los entrega al servicio. */
   @Post()

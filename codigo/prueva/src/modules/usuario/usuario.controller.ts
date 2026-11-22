@@ -1,57 +1,112 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
+import { AgregarRolDto } from './dto/agregar-rol.dto';
+import { CambiarModoRolDto } from './dto/cambiar-modo-rol.dto';
+import {
+  DictamenDocumentoDto,
+  DictamenReparadorDto,
+} from './dto/dictamen-admin.dto';
+import {
+  ConsultaAdminDto,
+  FiltroDocumentosClientesDto,
+  FiltroModeracionReparadoresDto,
+} from './dto/filtros-admin.dto';
+import { RegistroUsuarioDto } from './dto/registro-usuario.dto';
 import { UsuarioService } from './usuario.service';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
-import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 
-/**
- * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
- * Aqui solo se traducen datos de la solicitud; no se implementan reglas de negocio.
- */
+/** Expone las rutas de cuenta y delega las reglas al servicio de usuarios. */
 @Controller('usuario')
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
-  /** Recibe los datos para crear un registro y los entrega al servicio. */
-  @Post()
-  crear(@Body() datosParaCrearUsuario: CreateUsuarioDto) {
-    return this.usuarioService.crear(datosParaCrearUsuario);
+  /** Registra una cuenta con el rol elegido durante el alta. */
+  @Post('registro')
+  registrar(@Body() datosRegistro: RegistroUsuarioDto) {
+    return this.usuarioService.registrarUsuario(datosRegistro);
   }
 
-  /** Delega al servicio la consulta de todos los registros. */
-  @Get()
-  listarTodos() {
-    return this.usuarioService.listarTodos();
-  }
-
-  /** Delega la consulta del registro identificado en la ruta. */
-  @Get(':id')
-  obtenerPorId(@Param('id') identificadorEnRuta: string) {
-    return this.usuarioService.obtenerPorId(Number(identificadorEnRuta));
-  }
-
-  /** Entrega al servicio el identificador y los cambios parciales recibidos. */
-  @Patch(':id')
-  actualizar(
-    @Param('id') identificadorEnRuta: string,
-    @Body() datosParaActualizarUsuario: UpdateUsuarioDto,
+  /** Lista solicitudes de inscripción priorizando las que esperan revisión. */
+  @Get('admin/reparadores')
+  listarSolicitudesReparadores(
+    @Query() filtros: FiltroModeracionReparadoresDto,
   ) {
-    return this.usuarioService.actualizar(
-      Number(identificadorEnRuta),
-      datosParaActualizarUsuario,
+    return this.usuarioService.listarSolicitudesReparadores(
+      filtros.id_admin,
+      filtros,
     );
   }
 
-  /** Delega al servicio la eliminacion del registro indicado en la ruta. */
-  @Delete(':id')
-  eliminar(@Param('id') identificadorEnRuta: string) {
-    return this.usuarioService.eliminar(Number(identificadorEnRuta));
+  /** Devuelve el detalle administrativo de un perfil reparador. */
+  @Get('admin/reparadores/:id_reparador')
+  obtenerDetalleReparadorAdmin(
+    @Param('id_reparador', ParseIntPipe) id_reparador: number,
+    @Query() consulta_admin: ConsultaAdminDto,
+  ) {
+    return this.usuarioService.obtenerDetalleReparadorAdmin(
+      consulta_admin.id_admin,
+      id_reparador,
+    );
+  }
+
+  /** Aprueba o rechaza el perfil profesional de un reparador. */
+  @Patch('admin/reparadores/:id_reparador/estado')
+  dictaminarPerfilReparador(
+    @Param('id_reparador', ParseIntPipe) id_reparador: number,
+    @Body() dictamen: DictamenReparadorDto,
+  ) {
+    return this.usuarioService.dictaminarPerfilReparador(
+      id_reparador,
+      dictamen,
+    );
+  }
+
+  /** Lista documentos asociados a usuarios que tienen el rol cliente. */
+  @Get('admin/documentos-clientes')
+  listarDocumentosClientes(@Query() filtros: FiltroDocumentosClientesDto) {
+    return this.usuarioService.listarDocumentosClientes(
+      filtros.id_admin,
+      filtros,
+    );
+  }
+
+  /** Aprueba o rechaza un documento de usuario. */
+  @Patch('admin/documentos-usuario/:id_documento/estado')
+  revisarDocumentoUsuario(
+    @Param('id_documento', ParseIntPipe) id_documento: number,
+    @Body() dictamen: DictamenDocumentoDto,
+  ) {
+    return this.usuarioService.revisarDocumentoUsuario(id_documento, dictamen);
+  }
+
+  /** Obtiene la cuenta, sus roles, documentos y el perfil profesional asociado. */
+  @Get(':id')
+  obtenerPorId(@Param('id', ParseIntPipe) idUsuario: number) {
+    return this.usuarioService.obtenerUsuario(idUsuario);
+  }
+
+  /** Agrega un rol sin quitar los roles que ya tiene la cuenta. */
+  @Post(':id/agregar-rol')
+  agregarRol(
+    @Param('id', ParseIntPipe) idUsuario: number,
+    @Body() datosNuevoRol: AgregarRolDto,
+  ) {
+    return this.usuarioService.agregarRol(idUsuario, datosNuevoRol);
+  }
+
+  /** Selecciona un rol existente para la sesion actual; no lo persiste en la cuenta. */
+  @Patch(':id/cambiar-rol')
+  cambiarModoRol(
+    @Param('id', ParseIntPipe) idUsuario: number,
+    @Body() datosCambioRol: CambiarModoRolDto,
+  ) {
+    return this.usuarioService.cambiarModoRol(idUsuario, datosCambioRol);
   }
 }

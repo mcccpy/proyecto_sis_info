@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
+import { PerfilTrabajadorModule } from '../perfil-trabajador/perfil-trabajador.module';
 import { UsuarioService } from './usuario.service';
 import { UsuarioController } from './usuario.controller';
+import { UsuarioRepository } from './usuario.repository';
 
-/** Registra el controlador y el servicio de usuario para la inyeccion de Nest. */
+/** Conecta los endpoints de usuario con sus casos de uso y repositorio. */
 @Module({
+  imports: [PerfilTrabajadorModule],
   controllers: [UsuarioController],
-  providers: [UsuarioService],
+  providers: [UsuarioService, UsuarioRepository],
+  exports: [UsuarioRepository],
 })
 export class UsuarioModule {}

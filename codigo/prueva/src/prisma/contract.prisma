@@ -12,6 +12,7 @@ namespace public {
     deletedAt                 DateTime(precision: 6)?               @map("deleted_at")
     documentoUsuarios         DocumentoUsuario[]
     eventoTrabajos            EventoTrabajo[]
+    incrementoPresupuestos    IncrementoPresupuesto[]
     perfilTrabajador          PerfilTrabajador?
     reclamos                  Reclamo[]
     reclamoAccions            ReclamoAccion[]
@@ -48,13 +49,12 @@ namespace public {
     fechaPreferida    DateTime(precision: 6)?               @map("fecha_preferida")
     fechaCreacion     DateTime(precision: 6)                @default(now()) @map("fecha_creacion")
     estadoPublicacion pg.enum(EstadoPublicacionEnum)        @default("abierto") @map("estado_publicacion")
-    deletedAt         DateTime(precision: 6)?               @map("deleted_at")
     tipoSolicitud     pg.enum(TipoSolicitudEnum)            @default("abierta") @map("tipo_solicitud")
+    deletedAt         DateTime(precision: 6)?               @map("deleted_at")
     categoriaTrabajos CategoriaTrabajo[]
     documentoTrabajos DocumentoTrabajo[]
     eventoTrabajos    EventoTrabajo[]
     propuestas        Propuesta[]
-    reclamos          Reclamo[]
     usuario           Usuario                               @relation(fields: [idCliente], references: [idUsuario], onDelete: Restrict, map: "trabajo_id_cliente_fkey", index: false)
 
     @@check(expression: sql`((latitud >= ('-90'::integer)::numeric) AND (latitud <= (90)::numeric))`, map: "trabajo_latitud_check")
@@ -73,7 +73,6 @@ namespace public {
     estado              pg.enum(EstadoPropuestaEnum)     @default("pendiente")
     fechaPropuesta      DateTime(precision: 6)           @default(now()) @map("fecha_propuesta")
     servicio            Servicio?
-    visitas             Visita[]
     perfilTrabajador    PerfilTrabajador                 @relation(fields: [idReparador], references: [idUsuario], onDelete: Restrict, map: "propuesta_id_reparador_fkey", index: false)
     trabajo             Trabajo                          @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Cascade, map: "propuesta_id_trabajo_fkey", index: "propuesta_id_trabajo_id_reparador_key")
 
@@ -92,6 +91,8 @@ namespace public {
     calificacions          Calificacion[]
     incrementoPresupuestos IncrementoPresupuesto[]
     pagos                  Pago[]
+    reclamos               Reclamo[]
+    visitas                Visita[]
     propuesta              Propuesta                   @relation(fields: [idPropuesta], references: [idPropuesta], onDelete: Restrict, map: "servicio_id_propuesta_fkey")
 
     @@map("servicio")
@@ -159,13 +160,12 @@ namespace public {
   }
 
   model DocumentoTrabajo {
-    idDocumento      Int                                   @id(map: "documento_trabajo_pkey") @default(autoincrement()) @map("id_documento")
-    idTrabajo        Int                                   @map("id_trabajo")
-    tipoDocumento    String(storage: varchar, length: 50)? @map("tipo_documento")
-    ubucacionArchivo String                                @map("ubucacion_archivo")
-    urlYN            Boolean                               @default(false) @map("url_y_n")
-    fechaSubida      DateTime(precision: 6)                @default(now()) @map("fecha_subida")
-    trabajo          Trabajo                               @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Cascade, map: "documento_trabajo_id_trabajo_fkey", index: false)
+    idDocumento   Int                                   @id(map: "documento_trabajo_pkey") @default(autoincrement()) @map("id_documento")
+    idTrabajo     Int                                   @map("id_trabajo")
+    tipoDocumento String(storage: varchar, length: 50)? @map("tipo_documento")
+    archivoUrl    String                                @map("archivo_url")
+    fechaSubida   DateTime(precision: 6)                @default(now()) @map("fecha_subida")
+    trabajo       Trabajo                               @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Cascade, map: "documento_trabajo_id_trabajo_fkey", index: false)
 
     @@map("documento_trabajo")
   }
@@ -175,7 +175,6 @@ namespace public {
     idUsuario        Int                                  @map("id_usuario")
     tipoDocumento    String(storage: varchar, length: 50) @map("tipo_documento")
     ubucacionArchivo String                               @map("ubucacion_archivo")
-    urlYN            Boolean                              @default(false) @map("url_y_n")
     estado           pg.enum(EstadoAprobacionEnum)        @default("pendiente")
     fechaSubida      DateTime(precision: 6)               @default(now()) @map("fecha_subida")
     usuario          Usuario                              @relation(fields: [idUsuario], references: [idUsuario], onDelete: Cascade, map: "documento_usuario_id_usuario_fkey", index: false)
@@ -199,13 +198,17 @@ namespace public {
   model IncrementoPresupuesto {
     idIncremento     Int                              @id(map: "incremento_presupuesto_pkey") @default(autoincrement()) @map("id_incremento")
     idServicio       Int                              @map("id_servicio")
+    idSolicitante    Int?                             @map("id_solicitante")
+    montoAnterior    Decimal(precision: 12, scale: 2) @map("monto_anterior")
     montoNuevo       Decimal(precision: 12, scale: 2) @map("monto_nuevo")
     motivo           String
     estadoAprobacion pg.enum(EstadoAprobacionEnum)    @default("pendiente") @map("estado_aprobacion")
     fechaSolicitud   DateTime(precision: 6)           @default(now()) @map("fecha_solicitud")
     fechaRespuesta   DateTime(precision: 6)?          @map("fecha_respuesta")
     servicio         Servicio                         @relation(fields: [idServicio], references: [idServicio], onDelete: Cascade, map: "incremento_presupuesto_id_servicio_fkey", index: false)
+    usuario          Usuario?                         @relation(fields: [idSolicitante], references: [idUsuario], map: "incremento_presupuesto_id_solicitante_fkey", index: false)
 
+    @@check(expression: sql`(monto_anterior >= (0)::numeric)`, map: "incremento_presupuesto_monto_anterior_check")
     @@check(expression: sql`(monto_nuevo > (0)::numeric)`, map: "incremento_presupuesto_monto_nuevo_check")
     @@map("incremento_presupuesto")
   }
@@ -228,13 +231,13 @@ namespace public {
 
   model Reclamo {
     idReclamo      Int                        @id(map: "reclamo_pkey") @default(autoincrement()) @map("id_reclamo")
-    idTrabajo      Int                        @map("id_trabajo")
+    idServicio     Int                        @map("id_servicio")
     idUsuario      Int                        @map("id_usuario")
     motivo         String
     estado         pg.enum(EstadoReclamoEnum) @default("abierto")
     fechaCreacion  DateTime(precision: 6)     @default(now()) @map("fecha_creacion")
     reclamoAccions ReclamoAccion[]
-    trabajo        Trabajo                    @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Restrict, map: "reclamo_id_trabajo_fkey", index: false)
+    servicio       Servicio                   @relation(fields: [idServicio], references: [idServicio], onDelete: Restrict, map: "reclamo_id_servicio_fkey", index: false)
     usuario        Usuario                    @relation(fields: [idUsuario], references: [idUsuario], onDelete: Restrict, map: "reclamo_id_usuario_fkey", index: false)
 
     @@map("reclamo")
@@ -272,41 +275,32 @@ namespace public {
 
   model Visita {
     idVisita    Int                       @id(map: "visita_pkey") @default(autoincrement()) @map("id_visita")
-    idPropuesta Int                       @map("id_propuesta")
+    idServicio  Int                       @map("id_servicio")
     fechaInicio DateTime(precision: 6)    @map("fecha_inicio")
     fechaFin    DateTime(precision: 6)?   @map("fecha_fin")
     estado      pg.enum(EstadoVisitaEnum) @default("programada")
-    propuesta   Propuesta                 @relation(fields: [idPropuesta], references: [idPropuesta], onDelete: Cascade, map: "visita_id_propuesta_fkey", index: false)
+    servicio    Servicio                  @relation(fields: [idServicio], references: [idServicio], onDelete: Cascade, map: "visita_id_servicio_fkey", index: false)
 
     @@check(expression: sql`((fecha_fin IS NULL) OR (fecha_fin > fecha_inicio))`, map: "visita_check")
     @@map("visita")
   }
 
-  model Zona {
-    idZona         Int                                   @id(map: "zona_pkey") @default(autoincrement()) @map("id_zona")
-    nombre         String(storage: varchar, length: 100) @unique(map: "zona_nombre_key")
-    latitud        Decimal(precision: 9, scale: 6)?
-    longitud       Decimal(precision: 9, scale: 6)?
-    radioGood      Int                                   @map("radio_good")
-    radioMedio     Int                                   @map("radio_medio")
-    radioDab       BigInt                                @map("radio_dab")
-    zonaReparadors ZonaReparador[]
-
-    @@check(expression: sql`((latitud >= ('-90'::integer)::numeric) AND (latitud <= (90)::numeric))`, map: "zona_latitud_check")
-    @@check(expression: sql`((longitud >= ('-180'::integer)::numeric) AND (longitud <= (180)::numeric))`, map: "zona_longitud_check")
-    @@check(expression: sql`(radio_dab > 0)`, map: "zona_radio_dab_check")
-    @@check(expression: sql`(radio_good > 0)`, map: "zona_radio_good_check")
-    @@check(expression: sql`(radio_medio > 0)`, map: "zona_radio_medio_check")
-    @@map("zona")
-  }
-
   model ZonaReparador {
-    idZona           Int              @map("id_zona")
-    idReparador      Int              @map("id_reparador")
-    perfilTrabajador PerfilTrabajador @relation(fields: [idReparador], references: [idUsuario], onDelete: Cascade, map: "zona_reparador_id_reparador_fkey", index: false)
-    zona             Zona             @relation(fields: [idZona], references: [idZona], onDelete: Cascade, map: "zona_reparador_id_zona_fkey", index: "zona_reparador_pkey")
+    idZonaRep        Int                                   @id(map: "zona_reparador_pkey") @default(autoincrement()) @map("id_zona_rep")
+    idReparador      Int                                   @map("id_reparador")
+    etiqueta         String(storage: varchar, length: 60)?
+    latitud          Decimal(precision: 9, scale: 6)
+    longitud         Decimal(precision: 9, scale: 6)
+    radioGood        Int                                   @map("radio_good")
+    radioMedio       Int                                   @map("radio_medio")
+    radioBad         Int                                   @map("radio_bad")
+    perfilTrabajador PerfilTrabajador                      @relation(fields: [idReparador], references: [idUsuario], onDelete: Cascade, map: "zona_reparador_id_reparador_fkey", index: false)
 
-    @@id([idZona, idReparador], map: "zona_reparador_pkey")
+    @@check(expression: sql`(radio_medio > radio_good)`, map: "zona_reparador_check")
+    @@check(expression: sql`(radio_bad > radio_medio)`, map: "zona_reparador_check1")
+    @@check(expression: sql`((latitud >= ('-90'::integer)::numeric) AND (latitud <= (90)::numeric))`, map: "zona_reparador_latitud_check")
+    @@check(expression: sql`((longitud >= ('-180'::integer)::numeric) AND (longitud <= (180)::numeric))`, map: "zona_reparador_longitud_check")
+    @@check(expression: sql`(radio_good > 0)`, map: "zona_reparador_radio_good_check")
     @@map("zona_reparador")
   }
 

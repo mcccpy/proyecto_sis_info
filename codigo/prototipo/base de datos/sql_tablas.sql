@@ -11,6 +11,7 @@ CREATE TYPE estado_servicio_enum     AS ENUM ('programado', 'en_progreso', 'comp
 CREATE TYPE metodo_pago_enum         AS ENUM ('efectivo', 'qr', 'transferencia');
 CREATE TYPE estado_pago_enum         AS ENUM ('declarado', 'confirmado', 'rechazado');
 CREATE TYPE estado_reclamo_enum      AS ENUM ('abierto', 'en_revision', 'resuelto', 'rechazado');
+CREATE TYPE tipo_solicitud_enum      AS ENUM ('abierta', 'directa');
 
 -- =====================================================================
 -- 02_tables.sql  ·  Solo tablas y constraints (los índices van en 03)
@@ -65,22 +66,17 @@ CREATE TABLE categoria_reparador (
     id_reparador  INT NOT NULL REFERENCES perfil_trabajador (id_usuario)  ON DELETE CASCADE,
     PRIMARY KEY (id_categoria, id_reparador)
 );
-
-CREATE TABLE zona (
-    id_zona  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    nombre   VARCHAR(100) NOT NULL UNIQUE,
-    latitud   NUMERIC(9,6) CHECK (latitud  BETWEEN -90  AND 90),
-    longitud  NUMERIC(9,6) CHECK (longitud BETWEEN -180 AND 180),
-    radio_good INT NOT NULL CHECK (radio_good > 0),
-    radio_medio INT NOT NULL CHECK (radio_medio > 0),
-    radio_dab BIGINT NOT NULL CHECK (radio_dab > 0)
-);
-
 CREATE TABLE zona_reparador (
-    id_zona       INT NOT NULL REFERENCES zona (id_zona)                  ON DELETE CASCADE,
-    id_reparador  INT NOT NULL REFERENCES perfil_trabajador (id_usuario)  ON DELETE CASCADE,
-    PRIMARY KEY (id_zona, id_reparador)
+    id_zona_rep   INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_reparador  INT NOT NULL REFERENCES perfil_trabajador (id_usuario) ON DELETE CASCADE,
+    etiqueta      VARCHAR(60), -- Ej: 'Mi Taller', 'Casa'
+    latitud       NUMERIC(9,6) NOT NULL CHECK (latitud BETWEEN -90 AND 90),
+    longitud      NUMERIC(9,6) NOT NULL CHECK (longitud BETWEEN -180 AND 180),
+    radio_good    INT NOT NULL CHECK (radio_good > 0),
+    radio_medio   INT NOT NULL CHECK (radio_medio > radio_good),
+    radio_bad     INT NOT NULL CHECK (radio_bad > radio_medio)
 );
+
 
 CREATE TABLE disponibilidad (
     id_disponibilidad  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -104,6 +100,7 @@ CREATE TABLE trabajo (
     fecha_preferida     TIMESTAMPTZ,
     fecha_creacion      TIMESTAMPTZ NOT NULL DEFAULT now(),
     estado_publicacion  estado_publicacion_enum NOT NULL DEFAULT 'abierto',
+    tipo_solicitud      tipo_solicitud_enum NOT NULL DEFAULT 'abierta',
     deleted_at          TIMESTAMPTZ
 );
 
@@ -145,15 +142,6 @@ CREATE TABLE propuesta (
     UNIQUE (id_trabajo, id_reparador)
 );
 
-CREATE TABLE visita (
-    id_visita     INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_propuesta  INT NOT NULL REFERENCES propuesta (id_propuesta) ON DELETE CASCADE,
-    fecha_inicio  TIMESTAMPTZ NOT NULL,
-    fecha_fin     TIMESTAMPTZ,
-    estado        estado_visita_enum NOT NULL DEFAULT 'programada',
-    CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio)
-);
-
 CREATE TABLE servicio (
     id_servicio         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_propuesta        INT NOT NULL UNIQUE REFERENCES propuesta (id_propuesta) ON DELETE RESTRICT,
@@ -162,11 +150,22 @@ CREATE TABLE servicio (
     fecha_finalizacion  TIMESTAMPTZ
 );
 
+CREATE TABLE visita (
+    id_visita     INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_servicio  INT NOT NULL REFERENCES servicio (id_servicio) ON DELETE CASCADE,
+    fecha_inicio  TIMESTAMPTZ NOT NULL,
+    fecha_fin     TIMESTAMPTZ,
+    estado        estado_visita_enum NOT NULL DEFAULT 'programada',
+    CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio)
+);
+
 -- ---------- DINERO ----------
 -- monto_nuevo = nuevo TOTAL del servicio (no la diferencia)
 CREATE TABLE incremento_presupuesto (
     id_incremento      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_servicio        INT NOT NULL REFERENCES servicio (id_servicio) ON DELETE CASCADE,
+    id_solicitante     INT REFERENCES usuario(id_usuario),
+    monto_anterior        NUMERIC(12,2) NOT NULL CHECK (monto_anterior >= 0),
     monto_nuevo        NUMERIC(12,2) NOT NULL CHECK (monto_nuevo > 0),
     motivo             TEXT NOT NULL,
     estado_aprobacion  estado_aprobacion_enum NOT NULL DEFAULT 'pendiente',
@@ -201,7 +200,7 @@ CREATE TABLE calificacion (
 
 CREATE TABLE reclamo (
     id_reclamo      INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_trabajo      INT NOT NULL REFERENCES trabajo (id_trabajo) ON DELETE RESTRICT,
+    id_servicio      INT NOT NULL REFERENCES servicio (id_servicio) ON DELETE RESTRICT,
     id_usuario      INT NOT NULL REFERENCES usuario (id_usuario) ON DELETE RESTRICT,
     motivo          TEXT NOT NULL,
     estado          estado_reclamo_enum NOT NULL DEFAULT 'abierto',
