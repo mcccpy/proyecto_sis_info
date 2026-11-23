@@ -9,7 +9,7 @@ CREATE TYPE estado_propuesta_enum    AS ENUM ('pendiente', 'aceptada', 'rechazad
 CREATE TYPE estado_visita_enum       AS ENUM ('programada', 'realizada', 'cancelada');
 CREATE TYPE estado_servicio_enum     AS ENUM ('programado', 'en_progreso', 'completado', 'cancelado');
 CREATE TYPE metodo_pago_enum         AS ENUM ('efectivo', 'qr', 'transferencia');
-CREATE TYPE estado_pago_enum         AS ENUM ('declarado', 'confirmado', 'rechazado');
+CREATE TYPE estado_pago_enum         AS ENUM ('declarado', 'confirmado', 'rechazado','aprobado');
 CREATE TYPE estado_reclamo_enum      AS ENUM ('abierto', 'en_revision', 'resuelto', 'rechazado');
 CREATE TYPE tipo_solicitud_enum      AS ENUM ('abierta', 'directa');
 
@@ -118,16 +118,6 @@ CREATE TABLE documento_trabajo (
     fecha_subida    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Bitácora de todo lo que pasa en un trabajo (la llenan los triggers)
-CREATE TABLE evento_trabajo (
-    id_evento     INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_trabajo    INT NOT NULL REFERENCES trabajo (id_trabajo) ON DELETE CASCADE,
-    id_usuario    INT REFERENCES usuario (id_usuario) ON DELETE SET NULL,
-    tipo_evento   VARCHAR(60) NOT NULL,
-    fecha_evento  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    detalle       TEXT
-);
-
 -- ---------- PROPUESTA -> VISITA -> SERVICIO ----------
 CREATE TABLE propuesta (
     id_propuesta         INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -157,6 +147,17 @@ CREATE TABLE visita (
     fecha_fin     TIMESTAMPTZ,
     estado        estado_visita_enum NOT NULL DEFAULT 'programada',
     CHECK (fecha_fin IS NULL OR fecha_fin > fecha_inicio)
+);
+
+-- Bitácora de todo lo que pasa en un trabajo (la llenan los triggers)
+CREATE TABLE evento_trabajo (
+    id_evento     INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_trabajo    INT NOT NULL REFERENCES trabajo (id_trabajo) ON DELETE CASCADE,
+    id_usuario    INT REFERENCES usuario (id_usuario) ON DELETE SET NULL,
+    id_servicio  INT REFERENCES servicio (id_servicio) ON DELETE CASCADE,
+    tipo_evento   VARCHAR(60) NOT NULL,
+    fecha_evento  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    detalle       TEXT
 );
 
 -- ---------- DINERO ----------
