@@ -89,6 +89,7 @@ namespace public {
     fechaCreacion          DateTime(precision: 6)      @default(now()) @map("fecha_creacion")
     fechaFinalizacion      DateTime(precision: 6)?     @map("fecha_finalizacion")
     calificacions          Calificacion[]
+    eventoTrabajos         EventoTrabajo[]
     incrementoPresupuestos IncrementoPresupuesto[]
     pagos                  Pago[]
     reclamos               Reclamo[]
@@ -189,6 +190,8 @@ namespace public {
     tipoEvento  String(storage: varchar, length: 60) @map("tipo_evento")
     fechaEvento DateTime(precision: 6)               @default(now()) @map("fecha_evento")
     detalle     String?
+    idServicio  Int?                                 @map("id_servicio")
+    servicio    Servicio?                            @relation(fields: [idServicio], references: [idServicio], onDelete: Cascade, map: "evento_trabajo_id_servicio_fkey", index: false)
     trabajo     Trabajo                              @relation(fields: [idTrabajo], references: [idTrabajo], onDelete: Cascade, map: "evento_trabajo_id_trabajo_fkey", index: false)
     usuario     Usuario?                             @relation(fields: [idUsuario], references: [idUsuario], onDelete: SetNull, map: "evento_trabajo_id_usuario_fkey", index: false)
 
@@ -318,6 +321,8 @@ namespace public {
     declarado = "declarado"
     confirmado = "confirmado"
     rechazado = "rechazado"
+    aprovado = "aprovado"
+    aprobado = "aprobado"
     @@map("estado_pago_enum")
   }
 

@@ -8,8 +8,7 @@ type FiltrosDocumentosTrabajos = Omit<FiltroDocumentosTrabajosDto, 'id_admin'>;
 /** Campos persistidos de un archivo adjunto a un trabajo. */
 export interface DocumentoTrabajoData {
   tipoDocumento: string;
-  ubucacionArchivo: string;
-  urlYN: boolean;
+  archivoUrl: string;
 }
 
 /** Datos compartidos para crear una solicitud de trabajo. */
@@ -34,6 +33,69 @@ export interface CrearTrabajoDirectoData extends CrearTrabajoClienteData {
 @Injectable()
 export class TrabajoRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  /** Lista trabajos con cliente, categorías y documentos por fecha descendente. */
+  findAll() {
+    return this.prisma.db.orm.public.Trabajo.where({ deletedAt: null })
+      .include('usuario')
+      .include('categoriaTrabajos', (categorias_del_trabajo) =>
+        categorias_del_trabajo.include('categoria'),
+      )
+      .include('documentoTrabajos')
+      .orderBy((trabajo) => trabajo.fechaCreacion.desc())
+      .all();
+  }
+
+  /** Busca un trabajo con sus relaciones y el servicio de sus propuestas. */
+  findById(id_trabajo: number) {
+    return this.prisma.db.orm.public.Trabajo.where({
+      idTrabajo: id_trabajo,
+      deletedAt: null,
+    })
+      .include('usuario')
+      .include('categoriaTrabajos', (categorias_del_trabajo) =>
+        categorias_del_trabajo.include('categoria'),
+      )
+      .include('documentoTrabajos')
+      .include('propuestas', (propuestas_del_trabajo) =>
+        propuestas_del_trabajo.include('servicio'),
+      )
+      .first();
+  }
+
+  /** Busca un trabajo con sus propuestas para validar participación compartida. */
+  findByIdWithPropuestas(id_trabajo: number) {
+    return this.prisma.db.orm.public.Trabajo.where({
+      idTrabajo: id_trabajo,
+      deletedAt: null,
+    })
+      .include('propuestas', (propuestas) =>
+        propuestas.include('perfilTrabajador'),
+      )
+      .first();
+  }
+
+  /** Inserta un documento compartido asociado a un trabajo. */
+  crearDocumentoTrabajo(
+    id_trabajo: number,
+    tipo_documento: string,
+    archivo_url: string,
+  ) {
+    return this.prisma.db.orm.public.DocumentoTrabajo.create({
+      idTrabajo: id_trabajo,
+      tipoDocumento: tipo_documento,
+      archivoUrl: archivo_url,
+    });
+  }
+
+  /** Lista los documentos compartidos del trabajo por fecha descendente. */
+  findDocumentosByTrabajo(id_trabajo: number) {
+    return this.prisma.db.orm.public.DocumentoTrabajo.where({
+      idTrabajo: id_trabajo,
+    })
+      .orderBy((documento) => documento.fechaSubida.desc())
+      .all();
+  }
 
   /** Lista el historial del cliente con sus propuestas y servicios asociados. */
   findTrabajosByCliente(id_cliente: number) {
@@ -87,6 +149,8 @@ export class TrabajoRepository {
         idTrabajo: trabajo_creado.idTrabajo,
         idReparador: datos_trabajo.idReparador,
         precioTotal: '0',
+        costoVisita: '0',
+        materialesIncluidos: false,
         estado: 'pendiente',
       });
       const trabajo_con_relaciones = await this.obtenerTrabajoCreado(
@@ -373,8 +437,7 @@ export class TrabajoRepository {
         datos_trabajo.documentos.map((documento) => ({
           idTrabajo: id_trabajo,
           tipoDocumento: documento.tipoDocumento,
-          ubucacionArchivo: documento.ubucacionArchivo,
-          urlYN: documento.urlYN,
+          archivoUrl: documento.archivoUrl,
         })),
       );
     }

@@ -24,7 +24,6 @@ export interface NuevoUsuarioData {
 export interface DocumentoUsuarioData {
   tipoDocumento: string;
   ubucacionArchivo: string;
-  urlYN: boolean;
 }
 
 /** Ejecuta únicamente consultas y escrituras de las tablas relacionadas con usuarios. */
@@ -301,6 +300,67 @@ export class UsuarioRepository {
     }).first();
   }
 
+  /** Lista los roles con los identificadores de usuarios asignados a cada uno. */
+  findAllRoles(query_context: PrismaQueryContext = this.prisma.db) {
+    return query_context.orm.public.Rol.include(
+      'usuarioRols',
+      (asignaciones_de_usuarios) =>
+        asignaciones_de_usuarios.select('idUsuario'),
+    )
+      .orderBy((rol) => rol.nombre.asc())
+      .all();
+  }
+
+  /** Busca un rol por su identificador principal. */
+  findRolById(
+    id_rol: number,
+    query_context: PrismaQueryContext = this.prisma.db,
+  ) {
+    return query_context.orm.public.Rol.where({ idRol: id_rol }).first();
+  }
+
+  /** Crea un rol con el nombre normalizado para evitar variantes duplicadas. */
+  createRol(
+    nombre_rol: string,
+    query_context: PrismaQueryContext = this.prisma.db,
+  ) {
+    return query_context.orm.public.Rol.create({
+      nombre: nombre_rol.trim().toLowerCase(),
+    });
+  }
+
+  /** Busca una asignación concreta entre un usuario y un rol. */
+  findUsuarioRol(
+    id_usuario: number,
+    id_rol: number,
+    query_context: PrismaQueryContext = this.prisma.db,
+  ) {
+    return query_context.orm.public.UsuarioRol.where({
+      idUsuario: id_usuario,
+      idRol: id_rol,
+    }).first();
+  }
+
+  /** Elimina un rol existente. */
+  deleteRol(
+    id_rol: number,
+    query_context: PrismaQueryContext = this.prisma.db,
+  ) {
+    return query_context.orm.public.Rol.where({ idRol: id_rol }).delete();
+  }
+
+  /** Elimina la asignación indicada entre un usuario y un rol. */
+  deleteUsuarioRol(
+    id_usuario: number,
+    id_rol: number,
+    query_context: PrismaQueryContext = this.prisma.db,
+  ) {
+    return query_context.orm.public.UsuarioRol.where({
+      idUsuario: id_usuario,
+      idRol: id_rol,
+    }).delete();
+  }
+
   /** Inserta la información base de la cuenta y su hash de contraseña. */
   createUsuarioBase(
     datos_usuario: NuevoUsuarioData,
@@ -336,7 +396,6 @@ export class UsuarioRepository {
         idUsuario: id_usuario,
         tipoDocumento: documento.tipoDocumento,
         ubucacionArchivo: documento.ubucacionArchivo,
-        urlYN: documento.urlYN,
       })),
     );
   }

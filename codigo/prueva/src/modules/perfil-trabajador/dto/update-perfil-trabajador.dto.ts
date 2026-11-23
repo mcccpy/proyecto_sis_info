@@ -1,7 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePerfilTrabajadorDto } from './create-perfil-trabajador.dto';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
 
-/** Permite enviar cambios parciales usando los campos del DTO de creacion. */
-export class UpdatePerfilTrabajadorDto extends PartialType(
-  CreatePerfilTrabajadorDto,
-) {}
+/** Campos editables del perfil profesional. */
+export class UpdatePerfilTrabajadorDto {
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  experiencia_anios?: number;
+}

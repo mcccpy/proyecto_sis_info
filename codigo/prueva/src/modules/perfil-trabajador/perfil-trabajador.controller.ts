@@ -1,14 +1,12 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
-  Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PerfilTrabajadorService } from './perfil-trabajador.service';
-import { CreatePerfilTrabajadorDto } from './dto/create-perfil-trabajador.dto';
 import { UpdatePerfilTrabajadorDto } from './dto/update-perfil-trabajador.dto';
 
 /**
@@ -21,12 +19,6 @@ export class PerfilTrabajadorController {
     private readonly perfilTrabajadorService: PerfilTrabajadorService,
   ) {}
 
-  /** Recibe los datos para crear un registro y los entrega al servicio. */
-  @Post()
-  crear(@Body() datosParaCrearPerfilTrabajador: CreatePerfilTrabajadorDto) {
-    return this.perfilTrabajadorService.crear(datosParaCrearPerfilTrabajador);
-  }
-
   /** Delega al servicio la consulta de todos los registros. */
   @Get()
   listarTodos() {
@@ -35,27 +27,19 @@ export class PerfilTrabajadorController {
 
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
-  obtenerPorId(@Param('id') identificadorEnRuta: string) {
-    return this.perfilTrabajadorService.obtenerPorId(
-      Number(identificadorEnRuta),
-    );
+  obtenerPorId(@Param('id', ParseIntPipe) id_usuario: number) {
+    return this.perfilTrabajadorService.obtenerPorId(id_usuario);
   }
 
   /** Entrega al servicio el identificador y los cambios parciales recibidos. */
   @Patch(':id')
   actualizar(
-    @Param('id') identificadorEnRuta: string,
+    @Param('id', ParseIntPipe) id_usuario: number,
     @Body() datosParaActualizarPerfilTrabajador: UpdatePerfilTrabajadorDto,
   ) {
     return this.perfilTrabajadorService.actualizar(
-      Number(identificadorEnRuta),
+      id_usuario,
       datosParaActualizarPerfilTrabajador,
     );
-  }
-
-  /** Delega al servicio la eliminacion del registro indicado en la ruta. */
-  @Delete(':id')
-  eliminar(@Param('id') identificadorEnRuta: string) {
-    return this.perfilTrabajadorService.eliminar(Number(identificadorEnRuta));
   }
 }

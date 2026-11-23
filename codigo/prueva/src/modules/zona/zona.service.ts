@@ -5,9 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PerfilTrabajadorRepository } from '../perfil-trabajador/perfil-trabajador.repository';
-import { CreateZonaDto } from './dto/create-zona.dto';
 import { CreateZonaReparadorDto } from './dto/create-zona-reparador.dto';
-import { UpdateZonaDto } from './dto/update-zona.dto';
 import { UpdateZonaReparadorDto } from './dto/update-zona-reparador.dto';
 import { radiosCumplenJerarquia } from './zona-radios.util';
 import { ZonaRepository } from './zona.repository';
@@ -119,32 +117,20 @@ export class ZonaService {
     return zona_eliminada;
   }
 
-  /** Conserva el endpoint genérico de creación anterior al plan de cobertura. */
-  crear(_datos_para_crear_zona: CreateZonaDto) {
-    return 'This action adds a new zona';
-  }
-
-  /** Conserva el endpoint genérico de listado anterior al plan de cobertura. */
+  /** Lista todas las zonas de cobertura registradas. */
   listarTodos() {
-    return 'This action returns all zona';
+    return this.zonaRepository.findAll();
   }
 
-  /** Conserva el endpoint genérico de lectura anterior al plan de cobertura. */
-  obtenerPorId(identificador: number) {
-    return `This action returns a #${identificador} zona`;
-  }
+  /** Busca una zona y notifica cuando el identificador no existe. */
+  async obtenerPorId(id_zona: number) {
+    const zona = await this.zonaRepository.findByIdWithPerfil(id_zona);
 
-  /** Conserva el endpoint genérico de actualización anterior al plan de cobertura. */
-  actualizar(
-    identificador: number,
-    _datos_para_actualizar_zona: UpdateZonaDto,
-  ) {
-    return `This action updates a #${identificador} zona`;
-  }
+    if (!zona) {
+      throw new NotFoundException('Zona no encontrada');
+    }
 
-  /** Conserva el endpoint genérico de eliminación anterior al plan de cobertura. */
-  eliminar(identificador: number) {
-    return `This action removes a #${identificador} zona`;
+    return zona;
   }
 
   /** Busca el perfil antes de permitir operaciones sobre sus zonas. */

@@ -11,7 +11,9 @@ import type { CreatePerfilReparadorDto } from '../perfil-trabajador/dto/create-p
 import { PerfilTrabajadorRepository } from '../perfil-trabajador/perfil-trabajador.repository';
 import type { NuevoPerfilTrabajadorData } from '../perfil-trabajador/perfil-trabajador.repository';
 import type { AgregarRolDto } from './dto/agregar-rol.dto';
+import type { AsignarRevocarRolDto } from './dto/asignar-revocar-rol.dto';
 import type { CambiarModoRolDto } from './dto/cambiar-modo-rol.dto';
+import type { CrearRolAdminDto } from './dto/crear-rol-admin.dto';
 import type { DocumentoDto } from './dto/documento.dto';
 import type { RegistroUsuarioDto } from './dto/registro-usuario.dto';
 import type { RolUsuario } from './rol-usuario.type';
@@ -167,6 +169,131 @@ export class UsuarioService {
 
     return this.usuarioRepository.findDocumentosClientes(
       this.quitarIdAdmin(filtros),
+    );
+  }
+
+  /** Lista los roles existentes junto al total de usuarios vinculados. */
+  async listarRolesAdmin(id_admin: number) {
+    await this.validarRolAdmin(id_admin);
+
+    const roles = await this.usuarioRepository.findAllRoles();
+
+    return roles.map(({ usuarioRols, ...rol }) => ({
+      ...rol,
+      cantidadUsuarios: usuarioRols.length,
+    }));
+  }
+
+  /** Crea un rol personalizado después de normalizar y validar su nombre. */
+  async crearRolAdmin(datos_rol: CrearRolAdminDto) {
+    await this.validarRolAdmin(datos_rol.id_admin);
+
+    const nombre_rol = datos_rol.nombre.trim().toLowerCase();
+    if (!nombre_rol) {
+      throw new BadRequestException('El nombre del rol es obligatorio');
+    }
+
+    const rol_existente =
+      await this.usuarioRepository.findRolByNombre(nombre_rol);
+    if (rol_existente) {
+      throw new ConflictException('El rol ya existe');
+    }
+
+    return this.usuarioRepository.createRol(nombre_rol);
+  }
+
+  /** Elimina roles personalizados y protege los tres roles base del sistema. */
+  async eliminarRolAdmin(id_admin: number, id_rol: number) {
+    await this.validarRolAdmin(id_admin);
+
+    const rol_existente = await this.usuarioRepository.findRolById(id_rol);
+    if (!rol_existente) {
+      throw new NotFoundException('Rol no encontrado');
+    }
+
+    const roles_base = ['administrador', 'cliente', 'reparador'];
+    if (roles_base.includes(rol_existente.nombre.trim().toLowerCase())) {
+      throw new BadRequestException(
+        'No se pueden eliminar los roles base del sistema',
+      );
+    }
+
+    const rol_eliminado = await this.usuarioRepository.deleteRol(id_rol);
+    if (!rol_eliminado) {
+      throw new NotFoundException('Rol no encontrado');
+    }
+
+    return rol_eliminado;
+  }
+
+  /** Asigna manualmente un rol a una cuenta sin duplicar la relación. */
+  async asignarRolManualAdmin(datos_asignacion: AsignarRevocarRolDto) {
+    await this.validarRolAdmin(datos_asignacion.id_admin);
+
+    const usuario_existente = await this.usuarioRepository.findIdUsuario(
+      datos_asignacion.id_usuario,
+    );
+    if (!usuario_existente) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const rol_existente = await this.usuarioRepository.findRolById(
+      datos_asignacion.id_rol,
+    );
+    if (!rol_existente) {
+      throw new NotFoundException('Rol no encontrado');
+    }
+
+    const asignacion_existente = await this.usuarioRepository.findUsuarioRol(
+      datos_asignacion.id_usuario,
+      datos_asignacion.id_rol,
+    );
+    if (asignacion_existente) {
+      throw new ConflictException('El usuario ya tiene asignado ese rol');
+    }
+
+    await this.usuarioRepository.asignarRol(
+      datos_asignacion.id_usuario,
+      datos_asignacion.id_rol,
+    );
+
+    return {
+      idUsuario: datos_asignacion.id_usuario,
+      idRol: datos_asignacion.id_rol,
+    };
+  }
+
+  /** Revoca una asignación de rol y evita que el administrador se bloquee a sí mismo. */
+  async revocarRolManualAdmin(datos_asignacion: AsignarRevocarRolDto) {
+    await this.validarRolAdmin(datos_asignacion.id_admin);
+
+    const asignacion_existente = await this.usuarioRepository.findUsuarioRol(
+      datos_asignacion.id_usuario,
+      datos_asignacion.id_rol,
+    );
+    if (!asignacion_existente) {
+      throw new NotFoundException('La asignación de rol no existe');
+    }
+
+    const rol_existente = await this.usuarioRepository.findRolById(
+      datos_asignacion.id_rol,
+    );
+    if (!rol_existente) {
+      throw new NotFoundException('Rol no encontrado');
+    }
+
+    if (
+      datos_asignacion.id_admin === datos_asignacion.id_usuario &&
+      rol_existente.nombre.trim().toLowerCase() === 'administrador'
+    ) {
+      throw new BadRequestException(
+        'No puedes revocar tu propio rol de administrador',
+      );
+    }
+
+    return this.usuarioRepository.deleteUsuarioRol(
+      datos_asignacion.id_usuario,
+      datos_asignacion.id_rol,
     );
   }
 
@@ -463,7 +590,6 @@ export class UsuarioService {
     return documentos_del_usuario.map((documento) => ({
       tipoDocumento: documento.tipo_documento,
       ubucacionArchivo: documento.ubucacion_archivo,
-      urlYN: documento.url_y_n ?? false,
     }));
   }
 

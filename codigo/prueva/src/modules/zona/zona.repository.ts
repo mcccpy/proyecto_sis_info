@@ -17,6 +17,24 @@ export interface ZonaReparadorData {
 export class ZonaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Lista zonas e incluye datos básicos del perfil que las administra. */
+  findAll() {
+    return this.prisma.db.orm.public.ZonaReparador.include(
+      'perfilTrabajador',
+      (perfil) => perfil.include('usuario'),
+    ).all();
+  }
+
+  /** Busca una zona por su identificador principal. */
+  findByIdWithPerfil(id_zona: number) {
+    return this.prisma.db.orm.public.ZonaReparador.include(
+      'perfilTrabajador',
+      (perfil) => perfil.include('usuario'),
+    )
+      .where({ idZonaRep: id_zona })
+      .first();
+  }
+
   /** Lista los puntos de cobertura registrados para un reparador. */
   findAllByReparador(
     id_reparador: number,

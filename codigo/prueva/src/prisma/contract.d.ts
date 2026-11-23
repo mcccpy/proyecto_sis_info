@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a363b6d57d61fe8c5901bc512c0f00284c786a220378f3a7a9929362d2ada8e2'>;
+  StorageHashBase<'fb0e2a46c459f9e0925092c8bad62172a79afff49cf36ba094e97aa130129940'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -291,8 +291,8 @@ type FieldTypeOverrides = {
       };
       readonly Pago: {
         readonly estado: {
-          readonly output: 'declarado' | 'confirmado' | 'rechazado';
-          readonly input: 'declarado' | 'confirmado' | 'rechazado';
+          readonly output: 'declarado' | 'confirmado' | 'rechazado' | 'aprovado' | 'aprobado';
+          readonly input: 'declarado' | 'confirmado' | 'rechazado' | 'aprovado' | 'aprobado';
         };
         readonly metodo: {
           readonly output: 'efectivo' | 'qr' | 'transferencia';
@@ -374,8 +374,8 @@ type ColumnTypeOverrides = {
     };
     readonly pago: {
       readonly estado: {
-        readonly output: 'declarado' | 'confirmado' | 'rechazado';
-        readonly input: 'declarado' | 'confirmado' | 'rechazado';
+        readonly output: 'declarado' | 'confirmado' | 'rechazado' | 'aprovado' | 'aprobado';
+        readonly input: 'declarado' | 'confirmado' | 'rechazado' | 'aprovado' | 'aprobado';
       };
       readonly metodo: {
         readonly output: 'efectivo' | 'qr' | 'transferencia';
@@ -506,12 +506,14 @@ export namespace Models {
     detalle: FieldOutputTypes['public']['EventoTrabajo']['detalle'];
     fechaEvento: FieldOutputTypes['public']['EventoTrabajo']['fechaEvento'];
     idEvento: FieldOutputTypes['public']['EventoTrabajo']['idEvento'];
+    idServicio: FieldOutputTypes['public']['EventoTrabajo']['idServicio'];
     idTrabajo: FieldOutputTypes['public']['EventoTrabajo']['idTrabajo'];
     idUsuario: FieldOutputTypes['public']['EventoTrabajo']['idUsuario'];
     tipoEvento: FieldOutputTypes['public']['EventoTrabajo']['tipoEvento'];
+    servicio: public_Servicio | null;
     trabajo: public_Trabajo;
     usuario: public_Usuario | null;
-    readonly [RelationKeys]?: 'trabajo' | 'usuario';
+    readonly [RelationKeys]?: 'servicio' | 'trabajo' | 'usuario';
   };
   export type public_IncrementoPresupuesto = {
     estadoAprobacion: FieldOutputTypes['public']['IncrementoPresupuesto']['estadoAprobacion'];
@@ -601,13 +603,20 @@ export namespace Models {
     idPropuesta: FieldOutputTypes['public']['Servicio']['idPropuesta'];
     idServicio: FieldOutputTypes['public']['Servicio']['idServicio'];
     calificacions: public_Calificacion[];
+    eventoTrabajos: public_EventoTrabajo[];
     incrementoPresupuestos: public_IncrementoPresupuesto[];
     pagos: public_Pago[];
     propuesta: public_Propuesta;
     reclamos: public_Reclamo[];
     visitas: public_Visita[];
     readonly [RelationKeys]?:
-      'calificacions' | 'incrementoPresupuestos' | 'pagos' | 'propuesta' | 'reclamos' | 'visitas';
+      | 'calificacions'
+      | 'eventoTrabajos'
+      | 'incrementoPresupuestos'
+      | 'pagos'
+      | 'propuesta'
+      | 'reclamos'
+      | 'visitas';
   };
   export type public_Trabajo = {
     deletedAt: FieldOutputTypes['public']['Trabajo']['deletedAt'];
@@ -1193,6 +1202,12 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
+                readonly id_servicio: {
+                  readonly dataType: 'pg/int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly id_trabajo: {
                   readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
@@ -1220,6 +1235,19 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [];
               foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'evento_trabajo';
+                    readonly columns: readonly ['id_servicio'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'servicio';
+                    readonly columns: readonly ['id_servicio'];
+                  };
+                  readonly name: 'evento_trabajo_id_servicio_fkey';
+                },
                 {
                   readonly source: {
                     readonly namespaceId: 'public' & NamespaceId;
@@ -2248,7 +2276,13 @@ type ContractBase = Omit<
             };
             readonly EstadoPagoEnum: {
               readonly kind: 'valueSet';
-              readonly values: readonly ['declarado', 'confirmado', 'rechazado'];
+              readonly values: readonly [
+                'declarado',
+                'confirmado',
+                'rechazado',
+                'aprovado',
+                'aprobado',
+              ];
             };
             readonly EstadoPropuestaEnum: {
               readonly kind: 'valueSet';
@@ -2768,6 +2802,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
+              readonly idServicio: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly idTrabajo: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -2786,6 +2824,18 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
+              readonly servicio: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Servicio';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['idServicio'];
+                  readonly targetFields: readonly ['idServicio'];
+                };
+              };
               readonly trabajo: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -2818,6 +2868,7 @@ type ContractBase = Omit<
                 readonly detalle: { readonly column: 'detalle' };
                 readonly fechaEvento: { readonly column: 'fecha_evento' };
                 readonly idEvento: { readonly column: 'id_evento' };
+                readonly idServicio: { readonly column: 'id_servicio' };
                 readonly idTrabajo: { readonly column: 'id_trabajo' };
                 readonly idUsuario: { readonly column: 'id_usuario' };
                 readonly tipoEvento: { readonly column: 'tipo_evento' };
@@ -3432,6 +3483,17 @@ type ContractBase = Omit<
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'Calificacion';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['idServicio'];
+                  readonly targetFields: readonly ['idServicio'];
+                };
+              };
+              readonly eventoTrabajos: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'EventoTrabajo';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {

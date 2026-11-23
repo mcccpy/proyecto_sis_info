@@ -3,13 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CalificacionService } from './calificacion.service';
-import { CreateCalificacionDto } from './dto/create-calificacion.dto';
-import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
+import { CrearCalificacionDto } from './dto/create-calificacion.dto';
 
 /**
  * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
@@ -19,10 +17,10 @@ import { UpdateCalificacionDto } from './dto/update-calificacion.dto';
 export class CalificacionController {
   constructor(private readonly calificacionService: CalificacionService) {}
 
-  /** Recibe los datos para crear un registro y los entrega al servicio. */
+  /** Crea una calificación bajo las reglas de participantes y estado del servicio. */
   @Post()
-  crear(@Body() datosParaCrearCalificacion: CreateCalificacionDto) {
-    return this.calificacionService.crear(datosParaCrearCalificacion);
+  crearCalificacion(@Body() datos_calificacion: CrearCalificacionDto) {
+    return this.calificacionService.crearCalificacion(datos_calificacion);
   }
 
   /** Delega al servicio la consulta de todos los registros. */
@@ -31,27 +29,17 @@ export class CalificacionController {
     return this.calificacionService.listarTodos();
   }
 
+  /** Lista las calificaciones recibidas por un reparador y su promedio. */
+  @Get('reparador/:id_reparador')
+  listarPorReparador(
+    @Param('id_reparador', ParseIntPipe) id_reparador: number,
+  ) {
+    return this.calificacionService.listarPorReparador(id_reparador);
+  }
+
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
-  obtenerPorId(@Param('id') identificadorEnRuta: string) {
-    return this.calificacionService.obtenerPorId(Number(identificadorEnRuta));
-  }
-
-  /** Entrega al servicio el identificador y los cambios parciales recibidos. */
-  @Patch(':id')
-  actualizar(
-    @Param('id') identificadorEnRuta: string,
-    @Body() datosParaActualizarCalificacion: UpdateCalificacionDto,
-  ) {
-    return this.calificacionService.actualizar(
-      Number(identificadorEnRuta),
-      datosParaActualizarCalificacion,
-    );
-  }
-
-  /** Delega al servicio la eliminacion del registro indicado en la ruta. */
-  @Delete(':id')
-  eliminar(@Param('id') identificadorEnRuta: string) {
-    return this.calificacionService.eliminar(Number(identificadorEnRuta));
+  obtenerPorId(@Param('id', ParseIntPipe) identificador: number) {
+    return this.calificacionService.obtenerPorId(identificador);
   }
 }

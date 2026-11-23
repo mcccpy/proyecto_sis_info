@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -9,7 +10,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { AgregarRolDto } from './dto/agregar-rol.dto';
+import { AsignarRevocarRolDto } from './dto/asignar-revocar-rol.dto';
 import { CambiarModoRolDto } from './dto/cambiar-modo-rol.dto';
+import { CrearRolAdminDto } from './dto/crear-rol-admin.dto';
 import {
   DictamenDocumentoDto,
   DictamenReparadorDto,
@@ -84,6 +87,39 @@ export class UsuarioController {
     @Body() dictamen: DictamenDocumentoDto,
   ) {
     return this.usuarioService.revisarDocumentoUsuario(id_documento, dictamen);
+  }
+
+  /** Lista los roles existentes después de validar la cuenta administradora. */
+  @Get('admin/roles')
+  listarRolesAdmin(@Query('id_admin', ParseIntPipe) id_admin: number) {
+    return this.usuarioService.listarRolesAdmin(id_admin);
+  }
+
+  /** Crea un rol personalizado desde el panel administrativo. */
+  @Post('admin/roles')
+  crearRolAdmin(@Body() datos_rol: CrearRolAdminDto) {
+    return this.usuarioService.crearRolAdmin(datos_rol);
+  }
+
+  /** Elimina un rol personalizado y conserva protegidos los roles base. */
+  @Delete('admin/roles/:id_rol')
+  eliminarRolAdmin(
+    @Param('id_rol', ParseIntPipe) id_rol: number,
+    @Query('id_admin', ParseIntPipe) id_admin: number,
+  ) {
+    return this.usuarioService.eliminarRolAdmin(id_admin, id_rol);
+  }
+
+  /** Asigna un rol existente a una cuenta indicada por el administrador. */
+  @Post('admin/usuario-rol')
+  asignarRolManualAdmin(@Body() datos_asignacion: AsignarRevocarRolDto) {
+    return this.usuarioService.asignarRolManualAdmin(datos_asignacion);
+  }
+
+  /** Revoca un rol asignado a una cuenta indicada por el administrador. */
+  @Delete('admin/usuario-rol')
+  revocarRolManualAdmin(@Body() datos_asignacion: AsignarRevocarRolDto) {
+    return this.usuarioService.revocarRolManualAdmin(datos_asignacion);
   }
 
   /** Obtiene la cuenta, sus roles, documentos y el perfil profesional asociado. */

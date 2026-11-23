@@ -3,19 +3,18 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
 import { TrabajoService } from './trabajo.service';
-import { CreateTrabajoDto } from './dto/create-trabajo.dto';
-import { UpdateTrabajoDto } from './dto/update-trabajo.dto';
 import { FiltroDocumentosTrabajosDto } from '../usuario/dto/filtros-admin.dto';
 import { BuscarTecnicosDirectosDto } from './dto/buscar-tecnicos-directos.dto';
+import { CoordenadasReparadorDto } from './dto/coordenadas-reparador.dto';
 import { CrearTrabajoAbiertoDto } from './dto/crear-trabajo-abierto.dto';
 import { CrearTrabajoDirectoDto } from './dto/crear-trabajo-directo.dto';
+import { AdjuntarDocumentoTrabajoDto } from './dto/adjuntar-documento-trabajo.dto';
+import { ServicioService } from '../servicio/servicio.service';
 
 /**
  * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
@@ -23,7 +22,46 @@ import { CrearTrabajoDirectoDto } from './dto/crear-trabajo-directo.dto';
  */
 @Controller('trabajo')
 export class TrabajoController {
-  constructor(private readonly trabajoService: TrabajoService) {}
+  constructor(
+    private readonly trabajoService: TrabajoService,
+    private readonly servicioService: ServicioService,
+  ) {}
+
+  /** Adjunta evidencia compartida cuando el usuario participa en el trabajo. */
+  @Post(':id_trabajo/documentos')
+  adjuntarDocumento(
+    @Param('id_trabajo', ParseIntPipe) id_trabajo: number,
+    @Body() datos_documento: AdjuntarDocumentoTrabajoDto,
+  ) {
+    return this.trabajoService.adjuntarDocumentoCompartido(
+      id_trabajo,
+      datos_documento,
+    );
+  }
+
+  /** Lista documentos compartidos para participantes autorizados. */
+  @Get(':id_trabajo/documentos')
+  listarDocumentos(
+    @Param('id_trabajo', ParseIntPipe) id_trabajo: number,
+    @Query('id_usuario', ParseIntPipe) id_usuario: number,
+  ) {
+    return this.trabajoService.listarDocumentosTrabajo(
+      id_trabajo,
+      id_usuario,
+    );
+  }
+
+  /** Consulta la bitácora técnica del trabajo con control de acceso. */
+  @Get(':id_trabajo/bitacora')
+  obtenerBitacora(
+    @Param('id_trabajo', ParseIntPipe) id_trabajo: number,
+    @Query('id_usuario', ParseIntPipe) id_usuario: number,
+  ) {
+    return this.servicioService.obtenerBitacoraTrabajo(
+      id_trabajo,
+      id_usuario,
+    );
+  }
 
   /** Devuelve solicitudes directas y trabajos abiertos priorizados por cobertura. */
   @Get('reparador/:id_reparador/feed')
@@ -53,8 +91,12 @@ export class TrabajoController {
   @Get('portal-reparador/:id_reparador/explorar')
   explorarTrabajosPublicos(
     @Param('id_reparador', ParseIntPipe) id_reparador: number,
+    @Query() ubicacion_actual: CoordenadasReparadorDto,
   ) {
-    return this.trabajoService.explorarTrabajosPublicos(id_reparador);
+    return this.trabajoService.explorarTrabajosPublicos(
+      id_reparador,
+      ubicacion_actual,
+    );
   }
 
   /** Audita documentos adjuntos a trabajos y sus clientes. */
@@ -92,12 +134,6 @@ export class TrabajoController {
     return this.trabajoService.crearTrabajoDirecto(datos_trabajo);
   }
 
-  /** Recibe los datos para crear un registro y los entrega al servicio. */
-  @Post()
-  crear(@Body() datosParaCrearTrabajo: CreateTrabajoDto) {
-    return this.trabajoService.crear(datosParaCrearTrabajo);
-  }
-
   /** Delega al servicio la consulta de todos los registros. */
   @Get()
   listarTodos() {
@@ -106,25 +142,7 @@ export class TrabajoController {
 
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
-  obtenerPorId(@Param('id') identificadorEnRuta: string) {
-    return this.trabajoService.obtenerPorId(Number(identificadorEnRuta));
-  }
-
-  /** Entrega al servicio el identificador y los cambios parciales recibidos. */
-  @Patch(':id')
-  actualizar(
-    @Param('id') identificadorEnRuta: string,
-    @Body() datosParaActualizarTrabajo: UpdateTrabajoDto,
-  ) {
-    return this.trabajoService.actualizar(
-      Number(identificadorEnRuta),
-      datosParaActualizarTrabajo,
-    );
-  }
-
-  /** Delega al servicio la eliminacion del registro indicado en la ruta. */
-  @Delete(':id')
-  eliminar(@Param('id') identificadorEnRuta: string) {
-    return this.trabajoService.eliminar(Number(identificadorEnRuta));
+  obtenerPorId(@Param('id', ParseIntPipe) identificador: number) {
+    return this.trabajoService.obtenerPorId(identificador);
   }
 }

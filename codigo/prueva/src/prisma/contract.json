@@ -704,6 +704,13 @@
                   "kind": "scalar"
                 }
               },
+              "idServicio": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "idTrabajo": {
                 "nullable": false,
                 "type": {
@@ -730,6 +737,22 @@
               }
             },
             "relations": {
+              "servicio": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "Servicio",
+                  "namespace": "public"
+                }
+              },
               "trabajo": {
                 "cardinality": "N:1",
                 "nullable": false,
@@ -773,6 +796,9 @@
                 },
                 "idEvento": {
                   "column": "id_evento"
+                },
+                "idServicio": {
+                  "column": "id_servicio"
                 },
                 "idTrabajo": {
                   "column": "id_trabajo"
@@ -1683,6 +1709,21 @@
                   "namespace": "public"
                 }
               },
+              "eventoTrabajos": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "idServicio"
+                  ],
+                  "targetFields": [
+                    "idServicio"
+                  ]
+                },
+                "to": {
+                  "model": "EventoTrabajo",
+                  "namespace": "public"
+                }
+              },
               "incrementoPresupuestos": {
                 "cardinality": "1:N",
                 "on": {
@@ -2566,7 +2607,9 @@
               "members": [
                 "declarado",
                 "confirmado",
-                "rechazado"
+                "rechazado",
+                "aprovado",
+                "aprobado"
               ],
               "typeName": "estado_pago_enum"
             },
@@ -3215,6 +3258,11 @@
                   },
                   "nullable": false
                 },
+                "id_servicio": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
                 "id_trabajo": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
@@ -3235,6 +3283,24 @@
                 }
               },
               "foreignKeys": [
+                {
+                  "name": "evento_trabajo_id_servicio_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "evento_trabajo"
+                  },
+                  "target": {
+                    "columns": [
+                      "id_servicio"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "servicio"
+                  }
+                },
                 {
                   "name": "evento_trabajo_id_trabajo_fkey",
                   "onDelete": "cascade",
@@ -4597,7 +4663,9 @@
               "values": [
                 "declarado",
                 "confirmado",
-                "rechazado"
+                "rechazado",
+                "aprovado",
+                "aprobado"
               ]
             },
             "EstadoPropuestaEnum": {
@@ -4664,7 +4732,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a363b6d57d61fe8c5901bc512c0f00284c786a220378f3a7a9929362d2ada8e2"
+    "storageHash": "fb0e2a46c459f9e0925092c8bad62172a79afff49cf36ba094e97aa130129940"
   },
   "capabilities": {
     "postgres": {

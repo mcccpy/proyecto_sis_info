@@ -5,16 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PerfilTrabajadorRepository } from '../perfil-trabajador/perfil-trabajador.repository';
-import { CreateTrabajoDto } from './dto/create-trabajo.dto';
-import { UpdateTrabajoDto } from './dto/update-trabajo.dto';
 import { TrabajoRepository } from './trabajo.repository';
 import { PropuestaRepository } from '../propuesta/propuesta.repository';
 import { ServicioRepository } from '../servicio/servicio.repository';
 import { UsuarioRepository } from '../usuario/usuario.repository';
 import type { FiltroDocumentosTrabajosDto } from '../usuario/dto/filtros-admin.dto';
 import type { BuscarTecnicosDirectosDto } from './dto/buscar-tecnicos-directos.dto';
+import type { CoordenadasReparadorDto } from './dto/coordenadas-reparador.dto';
 import type { CrearTrabajoAbiertoDto } from './dto/crear-trabajo-abierto.dto';
 import type { CrearTrabajoDirectoDto } from './dto/crear-trabajo-directo.dto';
+import type { AdjuntarDocumentoTrabajoDto } from './dto/adjuntar-documento-trabajo.dto';
 import type {
   CrearTrabajoClienteData,
   DocumentoTrabajoData,
@@ -32,12 +32,17 @@ type ServicioActivo = Awaited<
   ReturnType<ServicioRepository['findServiciosActivosByReparador']>
 >[number];
 type PrioridadCobertura = {
-  prioridad: 1 | 2 | 3;
-  anillo_cobertura: 'VERDE' | 'AMARILLO' | 'ROJO';
+  prioridad: 1 | 2 | 3 | 4;
+  anillo_cobertura: 'VERDE' | 'AMARILLO' | 'ROJO' | 'FUERA_DE_ZONA';
 };
 
 type CoincidenciaDeZona = PrioridadCobertura & {
   distancia_metros: number;
+  zona_coincidente: string | null;
+};
+
+type MetadatosDeCobertura = PrioridadCobertura & {
+  distancia_metros: number | null;
   zona_coincidente: string | null;
 };
 
@@ -51,6 +56,74 @@ export class TrabajoService {
     private readonly usuarioRepository: UsuarioRepository,
     private readonly perfilTrabajadorRepository: PerfilTrabajadorRepository,
   ) {}
+
+  /** Adjunta evidencia compartida si el usuario es cliente o reparador asignado. */
+  async adjuntarDocumentoCompartido(
+    id_trabajo: number,
+    datos_documento: AdjuntarDocumentoTrabajoDto,
+  ) {
+    const trabajo =
+      await this.trabajoRepository.findByIdWithPropuestas(id_trabajo);
+
+    if (!trabajo) {
+      throw new NotFoundException('Trabajo no encontrado');
+    }
+
+    const es_cliente =
+      trabajo.idCliente === datos_documento.id_usuario;
+    const es_reparador_asignado = trabajo.propuestas.some(
+      (propuesta) =>
+        propuesta.idReparador === datos_documento.id_usuario &&
+        (propuesta.estado === 'aceptada' ||
+          propuesta.estado === 'pendiente'),
+    );
+
+    if (!es_cliente && !es_reparador_asignado) {
+      throw new ForbiddenException(
+        'Solo el cliente o el reparador asignado pueden adjuntar evidencia a este trabajo',
+      );
+    }
+
+    return this.trabajoRepository.crearDocumentoTrabajo(
+      id_trabajo,
+      datos_documento.tipo_documento,
+      datos_documento.archivo_url,
+    );
+  }
+
+  /** Lista documentos compartidos para cliente, reparador asignado o administrador. */
+  async listarDocumentosTrabajo(
+    id_trabajo: number,
+    id_usuario: number,
+  ) {
+    const trabajo =
+      await this.trabajoRepository.findByIdWithPropuestas(id_trabajo);
+
+    if (!trabajo) {
+      throw new NotFoundException('Trabajo no encontrado');
+    }
+
+    const es_cliente = trabajo.idCliente === id_usuario;
+    const es_reparador_asignado = trabajo.propuestas.some(
+      (propuesta) =>
+        propuesta.idReparador === id_usuario &&
+        propuesta.estado === 'aceptada',
+    );
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+
+    if (
+      !es_cliente &&
+      !es_reparador_asignado &&
+      !es_administrador
+    ) {
+      throw new ForbiddenException(
+        'Solo el cliente, el reparador asignado o un administrador pueden consultar los documentos',
+      );
+    }
+
+    return this.trabajoRepository.findDocumentosByTrabajo(id_trabajo);
+  }
 
   /** Lista documentos de trabajo únicamente para cuentas administradoras. */
   async listarDocumentosTrabajosAdmin(
@@ -203,32 +276,20 @@ export class TrabajoService {
     });
   }
 
-  /** Conserva las operaciones existentes del recurso trabajo. */
-  crear(_datos_para_crear_trabajo: CreateTrabajoDto) {
-    return 'This action adds a new trabajo';
-  }
-
-  /** Conserva la ruta genérica de listado existente en el módulo. */
+  /** Lista trabajos activos con sus datos de cliente, categorías y documentos. */
   listarTodos() {
-    return `This action returns all trabajo`;
+    return this.trabajoRepository.findAll();
   }
 
-  /** Conserva la ruta genérica de lectura existente en el módulo. */
-  obtenerPorId(id_trabajo: number) {
-    return `This action returns a #${id_trabajo} trabajo`;
-  }
+  /** Busca un trabajo activo y notifica cuando no existe. */
+  async obtenerPorId(id_trabajo: number) {
+    const trabajo = await this.trabajoRepository.findById(id_trabajo);
 
-  /** Conserva la ruta genérica de actualización existente en el módulo. */
-  actualizar(
-    id_trabajo: number,
-    _datos_para_actualizar_trabajo: UpdateTrabajoDto,
-  ) {
-    return `This action updates a #${id_trabajo} trabajo`;
-  }
+    if (!trabajo) {
+      throw new NotFoundException('Trabajo no encontrado');
+    }
 
-  /** Conserva la ruta genérica de eliminación existente en el módulo. */
-  eliminar(id_trabajo: number) {
-    return `This action removes a #${id_trabajo} trabajo`;
+    return trabajo;
   }
 
   /** Combina solicitudes directas con trabajos abiertos ordenados por anillo y distancia. */
@@ -317,8 +378,11 @@ export class TrabajoService {
     );
   }
 
-  /** Explora trabajos compatibles y excluye todos los que ya recibieron una propuesta del reparador. */
-  async explorarTrabajosPublicos(id_reparador: number) {
+  /** Explora trabajos compatibles y ordena los resultados según la cobertura disponible. */
+  async explorarTrabajosPublicos(
+    id_reparador: number,
+    ubicacion_actual: CoordenadasReparadorDto,
+  ) {
     const perfil_del_reparador =
       await this.obtenerPerfilReparador(id_reparador);
     const ids_trabajos_con_propuesta =
@@ -331,9 +395,11 @@ export class TrabajoService {
     );
     const zonas_del_reparador = perfil_del_reparador.zonaReparadors;
 
-    if (ids_categorias.length === 0 || zonas_del_reparador.length === 0) {
+    if (ids_categorias.length === 0) {
       return [];
     }
+
+    this.validarCoordenadasActuales(ubicacion_actual);
 
     const trabajos_candidatos =
       await this.trabajoRepository.findTrabajosAbiertosExcluyendoIds(
@@ -344,7 +410,22 @@ export class TrabajoService {
     return this.priorizarTrabajosPorCobertura(
       trabajos_candidatos,
       zonas_del_reparador,
+      ubicacion_actual,
     );
+  }
+
+  /** Evita recibir una sola coordenada cuando se proporciona la ubicación actual. */
+  private validarCoordenadasActuales(
+    ubicacion_actual: CoordenadasReparadorDto,
+  ): void {
+    const tiene_latitud = ubicacion_actual.latitud !== undefined;
+    const tiene_longitud = ubicacion_actual.longitud !== undefined;
+
+    if (tiene_latitud !== tiene_longitud) {
+      throw new BadRequestException(
+        'La ubicación actual debe incluir latitud y longitud.',
+      );
+    }
   }
 
   /** Ordena servicios por la fecha preferida del trabajo, dejando fechas vacías al final. */
@@ -433,8 +514,7 @@ export class TrabajoService {
       datos_trabajo.documentos ?? []
     ).map((documento) => ({
       tipoDocumento: documento.tipo_documento,
-      ubucacionArchivo: documento.ubucacion_archivo,
-      urlYN: documento.url_y_n,
+      archivoUrl: documento.ubucacion_archivo,
     }));
 
     return {
@@ -454,23 +534,32 @@ export class TrabajoService {
   private priorizarTrabajosPorCobertura(
     trabajos_candidatos: readonly TrabajoAbierto[],
     zonas_del_reparador: readonly ZonaDeCobertura[],
+    ubicacion_actual: CoordenadasReparadorDto = {},
   ) {
     return trabajos_candidatos
       .map((trabajo) =>
-        this.agregarMetadatosDeCobertura(trabajo, zonas_del_reparador),
+        this.agregarMetadatosDeCobertura(
+          trabajo,
+          zonas_del_reparador,
+          ubicacion_actual,
+        ),
       )
       .filter((trabajo) => trabajo !== null)
       .sort(
         (trabajo_a, trabajo_b) =>
           trabajo_a.prioridad - trabajo_b.prioridad ||
-          trabajo_a.distancia_metros - trabajo_b.distancia_metros,
+          this.compararDistancias(
+            trabajo_a.distancia_metros,
+            trabajo_b.distancia_metros,
+          ),
       );
   }
 
-  /** Descarta trabajos sin coordenadas o fuera de todos los radios configurados. */
+  /** Añade el nivel de cobertura y la distancia útil para ordenar cada trabajo. */
   private agregarMetadatosDeCobertura(
     trabajo: TrabajoAbierto,
     zonas_del_reparador: readonly ZonaDeCobertura[],
+    ubicacion_actual: CoordenadasReparadorDto,
   ) {
     if (trabajo.latitud === null || trabajo.longitud === null) {
       return null;
@@ -486,11 +575,18 @@ export class TrabajoService {
       return null;
     }
 
-    const mejor_coincidencia = this.buscarMejorZona(
-      latitud_trabajo,
-      longitud_trabajo,
-      zonas_del_reparador,
-    );
+    const mejor_coincidencia: MetadatosDeCobertura | null =
+      zonas_del_reparador.length > 0
+        ? this.buscarMejorZona(
+            latitud_trabajo,
+            longitud_trabajo,
+            zonas_del_reparador,
+          )
+        : this.crearCoincidenciaSinZonas(
+            latitud_trabajo,
+            longitud_trabajo,
+            ubicacion_actual,
+          );
 
     if (!mejor_coincidencia) {
       return null;
@@ -503,6 +599,53 @@ export class TrabajoService {
       cantidad_propuestas,
       ...mejor_coincidencia,
     };
+  }
+
+  /** Usa la ubicación actual opcional cuando el reparador aún no tiene zonas guardadas. */
+  private crearCoincidenciaSinZonas(
+    latitud_trabajo: number,
+    longitud_trabajo: number,
+    ubicacion_actual: CoordenadasReparadorDto,
+  ): MetadatosDeCobertura {
+    if (
+      ubicacion_actual.latitud === undefined ||
+      ubicacion_actual.longitud === undefined
+    ) {
+      return {
+        prioridad: 4,
+        anillo_cobertura: 'FUERA_DE_ZONA',
+        distancia_metros: null,
+        zona_coincidente: null,
+      };
+    }
+
+    return {
+      prioridad: 4,
+      anillo_cobertura: 'FUERA_DE_ZONA',
+      distancia_metros: this.calcularDistanciaMetros(
+        ubicacion_actual.latitud,
+        ubicacion_actual.longitud,
+        latitud_trabajo,
+        longitud_trabajo,
+      ),
+      zona_coincidente: null,
+    };
+  }
+
+  /** Ordena distancias conocidas primero y conserva el orden para distancias desconocidas. */
+  private compararDistancias(
+    distancia_a: number | null,
+    distancia_b: number | null,
+  ): number {
+    if (distancia_a === null) {
+      return distancia_b === null ? 0 : 1;
+    }
+
+    if (distancia_b === null) {
+      return -1;
+    }
+
+    return distancia_a - distancia_b;
   }
 
   /** Elige el anillo prioritario más cercano entre todos los puntos del reparador. */
@@ -525,10 +668,6 @@ export class TrabajoService {
         zona_de_cobertura,
       );
 
-      if (!prioridad_del_anillo) {
-        continue;
-      }
-
       const coincidencia_actual = {
         ...prioridad_del_anillo,
         distancia_metros,
@@ -549,11 +688,11 @@ export class TrabajoService {
     return mejor_coincidencia;
   }
 
-  /** Clasifica una distancia en los anillos verde, amarillo o rojo. */
+  /** Clasifica una distancia en uno de los anillos o fuera de cobertura. */
   private determinarPrioridadCobertura(
     distancia_metros: number,
     zona_de_cobertura: ZonaDeCobertura,
-  ): PrioridadCobertura | null {
+  ): PrioridadCobertura {
     if (distancia_metros <= zona_de_cobertura.radioGood) {
       return { prioridad: 1, anillo_cobertura: 'VERDE' };
     }
@@ -566,7 +705,7 @@ export class TrabajoService {
       return { prioridad: 3, anillo_cobertura: 'ROJO' };
     }
 
-    return null;
+    return { prioridad: 4, anillo_cobertura: 'FUERA_DE_ZONA' };
   }
 
   /** Calcula la distancia entre dos coordenadas usando la fórmula de Haversine. */

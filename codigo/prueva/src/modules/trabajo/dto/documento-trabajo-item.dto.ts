@@ -1,4 +1,10 @@
-import { IsBoolean, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 /** Describe un archivo opcional adjunto a una solicitud de trabajo. */
 export class DocumentoTrabajoItemDto {
@@ -11,6 +17,7 @@ export class DocumentoTrabajoItemDto {
   @IsNotEmpty()
   ubucacion_archivo!: string;
 
+  @IsOptional()
   @IsBoolean()
-  url_y_n!: boolean;
+  url_y_n?: boolean;
 }

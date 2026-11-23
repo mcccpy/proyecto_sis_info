@@ -32,6 +32,49 @@ export interface FiltrosBusquedaReparadores {
 export class PerfilTrabajadorRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Lista perfiles con sus datos de usuario y relaciones profesionales. */
+  findAll() {
+    return this.prisma.db.orm.public.PerfilTrabajador.include('usuario')
+      .include('categoriaReparadors', (categorias_del_reparador) =>
+        categorias_del_reparador.include('categoria'),
+      )
+      .include('zonaReparadors')
+      .include('disponibilidads')
+      .all();
+  }
+
+  /** Busca un perfil con sus calificaciones recibidas y relaciones profesionales. */
+  findByUsuarioIdWithDetails(id_usuario: number) {
+    return this.prisma.db.orm.public.PerfilTrabajador.include(
+      'categoriaReparadors',
+      (categorias_del_reparador) =>
+        categorias_del_reparador.include('categoria'),
+    )
+      .include('zonaReparadors')
+      .include('disponibilidads')
+      .include('usuario', (usuario) =>
+        usuario.include('calificacions', (calificaciones) =>
+          calificaciones.include('servicio'),
+        ),
+      )
+      .where({ idUsuario: id_usuario })
+      .first();
+  }
+
+  /** Actualiza la experiencia profesional del perfil indicado. */
+  async updateExperienciaAnios(id_usuario: number, experiencia_anios: number) {
+    const perfil_actualizado =
+      await this.prisma.db.orm.public.PerfilTrabajador.where({
+        idUsuario: id_usuario,
+      }).update({ experienciaAnios: experiencia_anios });
+
+    if (!perfil_actualizado) {
+      return null;
+    }
+
+    return this.findByUsuarioIdWithDetails(id_usuario);
+  }
+
   /** Encuentra perfiles aprobados que coinciden con la categoría y el nombre recibidos. */
   async findReparadoresAprobadosParaBusqueda(
     filtros: FiltrosBusquedaReparadores,

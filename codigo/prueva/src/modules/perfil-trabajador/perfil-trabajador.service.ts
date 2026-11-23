@@ -1,33 +1,60 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePerfilTrabajadorDto } from './dto/create-perfil-trabajador.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdatePerfilTrabajadorDto } from './dto/update-perfil-trabajador.dto';
+import { PerfilTrabajadorRepository } from './perfil-trabajador.repository';
 
 /**
- * Agrupa las operaciones de perfil-trabajador.
- * La carga y revision de documentos del perfil todavia no estan implementadas.
+ * Coordina la consulta y actualización de perfiles profesionales.
  */
 @Injectable()
 export class PerfilTrabajadorService {
-  crear(_datosParaCrearPerfilTrabajador: CreatePerfilTrabajadorDto) {
-    return 'This action adds a new perfilTrabajador';
-  }
+  constructor(
+    private readonly perfilTrabajadorRepository: PerfilTrabajadorRepository,
+  ) {}
 
+  /** Lista perfiles existentes con sus relaciones profesionales. */
   listarTodos() {
-    return `This action returns all perfilTrabajador`;
+    return this.perfilTrabajadorRepository.findAll();
   }
 
-  obtenerPorId(identificador: number) {
-    return `This action returns a #${identificador} perfilTrabajador`;
+  /** Busca un perfil por el identificador de su usuario. */
+  async obtenerPorId(id_usuario: number) {
+    const perfil =
+      await this.perfilTrabajadorRepository.findByUsuarioIdWithDetails(
+        id_usuario,
+      );
+
+    if (!perfil) {
+      throw new NotFoundException('Perfil de trabajador no encontrado');
+    }
+
+    return perfil;
   }
 
-  actualizar(
-    identificador: number,
-    _datosParaActualizarPerfilTrabajador: UpdatePerfilTrabajadorDto,
+  /** Actualiza la experiencia del perfil existente. */
+  async actualizar(
+    id_usuario: number,
+    datos_actualizados: UpdatePerfilTrabajadorDto,
   ) {
-    return `This action updates a #${identificador} perfilTrabajador`;
-  }
+    if (datos_actualizados.experiencia_anios === undefined) {
+      throw new BadRequestException(
+        'Debes enviar la experiencia en años para actualizar el perfil',
+      );
+    }
 
-  eliminar(identificador: number) {
-    return `This action removes a #${identificador} perfilTrabajador`;
+    const perfil_actualizado =
+      await this.perfilTrabajadorRepository.updateExperienciaAnios(
+        id_usuario,
+        datos_actualizados.experiencia_anios,
+      );
+
+    if (!perfil_actualizado) {
+      throw new NotFoundException('Perfil de trabajador no encontrado');
+    }
+
+    return perfil_actualizado;
   }
 }

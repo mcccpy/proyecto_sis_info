@@ -5,11 +5,13 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ReclamoService } from './reclamo.service';
-import { CreateReclamoDto } from './dto/create-reclamo.dto';
-import { UpdateReclamoDto } from './dto/update-reclamo.dto';
+import { CrearReclamoDto } from './dto/create-reclamo.dto';
+import { FiltroBandejaReclamosAdminDto } from './dto/filtro-bandeja-reclamos-admin.dto';
+import { ResolverReclamoAdminDto } from './dto/resolver-reclamo-admin.dto';
 
 /**
  * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
@@ -19,10 +21,34 @@ import { UpdateReclamoDto } from './dto/update-reclamo.dto';
 export class ReclamoController {
   constructor(private readonly reclamoService: ReclamoService) {}
 
-  /** Recibe los datos para crear un registro y los entrega al servicio. */
+  /** Abre un reclamo sobre un servicio para uno de sus participantes. */
   @Post()
-  crear(@Body() datosParaCrearReclamo: CreateReclamoDto) {
-    return this.reclamoService.crear(datosParaCrearReclamo);
+  abrirReclamo(@Body() datos_reclamo: CrearReclamoDto) {
+    return this.reclamoService.abrirReclamo(datos_reclamo);
+  }
+
+  /** Lista los reclamos de un servicio junto a su historial de acciones. */
+  @Get('servicio/:id_servicio')
+  listarPorServicio(@Param('id_servicio', ParseIntPipe) id_servicio: number) {
+    return this.reclamoService.listarPorServicio(id_servicio);
+  }
+
+  /** Registra la resolución y la acción administrativa de un reclamo. */
+  @Patch(':id_reclamo/resolver')
+  gestionarReclamoAdmin(
+    @Param('id_reclamo', ParseIntPipe) id_reclamo: number,
+    @Body() datos_resolucion: ResolverReclamoAdminDto,
+  ) {
+    return this.reclamoService.gestionarReclamoAdmin(
+      id_reclamo,
+      datos_resolucion,
+    );
+  }
+
+  /** Lista los reclamos con filtros y prioridad de atención para administración. */
+  @Get('admin/bandeja')
+  listarReclamosAdmin(@Query() filtros: FiltroBandejaReclamosAdminDto) {
+    return this.reclamoService.listarReclamosAdmin(filtros);
   }
 
   /** Delega al servicio la consulta de todos los registros. */
@@ -33,25 +59,7 @@ export class ReclamoController {
 
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
-  obtenerPorId(@Param('id') identificadorEnRuta: string) {
-    return this.reclamoService.obtenerPorId(Number(identificadorEnRuta));
-  }
-
-  /** Entrega al servicio el identificador y los cambios parciales recibidos. */
-  @Patch(':id')
-  actualizar(
-    @Param('id') identificadorEnRuta: string,
-    @Body() datosParaActualizarReclamo: UpdateReclamoDto,
-  ) {
-    return this.reclamoService.actualizar(
-      Number(identificadorEnRuta),
-      datosParaActualizarReclamo,
-    );
-  }
-
-  /** Delega al servicio la eliminacion del registro indicado en la ruta. */
-  @Delete(':id')
-  eliminar(@Param('id') identificadorEnRuta: string) {
-    return this.reclamoService.eliminar(Number(identificadorEnRuta));
+  obtenerPorId(@Param('id', ParseIntPipe) identificador: number) {
+    return this.reclamoService.obtenerPorId(identificador);
   }
 }
