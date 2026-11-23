@@ -24,9 +24,9 @@ import {
 } from '../core/models';
 
 
-// ======================================
+// ==========================================
 // COMPONENTE DEL CLIENTE
-// ======================================
+// ==========================================
 
 @Component({
     selector: 'app-cliente',
@@ -38,55 +38,71 @@ import {
 export class ClienteComponent implements OnInit {
 
 
-    // ==================================
+    // ======================================
     // 1. SERVICIOS
-    // ==================================
+    // ======================================
 
+    // Servicio para consultar datos del sistema
     api = inject(ApiService);
 
+    // Servicio para saber quien inicio sesion
     auth = inject(AuthService);
 
 
-    // ==================================
-    // 2. VARIABLES
-    // ==================================
+    // ======================================
+    // 2. PANTALLAS DEL CLIENTE
+    // ======================================
 
-    // Pantalla que se esta mostrando
+    // Puede mostrar buscar, publicar o mis solicitudes
     vista = signal<'buscar' | 'publicar' | 'mias'>('buscar');
 
-    // Listas de datos
+
+    // ======================================
+    // 3. LISTAS DE DATOS
+    // ======================================
+
+    // Categorias de trabajos
     categorias = signal<Categoria[]>([]);
 
+    // Trabajadores encontrados
     trabajadores = signal<Trabajador[]>([]);
 
+    // Solicitudes del cliente
     mias = signal<Solicitud[]>([]);
 
+    // Propuestas recibidas
     ofertas = signal<Propuesta[]>([]);
 
 
-    // Solicitud seleccionada
+    // ======================================
+    // 4. VARIABLES DE CONTROL
+    // ======================================
+
+    // Identifica la solicitud cuyas propuestas vemos
     seleccionada = signal<number | null>(null);
 
-
-    // Mensajes
+    // Mensajes para el usuario
     error = signal('');
-
     exito = signal('');
 
-
-    // Indica si se esta publicando
+    // Indica si se esta publicando una solicitud
     guardando = signal(false);
 
 
-    // Filtros para buscar
+    // ======================================
+    // 5. FILTROS DE BUSQUEDA
+    // ======================================
+
+    // Cero significa todas las categorias
     filtroCategoria = 0;
 
+    // Zona donde buscamos trabajadores
     filtroZona = '';
 
 
-    // ==================================
-    // 3. FORMULARIO DE SOLICITUD
-    // ==================================
+    // ======================================
+    // 6. FORMULARIO DE SOLICITUD
+    // ======================================
 
     form = {
         titulo: '',
@@ -99,91 +115,243 @@ export class ClienteComponent implements OnInit {
     };
 
 
-    // ==================================
-    // 4. INICIAR LA PANTALLA
-    // ==================================
+    // ======================================
+    // 7. INICIAR LA PANTALLA
+    // ======================================
 
     async ngOnInit() {
 
         try {
 
-            // Obtener las categorias
+            // Pedimos las categorias al servidor
             const lista = await this.api.categorias();
 
+            // Guardamos las categorias obtenidas
             this.categorias.set(lista);
 
-            // Buscar trabajadores al iniciar
+            // Buscamos trabajadores al iniciar
             await this.buscar();
 
         } catch (e) {
 
+            // Mostramos cualquier error
             this.error.set(mensajeError(e));
 
         }
     }
 
 
-    // ==================================
-    // 5. BUSCAR TRABAJADORES
-    // ==================================
+    // ======================================
+    // 8. BUSCAR TRABAJADORES
+    // ======================================
 
     async buscar() {
 
-        // Limpiar errores
+        // Borramos errores anteriores
         this.error.set('');
 
         try {
 
-            // Buscar usando los filtros
+            // Pedimos trabajadores segun los filtros
             const lista = await this.api.trabajadores({
                 categoria: this.filtroCategoria,
-                zona: this.filtroZona
+                zona: this.filtroZona.trim()
             });
 
-            // Guardar resultados
+            // Guardamos los resultados
             this.trabajadores.set(lista);
 
         } catch (e) {
 
+            // Limpiamos resultados anteriores
+            this.trabajadores.set([]);
+
+            // Mostramos el error
             this.error.set(mensajeError(e));
 
         }
     }
 
 
-    // ==================================
-    // 6. PUBLICAR UNA SOLICITUD
-    // ==================================
+    // ======================================
+    // 9. PUBLICAR UNA SOLICITUD
+    // ======================================
 
     async crear() {
 
-        // Limpiar mensajes anteriores
-        this.error.set('');
+        // Evitamos publicar dos veces
+        if (this.guardando()) {
+            return;
+        }
 
+        // Borramos los mensajes anteriores
+        this.error.set('');
         this.exito.set('');
 
-        // Bloquear boton mientras guarda
+
+        // ----------------------------------
+        // 9.1 VERIFICAR INICIO DE SESION
+        // ----------------------------------
+
+        // Obtenemos el usuario que inicio sesion
+        const usuario = this.auth.usuario();
+
+        // Si no hay usuario, no puede publicar
+        if (!usuario) {
+
+            this.error.set(
+                'Debes iniciar sesión para publicar una solicitud.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.2 VERIFICAR TIPO DE USUARIO
+        // ----------------------------------
+
+        // Solo clientes y empresas pueden publicar
+        if (
+            usuario.rol !== 'CLIENTE' &&
+            usuario.rol !== 'EMPRESA'
+        ) {
+
+            this.error.set(
+                'Solo los clientes y empresas pueden publicar solicitudes.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.3 LIMPIAR ESPACIOS
+        // ----------------------------------
+
+        this.form.titulo = this.form.titulo.trim();
+
+        this.form.descripcion = this.form.descripcion.trim();
+
+        this.form.direccion = this.form.direccion.trim();
+
+        this.form.zona = this.form.zona.trim();
+
+        this.form.disponibilidad =
+            this.form.disponibilidad.trim();
+
+        this.form.fotoUrl = this.form.fotoUrl.trim();
+
+
+        // ----------------------------------
+        // 9.4 VALIDAR EL TITULO
+        // ----------------------------------
+
+        if (this.form.titulo.length < 5) {
+
+            this.error.set(
+                'El título debe tener al menos 5 caracteres.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.5 VALIDAR LA DESCRIPCION
+        // ----------------------------------
+
+        if (this.form.descripcion.length < 15) {
+
+            this.error.set(
+                'La descripción debe tener al menos 15 caracteres.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.6 VALIDAR LA CATEGORIA
+        // ----------------------------------
+
+        if (this.form.categoriaId <= 0) {
+
+            this.error.set(
+                'Debes seleccionar una categoría.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.7 VALIDAR LA ZONA
+        // ----------------------------------
+
+        if (this.form.zona === '') {
+
+            this.error.set(
+                'Debes ingresar la zona del trabajo.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.8 VALIDAR LA DIRECCION
+        // ----------------------------------
+
+        if (this.form.direccion === '') {
+
+            this.error.set(
+                'Debes ingresar la dirección del trabajo.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.9 VALIDAR LA DISPONIBILIDAD
+        // ----------------------------------
+
+        if (this.form.disponibilidad === '') {
+
+            this.error.set(
+                'Debes indicar tu disponibilidad.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 9.10 GUARDAR LA SOLICITUD
+        // ----------------------------------
+
+        // Desactivamos el boton mientras guardamos
         this.guardando.set(true);
 
         try {
 
-            // Verificar inicio de sesion
-            if (!this.auth.usuario()) {
-                throw new Error('LOGIN');
-            }
-
-            // Enviar solicitud al servidor
+            // Enviamos los datos al backend
             const respuesta = await this.api.crearSolicitud(
                 this.form
             );
 
-            // Mostrar mensaje de exito
+            // Mostramos mensaje de exito
             this.exito.set(
                 `Solicitud #${respuesta.id} creada correctamente`
             );
 
 
-            // Limpiar formulario
+            // ----------------------------------
+            // 9.11 LIMPIAR EL FORMULARIO
+            // ----------------------------------
+
+            // Dejamos los campos vacios para otra solicitud
             this.form = {
                 titulo: '',
                 descripcion: '',
@@ -195,133 +363,171 @@ export class ClienteComponent implements OnInit {
             };
 
 
-            // Abrir la lista de solicitudes
+            // ----------------------------------
+            // 9.12 MOSTRAR MIS SOLICITUDES
+            // ----------------------------------
+
             await this.abrirMias();
 
         } catch (e) {
 
-            // Si no inicio sesion
-            if (e instanceof Error && e.message === 'LOGIN') {
-
-                this.error.set(
-                    'Debes iniciar sesión como cliente para publicar.'
-                );
-
-            } else {
-
-                // Otros errores
-                this.error.set(mensajeError(e));
-
-            }
+            // Si el servidor devuelve un error
+            this.error.set(mensajeError(e));
 
         } finally {
 
-            // Habilitar nuevamente el boton
+            // Activamos el boton nuevamente
             this.guardando.set(false);
 
         }
     }
 
 
-    // ==================================
-    // 7. VER MIS SOLICITUDES
-    // ==================================
+    // ======================================
+    // 10. VER MIS SOLICITUDES
+    // ======================================
 
     async abrirMias() {
 
-        // Cambiar de pantalla
+        // Cambiamos a la pantalla de solicitudes
         this.vista.set('mias');
 
-        // Limpiar errores
+        // Borramos errores anteriores
         this.error.set('');
 
 
-        // Verificar sesion
+        // ----------------------------------
+        // 10.1 VERIFICAR SESION
+        // ----------------------------------
+
         if (!this.auth.usuario()) {
+
+            this.mias.set([]);
+
+            this.error.set(
+                'Debes iniciar sesión para ver tus solicitudes.'
+            );
+
             return;
         }
 
 
+        // ----------------------------------
+        // 10.2 CONSULTAR SOLICITUDES
+        // ----------------------------------
+
         try {
 
-            // Obtener solicitudes del cliente
+            // Pedimos las solicitudes del usuario
             const lista = await this.api.misSolicitudes();
 
-            // Guardar las solicitudes
+            // Guardamos la lista obtenida
             this.mias.set(lista);
 
         } catch (e) {
 
+            // Mostramos el error
             this.error.set(mensajeError(e));
 
         }
     }
 
 
-    // ==================================
-    // 8. VER PROPUESTAS
-    // ==================================
+    // ======================================
+    // 11. VER PROPUESTAS DE UNA SOLICITUD
+    // ======================================
 
     async verPropuestas(id: number) {
 
+        // Limpiamos errores
         this.error.set('');
 
 
-        // Si ya estaba abierta, cerrarla
+        // ----------------------------------
+        // 11.1 CERRAR PROPUESTAS ABIERTAS
+        // ----------------------------------
+
+        // Si ya estamos viendo esa solicitud,
+        // cerramos sus propuestas
         if (this.seleccionada() === id) {
 
             this.seleccionada.set(null);
+
+            this.ofertas.set([]);
 
             return;
         }
 
 
+        // ----------------------------------
+        // 11.2 CONSULTAR PROPUESTAS
+        // ----------------------------------
+
         try {
 
-            // Consultar propuestas
+            // Pedimos las propuestas de la solicitud
             const lista = await this.api.propuestas(id);
 
-            // Guardar propuestas
+            // Guardamos las propuestas
             this.ofertas.set(lista);
 
-            // Marcar solicitud seleccionada
+            // Guardamos el ID de la solicitud abierta
             this.seleccionada.set(id);
 
         } catch (e) {
 
+            // Mostramos el error
             this.error.set(mensajeError(e));
 
         }
     }
 
 
-    // ==================================
-    // 9. ACEPTAR UNA PROPUESTA
-    // ==================================
+    // ======================================
+    // 12. ACEPTAR UNA PROPUESTA
+    // ======================================
 
     async aceptar(id: number, solicitudId: number) {
 
+        // Limpiamos mensajes
         this.error.set('');
+        this.exito.set('');
 
         try {
 
-            // Aceptar propuesta en el backend
+            // ----------------------------------
+            // 12.1 ACEPTAR PROPUESTA
+            // ----------------------------------
+
+            // Enviamos la aceptacion al servidor
             await this.api.aceptar(id);
 
-            // Mostrar mensaje de exito
+
+            // ----------------------------------
+            // 12.2 MOSTRAR MENSAJE
+            // ----------------------------------
+
             this.exito.set(
-                'Propuesta aceptada y solicitud asignada'
+                'Propuesta aceptada y solicitud asignada.'
             );
 
 
-            // Actualizar las solicitudes
+            // ----------------------------------
+            // 12.3 ACTUALIZAR SOLICITUDES
+            // ----------------------------------
+
+            // Volvemos a obtener las solicitudes
             const listaSolicitudes =
                 await this.api.misSolicitudes();
 
             this.mias.set(listaSolicitudes);
 
 
-            // Actualizar las propuestas
+            // ----------------------------------
+            // 12.4 ACTUALIZAR PROPUESTAS
+            // ----------------------------------
+
+            // Volvemos a obtener las propuestas
             const listaPropuestas =
                 await this.api.propuestas(solicitudId);
 
@@ -329,6 +535,7 @@ export class ClienteComponent implements OnInit {
 
         } catch (e) {
 
+            // Mostramos cualquier error
             this.error.set(mensajeError(e));
 
         }
