@@ -1,12 +1,12 @@
 
 <!-- ====================================== -->
-<!-- PAGINA PRINCIPAL DEL CLIENTE -->
+<!-- PAGINA DEL CLIENTE -->
 <!-- ====================================== -->
 
 <main class="page shell">
 
     <!-- ================================== -->
-    <!-- 1. TITULO PRINCIPAL -->
+    <!-- 1. ENCABEZADO -->
     <!-- ================================== -->
 
     <div class="page-top">
@@ -55,7 +55,7 @@
 
 
     <!-- ================================== -->
-    <!-- 3. MENSAJES DE ERROR -->
+    <!-- 3. MENSAJES -->
     <!-- ================================== -->
 
     @if (error()) {
@@ -65,11 +65,6 @@
         </div>
 
     }
-
-
-    <!-- ================================== -->
-    <!-- 4. MENSAJES DE EXITO -->
-    <!-- ================================== -->
 
     @if (exito()) {
 
@@ -81,12 +76,10 @@
 
 
     <!-- ================================== -->
-    <!-- 5. MENU DEL CLIENTE -->
+    <!-- 4. PESTAÑAS -->
     <!-- ================================== -->
 
     <div class="tabs">
-
-        <!-- Buscar trabajadores -->
 
         <button
             type="button"
@@ -96,9 +89,6 @@
             Buscar técnicos
         </button>
 
-
-        <!-- Publicar solicitud -->
-
         <button
             type="button"
             [class.active]="vista() === 'publicar'"
@@ -106,9 +96,6 @@
         >
             Publicar solicitud
         </button>
-
-
-        <!-- Mis solicitudes -->
 
         <button
             type="button"
@@ -122,7 +109,7 @@
 
 
     <!-- ================================== -->
-    <!-- 6. BUSCAR TECNICOS -->
+    <!-- 5. BUSCAR TECNICOS -->
     <!-- ================================== -->
 
     @if (vista() === 'buscar') {
@@ -135,7 +122,7 @@
 
             <div class="search-grid">
 
-                <!-- Filtro de especialidad -->
+                <!-- Especialidad -->
 
                 <label>
 
@@ -160,7 +147,7 @@
                 </label>
 
 
-                <!-- Filtro de zona -->
+                <!-- Zona -->
 
                 <label>
 
@@ -175,7 +162,7 @@
                 </label>
 
 
-                <!-- Boton buscar -->
+                <!-- Buscar -->
 
                 <button
                     type="button"
@@ -190,9 +177,7 @@
         </section>
 
 
-        <!-- ================================= -->
-        <!-- 7. RESULTADOS DE BUSQUEDA -->
-        <!-- ================================= -->
+        <!-- RESULTADOS -->
 
         <div class="result-title">
 
@@ -207,7 +192,7 @@
         </div>
 
 
-        <!-- Lista de trabajadores -->
+        <!-- LISTA DE TRABAJADORES -->
 
         <div class="cards-grid">
 
@@ -216,8 +201,6 @@
                 <article class="worker-card">
 
                     <div class="worker-head">
-
-                        <!-- Inicial del trabajador -->
 
                         <div class="worker-avatar">
                             {{ t.nombre.substring(0, 1).toUpperCase() }}
@@ -229,22 +212,13 @@
 
                     </div>
 
-
-                    <!-- Nombre -->
-
                     <h3>
                         {{ t.nombre }}
                     </h3>
 
-
-                    <!-- Especialidad -->
-
                     <p class="role-label">
                         {{ t.categoria }}
                     </p>
-
-
-                    <!-- Zona y horario -->
 
                     <div class="worker-meta">
 
@@ -258,9 +232,6 @@
 
                     </div>
 
-
-                    <!-- Experiencia -->
-
                     <p class="worker-exp">
                         {{ t.experiencia }}
                     </p>
@@ -272,10 +243,8 @@
                 @if (!error()) {
 
                     <div class="empty">
-
                         No encontramos técnicos para
                         los filtros seleccionados.
-
                     </div>
 
                 }
@@ -288,7 +257,7 @@
 
 
     <!-- ================================== -->
-    <!-- 8. PUBLICAR SOLICITUD -->
+    <!-- 6. PUBLICAR SOLICITUD -->
     <!-- ================================== -->
 
     @if (vista() === 'publicar') {
@@ -305,7 +274,7 @@
             </p>
 
 
-            <!-- Aviso si no inicio sesion -->
+            <!-- AVISO SIN SESION -->
 
             @if (!auth.usuario()) {
 
@@ -323,16 +292,13 @@
             }
 
 
-            <!-- ================================= -->
-            <!-- 9. FORMULARIO -->
-            <!-- ================================= -->
+            <!-- FORMULARIO -->
 
             <form (ngSubmit)="crear()">
 
                 <div class="form-grid">
 
-
-                    <!-- 9.1 TITULO -->
+                    <!-- TITULO -->
 
                     <label>
 
@@ -350,7 +316,7 @@
                     </label>
 
 
-                    <!-- 9.2 CATEGORIA -->
+                    <!-- CATEGORIA -->
 
                     <label>
 
@@ -379,7 +345,7 @@
                     </label>
 
 
-                    <!-- 9.3 DESCRIPCION -->
+                    <!-- DESCRIPCION -->
 
                     <label class="full">
 
@@ -397,7 +363,7 @@
                     </label>
 
 
-                    <!-- 9.4 ZONA -->
+                    <!-- ZONA -->
 
                     <label>
 
@@ -414,7 +380,7 @@
                     </label>
 
 
-                    <!-- 9.5 DIRECCION -->
+                    <!-- DIRECCION -->
 
                     <label>
 
@@ -431,7 +397,7 @@
                     </label>
 
 
-                    <!-- 9.6 DISPONIBILIDAD -->
+                    <!-- DISPONIBILIDAD -->
 
                     <label class="full">
 
@@ -448,7 +414,7 @@
                     </label>
 
 
-                    <!-- 9.7 FOTOGRAFIA -->
+                    <!-- FOTOGRAFIA OPCIONAL -->
 
                     <label class="full">
 
@@ -466,7 +432,7 @@
                 </div>
 
 
-                <!-- Informacion adicional -->
+                <!-- AYUDA -->
 
                 <p class="help">
 
@@ -479,9 +445,7 @@
                 </p>
 
 
-                <!-- ================================= -->
-                <!-- 10. BOTON PUBLICAR -->
-                <!-- ================================= -->
+                <!-- PUBLICAR -->
 
                 <button
                     type="submit"
@@ -509,7 +473,7 @@
 
 
     <!-- ================================== -->
-    <!-- 11. MIS SOLICITUDES -->
+    <!-- 7. MIS SOLICITUDES -->
     <!-- ================================== -->
 
     @if (vista() === 'mias') {
@@ -527,7 +491,7 @@
         </div>
 
 
-        <!-- Lista de solicitudes -->
+        <!-- LISTA -->
 
         <div class="list-stack">
 
@@ -535,36 +499,26 @@
 
                 <article class="job-card">
 
+
                     <!-- ================================= -->
-                    <!-- 12. DATOS DE LA SOLICITUD -->
+                    <!-- 8. DATOS DE LA SOLICITUD -->
                     <!-- ================================= -->
 
                     <div class="job-main">
 
                         <div>
 
-                            <!-- Numero de solicitud -->
-
                             <span class="kicker">
                                 SOLICITUD #{{ s.id }}
                             </span>
-
-
-                            <!-- Titulo -->
 
                             <h3>
                                 {{ s.titulo }}
                             </h3>
 
-
-                            <!-- Descripcion -->
-
                             <p>
                                 {{ s.descripcion }}
                             </p>
-
-
-                            <!-- Zona y disponibilidad -->
 
                             <div class="job-tags">
 
@@ -581,7 +535,7 @@
                         </div>
 
 
-                        <!-- Estado -->
+                        <!-- ESTADO ACTUAL -->
 
                         <span class="status-pill">
                             {{ s.estado }}
@@ -591,12 +545,13 @@
 
 
                     <!-- ================================= -->
-                    <!-- 13. BOTONES DE LA SOLICITUD -->
+                    <!-- 9. BOTONES DE LA SOLICITUD -->
                     <!-- ================================= -->
 
                     <div class="job-actions">
 
-                        <!-- Ver propuestas -->
+
+                        <!-- VER PROPUESTAS -->
 
                         <button
                             type="button"
@@ -618,8 +573,31 @@
 
 
                         <!-- ================================= -->
-                        <!-- 14. CANCELAR SOLICITUD -->
+                        <!-- 10. VER SEGUIMIENTO -->
                         <!-- NUEVO BOTON -->
+                        <!-- ================================= -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="verSeguimiento(s.id)"
+                        >
+
+                            @if (seguimientoSeleccionado() === s.id) {
+
+                                Ocultar seguimiento
+
+                            } @else {
+
+                                Ver seguimiento
+
+                            }
+
+                        </button>
+
+
+                        <!-- ================================= -->
+                        <!-- 11. CANCELAR SOLICITUD -->
                         <!-- ================================= -->
 
                         @if (s.estado === 'ACTIVA') {
@@ -649,7 +627,142 @@
 
 
                     <!-- ================================= -->
-                    <!-- 15. PROPUESTAS RECIBIDAS -->
+                    <!-- 12. PANEL DE SEGUIMIENTO -->
+                    <!-- NUEVA SECCION -->
+                    <!-- ================================= -->
+
+                    @if (seguimientoSeleccionado() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Seguimiento del trabajo
+                            </h4>
+
+
+                            <!-- ESTADO DE LA SOLICITUD -->
+
+                            <p>
+
+                                <strong>
+                                    Estado actual:
+                                </strong>
+
+                                {{ s.estado }}
+
+                            </p>
+
+
+                            <!-- TITULO DEL TRABAJO -->
+
+                            <p>
+
+                                <strong>
+                                    Servicio solicitado:
+                                </strong>
+
+                                {{ s.titulo }}
+
+                            </p>
+
+
+                            <!-- DESCRIPCION -->
+
+                            <p>
+
+                                <strong>
+                                    Descripción:
+                                </strong>
+
+                                {{ s.descripcion }}
+
+                            </p>
+
+
+                            <!-- ZONA -->
+
+                            <p>
+
+                                <strong>
+                                    Zona:
+                                </strong>
+
+                                {{ s.zona }}
+
+                            </p>
+
+
+                            <!-- DISPONIBILIDAD -->
+
+                            <p>
+
+                                <strong>
+                                    Disponibilidad:
+                                </strong>
+
+                                {{ s.disponibilidad }}
+
+                            </p>
+
+
+                            <!-- DIRECCION PRIVADA -->
+
+                            @if (s.direccion) {
+
+                                <p>
+
+                                    <strong>
+                                        Dirección:
+                                    </strong>
+
+                                    {{ s.direccion }}
+
+                                </p>
+
+                            }
+
+
+                            <!-- FOTOGRAFIA SI EXISTE -->
+
+                            @if (s.fotoUrl) {
+
+                                <p>
+
+                                    <strong>
+                                        Fotografía:
+                                    </strong>
+
+                                    <a
+                                        [href]="s.fotoUrl"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Ver fotografía
+                                    </a>
+
+                                </p>
+
+                            }
+
+
+                            <!-- INFORMACION ADICIONAL -->
+
+                            <p class="help">
+
+                                El técnico asignado, las visitas
+                                y los avances de reparación
+                                aparecerán cuando el backend
+                                proporcione esa información.
+
+                            </p>
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 13. PROPUESTAS RECIBIDAS -->
                     <!-- ================================= -->
 
                     @if (seleccionada() === s.id) {
@@ -661,7 +774,7 @@
                             </h4>
 
 
-                            <!-- Recorrer las propuestas -->
+                            <!-- LISTA DE PROPUESTAS -->
 
                             @for (o of ofertas(); track o.id) {
 
@@ -669,21 +782,21 @@
 
                                     <div>
 
-                                        <!-- Nombre del trabajador -->
+                                        <!-- TRABAJADOR -->
 
                                         <strong>
                                             {{ o.trabajador?.nombre || 'Trabajador' }}
                                         </strong>
 
 
-                                        <!-- Precio propuesto -->
+                                        <!-- PRECIO -->
 
                                         <small>
                                             Presupuesto: Bs {{ o.precio }}
                                         </small>
 
 
-                                        <!-- Costo de visita -->
+                                        <!-- COSTO DE VISITA -->
 
                                         @if (o.costoVisita != null) {
 
@@ -694,7 +807,7 @@
                                         }
 
 
-                                        <!-- Materiales -->
+                                        <!-- MATERIALES -->
 
                                         @if (o.materialesIncluidos != null) {
 
@@ -713,7 +826,7 @@
                                         }
 
 
-                                        <!-- Detalles adicionales -->
+                                        <!-- DETALLES -->
 
                                         @if (o.detalleMateriales) {
 
@@ -727,7 +840,7 @@
 
 
                                     <!-- ================================= -->
-                                    <!-- 16. ACEPTAR PROPUESTA -->
+                                    <!-- 14. ACEPTAR PROPUESTA -->
                                     <!-- ================================= -->
 
                                     @if (
@@ -772,7 +885,7 @@
 
             } @empty {
 
-                <!-- Mostrar si la lista esta vacia -->
+                <!-- LISTA VACIA -->
 
                 @if (auth.usuario() && !error()) {
 

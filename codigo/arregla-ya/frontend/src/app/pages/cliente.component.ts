@@ -42,10 +42,10 @@ export class ClienteComponent implements OnInit {
     // 1. SERVICIOS
     // ======================================
 
-    // Conexion con el backend
+    // Servicio para comunicarse con NestJS
     api = inject(ApiService);
 
-    // Informacion de la sesion
+    // Servicio para conocer al usuario
     auth = inject(AuthService);
 
 
@@ -53,15 +53,15 @@ export class ClienteComponent implements OnInit {
     // 2. PANTALLAS
     // ======================================
 
-    // Buscar, publicar o mis solicitudes
+    // Indica que pestaña esta abierta
     vista = signal<'buscar' | 'publicar' | 'mias'>('buscar');
 
 
     // ======================================
-    // 3. LISTAS DE DATOS
+    // 3. LISTAS
     // ======================================
 
-    // Categorias de servicios
+    // Categorias disponibles
     categorias = signal<Categoria[]>([]);
 
     // Trabajadores encontrados
@@ -78,22 +78,23 @@ export class ClienteComponent implements OnInit {
     // 4. VARIABLES DE CONTROL
     // ======================================
 
-    // Solicitud que estamos revisando
+    // ID de la solicitud cuyas propuestas vemos
     seleccionada = signal<number | null>(null);
+
+    // NUEVO: ID de la solicitud cuyo seguimiento vemos
+    seguimientoSeleccionado = signal<number | null>(null);
 
     // Mensajes
     error = signal('');
     exito = signal('');
 
-    // Control del boton publicar
+    // Control de botones
     guardando = signal(false);
-
-    // Control del boton cancelar
     cancelando = signal(false);
 
 
     // ======================================
-    // 5. FILTROS DE BUSQUEDA
+    // 5. FILTROS
     // ======================================
 
     filtroCategoria = 0;
@@ -102,7 +103,7 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 6. FORMULARIO DE SOLICITUD
+    // 6. FORMULARIO
     // ======================================
 
     form = {
@@ -117,24 +118,25 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 7. INICIAR LA PANTALLA
+    // 7. INICIAR COMPONENTE
     // ======================================
 
     async ngOnInit() {
 
         try {
 
-            // Obtener categorias
+            // Obtener las categorias
             const lista = await this.api.categorias();
 
             this.categorias.set(lista);
 
-            // Buscar trabajadores
+            // Buscar los trabajadores
             await this.buscar();
 
         } catch (e) {
 
             this.error.set(mensajeError(e));
+
         }
     }
 
@@ -145,27 +147,24 @@ export class ClienteComponent implements OnInit {
 
     async buscar() {
 
-        // Limpiar errores
         this.error.set('');
 
         try {
 
-            // Enviar filtros al backend
+            // Buscar segun categoria y zona
             const lista = await this.api.trabajadores({
                 categoria: this.filtroCategoria,
                 zona: this.filtroZona.trim()
             });
 
-            // Guardar resultados
             this.trabajadores.set(lista);
 
         } catch (e) {
 
-            // Limpiar resultados antiguos
             this.trabajadores.set([]);
 
-            // Mostrar error
             this.error.set(mensajeError(e));
+
         }
     }
 
@@ -176,18 +175,17 @@ export class ClienteComponent implements OnInit {
 
     async crear() {
 
-        // Evitar enviar dos veces
+        // Evitar publicar dos veces
         if (this.guardando()) {
             return;
         }
 
-        // Limpiar mensajes
         this.error.set('');
         this.exito.set('');
 
 
         // ----------------------------------
-        // 9.1 VERIFICAR SESION
+        // VERIFICAR SESION
         // ----------------------------------
 
         const usuario = this.auth.usuario();
@@ -203,7 +201,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.2 VERIFICAR ROL
+        // VERIFICAR ROL
         // ----------------------------------
 
         if (
@@ -212,7 +210,7 @@ export class ClienteComponent implements OnInit {
         ) {
 
             this.error.set(
-                'Solo los clientes y empresas pueden publicar solicitudes.'
+                'Solo clientes y empresas pueden publicar solicitudes.'
             );
 
             return;
@@ -220,7 +218,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.3 LIMPIAR ESPACIOS
+        // LIMPIAR ESPACIOS
         // ----------------------------------
 
         this.form.titulo = this.form.titulo.trim();
@@ -238,7 +236,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.4 VALIDAR TITULO
+        // VALIDAR TITULO
         // ----------------------------------
 
         if (this.form.titulo.length < 5) {
@@ -252,7 +250,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.5 VALIDAR DESCRIPCION
+        // VALIDAR DESCRIPCION
         // ----------------------------------
 
         if (this.form.descripcion.length < 15) {
@@ -266,7 +264,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.6 VALIDAR CATEGORIA
+        // VALIDAR CATEGORIA
         // ----------------------------------
 
         if (this.form.categoriaId <= 0) {
@@ -280,7 +278,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.7 VALIDAR ZONA
+        // VALIDAR ZONA
         // ----------------------------------
 
         if (this.form.zona === '') {
@@ -294,7 +292,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.8 VALIDAR DIRECCION
+        // VALIDAR DIRECCION
         // ----------------------------------
 
         if (this.form.direccion === '') {
@@ -308,7 +306,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.9 VALIDAR DISPONIBILIDAD
+        // VALIDAR DISPONIBILIDAD
         // ----------------------------------
 
         if (this.form.disponibilidad === '') {
@@ -322,28 +320,24 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.10 GUARDAR SOLICITUD
+        // ENVIAR SOLICITUD
         // ----------------------------------
 
         this.guardando.set(true);
 
         try {
 
-            // Enviar solicitud al backend
             const respuesta = await this.api.crearSolicitud(
                 this.form
             );
 
-            // Mostrar mensaje de exito
+            // Mostrar el resultado
             this.exito.set(
                 `Solicitud #${respuesta.id} creada correctamente`
             );
 
 
-            // ----------------------------------
-            // 9.11 LIMPIAR FORMULARIO
-            // ----------------------------------
-
+            // Limpiar los campos
             this.form = {
                 titulo: '',
                 descripcion: '',
@@ -355,10 +349,7 @@ export class ClienteComponent implements OnInit {
             };
 
 
-            // ----------------------------------
-            // 9.12 ABRIR MIS SOLICITUDES
-            // ----------------------------------
-
+            // Abrir mis solicitudes
             await this.abrirMias();
 
         } catch (e) {
@@ -368,6 +359,7 @@ export class ClienteComponent implements OnInit {
         } finally {
 
             this.guardando.set(false);
+
         }
     }
 
@@ -378,17 +370,14 @@ export class ClienteComponent implements OnInit {
 
     async abrirMias() {
 
-        // Cambiar a mis solicitudes
+        // Cambiar de pestaña
         this.vista.set('mias');
 
-        // Limpiar errores
+        // Limpiar mensajes de error
         this.error.set('');
 
 
-        // ----------------------------------
-        // 10.1 VERIFICAR SESION
-        // ----------------------------------
-
+        // Verificar usuario
         if (!this.auth.usuario()) {
 
             this.mias.set([]);
@@ -401,14 +390,12 @@ export class ClienteComponent implements OnInit {
         }
 
 
-        // ----------------------------------
-        // 10.2 CONSULTAR SOLICITUDES
-        // ----------------------------------
-
         try {
 
+            // Consultar solicitudes
             const lista = await this.api.misSolicitudes();
 
+            // Guardar resultados
             this.mias.set(lista);
 
         } catch (e) {
@@ -416,6 +403,7 @@ export class ClienteComponent implements OnInit {
             this.mias.set([]);
 
             this.error.set(mensajeError(e));
+
         }
     }
 
@@ -426,14 +414,10 @@ export class ClienteComponent implements OnInit {
 
     async verPropuestas(id: number) {
 
-        // Limpiar errores
         this.error.set('');
 
 
-        // ----------------------------------
-        // 11.1 CERRAR PROPUESTAS
-        // ----------------------------------
-
+        // Si estan abiertas, cerrarlas
         if (this.seleccionada() === id) {
 
             this.seleccionada.set(null);
@@ -444,12 +428,9 @@ export class ClienteComponent implements OnInit {
         }
 
 
-        // ----------------------------------
-        // 11.2 CONSULTAR PROPUESTAS
-        // ----------------------------------
-
         try {
 
+            // Obtener propuestas
             const lista = await this.api.propuestas(id);
 
             this.ofertas.set(lista);
@@ -459,6 +440,7 @@ export class ClienteComponent implements OnInit {
         } catch (e) {
 
             this.error.set(mensajeError(e));
+
         }
     }
 
@@ -469,7 +451,6 @@ export class ClienteComponent implements OnInit {
 
     async aceptar(id: number, solicitudId: number) {
 
-        // Limpiar mensajes
         this.error.set('');
         this.exito.set('');
 
@@ -499,29 +480,28 @@ export class ClienteComponent implements OnInit {
         } catch (e) {
 
             this.error.set(mensajeError(e));
+
         }
     }
 
 
     // ======================================
     // 13. CANCELAR SOLICITUD
-    // NUEVA FUNCION
     // ======================================
 
     async cancelar(solicitud: Solicitud) {
 
-        // Evitar dos cancelaciones al mismo tiempo
+        // Evitar cancelar varias veces
         if (this.cancelando()) {
             return;
         }
 
-        // Limpiar mensajes anteriores
         this.error.set('');
         this.exito.set('');
 
 
         // ----------------------------------
-        // 13.1 VERIFICAR SESION
+        // VERIFICAR SESION
         // ----------------------------------
 
         const usuario = this.auth.usuario();
@@ -537,7 +517,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 13.2 VERIFICAR ROL
+        // VERIFICAR ROL
         // ----------------------------------
 
         if (
@@ -554,11 +534,8 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 13.3 VERIFICAR ESTADO
+        // VERIFICAR ESTADO
         // ----------------------------------
-
-        // Por ahora solo permitimos cancelar
-        // solicitudes con estado ACTIVA
 
         if (solicitud.estado !== 'ACTIVA') {
 
@@ -571,77 +548,99 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 13.4 PEDIR CONFIRMACION
+        // CONFIRMAR CANCELACION
         // ----------------------------------
 
         const confirmado = window.confirm(
             '¿Estás seguro de cancelar esta solicitud?'
         );
 
-        // Si el usuario dice que no, salir
         if (!confirmado) {
             return;
         }
 
 
         // ----------------------------------
-        // 13.5 ENVIAR CANCELACION
+        // SOLICITAR CANCELACION
         // ----------------------------------
 
         this.cancelando.set(true);
 
         try {
 
-            // Solicitar cancelacion al backend
+            // Enviar peticion a NestJS
             await this.api.cancelarSolicitud(solicitud.id);
 
-            // Solo mostramos exito si el servidor
-            // acepto la cancelacion
             this.exito.set(
                 'La solicitud fue cancelada correctamente.'
             );
 
 
-            // ----------------------------------
-            // 13.6 CERRAR PROPUESTAS
-            // ----------------------------------
-
+            // Cerrar propuestas abiertas
             this.seleccionada.set(null);
 
             this.ofertas.set([]);
 
 
-            // ----------------------------------
-            // 13.7 ACTUALIZAR SOLICITUDES
-            // ----------------------------------
-
+            // Actualizar solicitudes
             try {
 
-                // Volver a consultar los datos reales
                 const lista = await this.api.misSolicitudes();
 
                 this.mias.set(lista);
 
             } catch (e) {
 
-                // La cancelacion ya fue aceptada,
-                // pero no se pudo actualizar la lista
                 this.error.set(
-                    'La solicitud se canceló, pero no se pudo actualizar la lista. Vuelve a entrar a Mis solicitudes.'
+                    'La solicitud se canceló, pero no se pudo actualizar la lista.'
                 );
 
             }
 
         } catch (e) {
 
-            // Si el backend rechazo la cancelacion
             this.error.set(mensajeError(e));
 
         } finally {
 
-            // Volver a habilitar el boton
             this.cancelando.set(false);
+
         }
+    }
+
+
+    // ======================================
+    // 14. VER SEGUIMIENTO DEL SERVICIO
+    // NUEVA FUNCION
+    // ======================================
+
+    verSeguimiento(id: number) {
+
+        // Limpiar mensajes anteriores
+        this.error.set('');
+
+
+        // ----------------------------------
+        // SI YA ESTA ABIERTO, CERRARLO
+        // ----------------------------------
+
+        if (this.seguimientoSeleccionado() === id) {
+
+            this.seguimientoSeleccionado.set(null);
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // MOSTRAR SEGUIMIENTO
+        // ----------------------------------
+
+        // Guardar el ID de la solicitud
+        // para mostrar sus detalles
+
+        this.seguimientoSeleccionado.set(id);
+
     }
 
 }
