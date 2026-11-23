@@ -42,18 +42,18 @@ export class ClienteComponent implements OnInit {
     // 1. SERVICIOS
     // ======================================
 
-    // Servicio para consultar datos del sistema
+    // Conexion con el backend
     api = inject(ApiService);
 
-    // Servicio para saber quien inicio sesion
+    // Informacion de la sesion
     auth = inject(AuthService);
 
 
     // ======================================
-    // 2. PANTALLAS DEL CLIENTE
+    // 2. PANTALLAS
     // ======================================
 
-    // Puede mostrar buscar, publicar o mis solicitudes
+    // Buscar, publicar o mis solicitudes
     vista = signal<'buscar' | 'publicar' | 'mias'>('buscar');
 
 
@@ -61,7 +61,7 @@ export class ClienteComponent implements OnInit {
     // 3. LISTAS DE DATOS
     // ======================================
 
-    // Categorias de trabajos
+    // Categorias de servicios
     categorias = signal<Categoria[]>([]);
 
     // Trabajadores encontrados
@@ -78,25 +78,26 @@ export class ClienteComponent implements OnInit {
     // 4. VARIABLES DE CONTROL
     // ======================================
 
-    // Identifica la solicitud cuyas propuestas vemos
+    // Solicitud que estamos revisando
     seleccionada = signal<number | null>(null);
 
-    // Mensajes para el usuario
+    // Mensajes
     error = signal('');
     exito = signal('');
 
-    // Indica si se esta publicando una solicitud
+    // Control del boton publicar
     guardando = signal(false);
+
+    // Control del boton cancelar
+    cancelando = signal(false);
 
 
     // ======================================
     // 5. FILTROS DE BUSQUEDA
     // ======================================
 
-    // Cero significa todas las categorias
     filtroCategoria = 0;
 
-    // Zona donde buscamos trabajadores
     filtroZona = '';
 
 
@@ -123,20 +124,17 @@ export class ClienteComponent implements OnInit {
 
         try {
 
-            // Pedimos las categorias al servidor
+            // Obtener categorias
             const lista = await this.api.categorias();
 
-            // Guardamos las categorias obtenidas
             this.categorias.set(lista);
 
-            // Buscamos trabajadores al iniciar
+            // Buscar trabajadores
             await this.buscar();
 
         } catch (e) {
 
-            // Mostramos cualquier error
             this.error.set(mensajeError(e));
-
         }
     }
 
@@ -147,56 +145,53 @@ export class ClienteComponent implements OnInit {
 
     async buscar() {
 
-        // Borramos errores anteriores
+        // Limpiar errores
         this.error.set('');
 
         try {
 
-            // Pedimos trabajadores segun los filtros
+            // Enviar filtros al backend
             const lista = await this.api.trabajadores({
                 categoria: this.filtroCategoria,
                 zona: this.filtroZona.trim()
             });
 
-            // Guardamos los resultados
+            // Guardar resultados
             this.trabajadores.set(lista);
 
         } catch (e) {
 
-            // Limpiamos resultados anteriores
+            // Limpiar resultados antiguos
             this.trabajadores.set([]);
 
-            // Mostramos el error
+            // Mostrar error
             this.error.set(mensajeError(e));
-
         }
     }
 
 
     // ======================================
-    // 9. PUBLICAR UNA SOLICITUD
+    // 9. PUBLICAR SOLICITUD
     // ======================================
 
     async crear() {
 
-        // Evitamos publicar dos veces
+        // Evitar enviar dos veces
         if (this.guardando()) {
             return;
         }
 
-        // Borramos los mensajes anteriores
+        // Limpiar mensajes
         this.error.set('');
         this.exito.set('');
 
 
         // ----------------------------------
-        // 9.1 VERIFICAR INICIO DE SESION
+        // 9.1 VERIFICAR SESION
         // ----------------------------------
 
-        // Obtenemos el usuario que inicio sesion
         const usuario = this.auth.usuario();
 
-        // Si no hay usuario, no puede publicar
         if (!usuario) {
 
             this.error.set(
@@ -208,10 +203,9 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.2 VERIFICAR TIPO DE USUARIO
+        // 9.2 VERIFICAR ROL
         // ----------------------------------
 
-        // Solo clientes y empresas pueden publicar
         if (
             usuario.rol !== 'CLIENTE' &&
             usuario.rol !== 'EMPRESA'
@@ -244,7 +238,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.4 VALIDAR EL TITULO
+        // 9.4 VALIDAR TITULO
         // ----------------------------------
 
         if (this.form.titulo.length < 5) {
@@ -258,7 +252,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.5 VALIDAR LA DESCRIPCION
+        // 9.5 VALIDAR DESCRIPCION
         // ----------------------------------
 
         if (this.form.descripcion.length < 15) {
@@ -272,7 +266,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.6 VALIDAR LA CATEGORIA
+        // 9.6 VALIDAR CATEGORIA
         // ----------------------------------
 
         if (this.form.categoriaId <= 0) {
@@ -286,7 +280,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.7 VALIDAR LA ZONA
+        // 9.7 VALIDAR ZONA
         // ----------------------------------
 
         if (this.form.zona === '') {
@@ -300,7 +294,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.8 VALIDAR LA DIRECCION
+        // 9.8 VALIDAR DIRECCION
         // ----------------------------------
 
         if (this.form.direccion === '') {
@@ -314,7 +308,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.9 VALIDAR LA DISPONIBILIDAD
+        // 9.9 VALIDAR DISPONIBILIDAD
         // ----------------------------------
 
         if (this.form.disponibilidad === '') {
@@ -328,30 +322,28 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // 9.10 GUARDAR LA SOLICITUD
+        // 9.10 GUARDAR SOLICITUD
         // ----------------------------------
 
-        // Desactivamos el boton mientras guardamos
         this.guardando.set(true);
 
         try {
 
-            // Enviamos los datos al backend
+            // Enviar solicitud al backend
             const respuesta = await this.api.crearSolicitud(
                 this.form
             );
 
-            // Mostramos mensaje de exito
+            // Mostrar mensaje de exito
             this.exito.set(
                 `Solicitud #${respuesta.id} creada correctamente`
             );
 
 
             // ----------------------------------
-            // 9.11 LIMPIAR EL FORMULARIO
+            // 9.11 LIMPIAR FORMULARIO
             // ----------------------------------
 
-            // Dejamos los campos vacios para otra solicitud
             this.form = {
                 titulo: '',
                 descripcion: '',
@@ -364,21 +356,18 @@ export class ClienteComponent implements OnInit {
 
 
             // ----------------------------------
-            // 9.12 MOSTRAR MIS SOLICITUDES
+            // 9.12 ABRIR MIS SOLICITUDES
             // ----------------------------------
 
             await this.abrirMias();
 
         } catch (e) {
 
-            // Si el servidor devuelve un error
             this.error.set(mensajeError(e));
 
         } finally {
 
-            // Activamos el boton nuevamente
             this.guardando.set(false);
-
         }
     }
 
@@ -389,10 +378,10 @@ export class ClienteComponent implements OnInit {
 
     async abrirMias() {
 
-        // Cambiamos a la pantalla de solicitudes
+        // Cambiar a mis solicitudes
         this.vista.set('mias');
 
-        // Borramos errores anteriores
+        // Limpiar errores
         this.error.set('');
 
 
@@ -418,37 +407,33 @@ export class ClienteComponent implements OnInit {
 
         try {
 
-            // Pedimos las solicitudes del usuario
             const lista = await this.api.misSolicitudes();
 
-            // Guardamos la lista obtenida
             this.mias.set(lista);
 
         } catch (e) {
 
-            // Mostramos el error
-            this.error.set(mensajeError(e));
+            this.mias.set([]);
 
+            this.error.set(mensajeError(e));
         }
     }
 
 
     // ======================================
-    // 11. VER PROPUESTAS DE UNA SOLICITUD
+    // 11. VER PROPUESTAS
     // ======================================
 
     async verPropuestas(id: number) {
 
-        // Limpiamos errores
+        // Limpiar errores
         this.error.set('');
 
 
         // ----------------------------------
-        // 11.1 CERRAR PROPUESTAS ABIERTAS
+        // 11.1 CERRAR PROPUESTAS
         // ----------------------------------
 
-        // Si ya estamos viendo esa solicitud,
-        // cerramos sus propuestas
         if (this.seleccionada() === id) {
 
             this.seleccionada.set(null);
@@ -465,69 +450,47 @@ export class ClienteComponent implements OnInit {
 
         try {
 
-            // Pedimos las propuestas de la solicitud
             const lista = await this.api.propuestas(id);
 
-            // Guardamos las propuestas
             this.ofertas.set(lista);
 
-            // Guardamos el ID de la solicitud abierta
             this.seleccionada.set(id);
 
         } catch (e) {
 
-            // Mostramos el error
             this.error.set(mensajeError(e));
-
         }
     }
 
 
     // ======================================
-    // 12. ACEPTAR UNA PROPUESTA
+    // 12. ACEPTAR PROPUESTA
     // ======================================
 
     async aceptar(id: number, solicitudId: number) {
 
-        // Limpiamos mensajes
+        // Limpiar mensajes
         this.error.set('');
         this.exito.set('');
 
         try {
 
-            // ----------------------------------
-            // 12.1 ACEPTAR PROPUESTA
-            // ----------------------------------
-
-            // Enviamos la aceptacion al servidor
+            // Aceptar propuesta
             await this.api.aceptar(id);
-
-
-            // ----------------------------------
-            // 12.2 MOSTRAR MENSAJE
-            // ----------------------------------
 
             this.exito.set(
                 'Propuesta aceptada y solicitud asignada.'
             );
 
 
-            // ----------------------------------
-            // 12.3 ACTUALIZAR SOLICITUDES
-            // ----------------------------------
-
-            // Volvemos a obtener las solicitudes
+            // Actualizar solicitudes
             const listaSolicitudes =
                 await this.api.misSolicitudes();
 
             this.mias.set(listaSolicitudes);
 
 
-            // ----------------------------------
-            // 12.4 ACTUALIZAR PROPUESTAS
-            // ----------------------------------
-
-            // Volvemos a obtener las propuestas
+            // Actualizar propuestas
             const listaPropuestas =
                 await this.api.propuestas(solicitudId);
 
@@ -535,9 +498,149 @@ export class ClienteComponent implements OnInit {
 
         } catch (e) {
 
-            // Mostramos cualquier error
+            this.error.set(mensajeError(e));
+        }
+    }
+
+
+    // ======================================
+    // 13. CANCELAR SOLICITUD
+    // NUEVA FUNCION
+    // ======================================
+
+    async cancelar(solicitud: Solicitud) {
+
+        // Evitar dos cancelaciones al mismo tiempo
+        if (this.cancelando()) {
+            return;
+        }
+
+        // Limpiar mensajes anteriores
+        this.error.set('');
+        this.exito.set('');
+
+
+        // ----------------------------------
+        // 13.1 VERIFICAR SESION
+        // ----------------------------------
+
+        const usuario = this.auth.usuario();
+
+        if (!usuario) {
+
+            this.error.set(
+                'Debes iniciar sesión para cancelar una solicitud.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 13.2 VERIFICAR ROL
+        // ----------------------------------
+
+        if (
+            usuario.rol !== 'CLIENTE' &&
+            usuario.rol !== 'EMPRESA'
+        ) {
+
+            this.error.set(
+                'No tienes permiso para cancelar solicitudes.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 13.3 VERIFICAR ESTADO
+        // ----------------------------------
+
+        // Por ahora solo permitimos cancelar
+        // solicitudes con estado ACTIVA
+
+        if (solicitud.estado !== 'ACTIVA') {
+
+            this.error.set(
+                'Esta solicitud no se puede cancelar.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 13.4 PEDIR CONFIRMACION
+        // ----------------------------------
+
+        const confirmado = window.confirm(
+            '¿Estás seguro de cancelar esta solicitud?'
+        );
+
+        // Si el usuario dice que no, salir
+        if (!confirmado) {
+            return;
+        }
+
+
+        // ----------------------------------
+        // 13.5 ENVIAR CANCELACION
+        // ----------------------------------
+
+        this.cancelando.set(true);
+
+        try {
+
+            // Solicitar cancelacion al backend
+            await this.api.cancelarSolicitud(solicitud.id);
+
+            // Solo mostramos exito si el servidor
+            // acepto la cancelacion
+            this.exito.set(
+                'La solicitud fue cancelada correctamente.'
+            );
+
+
+            // ----------------------------------
+            // 13.6 CERRAR PROPUESTAS
+            // ----------------------------------
+
+            this.seleccionada.set(null);
+
+            this.ofertas.set([]);
+
+
+            // ----------------------------------
+            // 13.7 ACTUALIZAR SOLICITUDES
+            // ----------------------------------
+
+            try {
+
+                // Volver a consultar los datos reales
+                const lista = await this.api.misSolicitudes();
+
+                this.mias.set(lista);
+
+            } catch (e) {
+
+                // La cancelacion ya fue aceptada,
+                // pero no se pudo actualizar la lista
+                this.error.set(
+                    'La solicitud se canceló, pero no se pudo actualizar la lista. Vuelve a entrar a Mis solicitudes.'
+                );
+
+            }
+
+        } catch (e) {
+
+            // Si el backend rechazo la cancelacion
             this.error.set(mensajeError(e));
 
+        } finally {
+
+            // Volver a habilitar el boton
+            this.cancelando.set(false);
         }
     }
 

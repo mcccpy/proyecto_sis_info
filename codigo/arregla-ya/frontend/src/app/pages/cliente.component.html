@@ -6,7 +6,7 @@
 <main class="page shell">
 
     <!-- ================================== -->
-    <!-- 1. TITULO DE LA PAGINA -->
+    <!-- 1. TITULO PRINCIPAL -->
     <!-- ================================== -->
 
     <div class="page-top">
@@ -34,7 +34,7 @@
 
 
     <!-- ================================== -->
-    <!-- 2. AVISO SI NO INICIO SESION -->
+    <!-- 2. AVISO DE INICIO DE SESION -->
     <!-- ================================== -->
 
     @if (!auth.usuario()) {
@@ -44,6 +44,7 @@
             Puedes explorar técnicos sin cuenta.
 
             Para publicar solicitudes,
+
             <a routerLink="/ingresar">
                 inicia sesión
             </a>.
@@ -80,12 +81,12 @@
 
 
     <!-- ================================== -->
-    <!-- 5. MENU DE OPCIONES -->
+    <!-- 5. MENU DEL CLIENTE -->
     <!-- ================================== -->
 
     <div class="tabs">
 
-        <!-- Mostrar busqueda -->
+        <!-- Buscar trabajadores -->
 
         <button
             type="button"
@@ -96,7 +97,7 @@
         </button>
 
 
-        <!-- Mostrar formulario -->
+        <!-- Publicar solicitud -->
 
         <button
             type="button"
@@ -107,7 +108,7 @@
         </button>
 
 
-        <!-- Mostrar mis solicitudes -->
+        <!-- Mis solicitudes -->
 
         <button
             type="button"
@@ -134,15 +135,13 @@
 
             <div class="search-grid">
 
-                <!-- Seleccionar especialidad -->
+                <!-- Filtro de especialidad -->
 
                 <label>
 
                     Especialidad
 
-                    <select
-                        [(ngModel)]="filtroCategoria"
-                    >
+                    <select [(ngModel)]="filtroCategoria">
 
                         <option [ngValue]="0">
                             Todas las especialidades
@@ -161,7 +160,7 @@
                 </label>
 
 
-                <!-- Escribir zona -->
+                <!-- Filtro de zona -->
 
                 <label>
 
@@ -176,7 +175,7 @@
                 </label>
 
 
-                <!-- Boton para buscar -->
+                <!-- Boton buscar -->
 
                 <button
                     type="button"
@@ -191,7 +190,9 @@
         </section>
 
 
-        <!-- Cantidad de resultados -->
+        <!-- ================================= -->
+        <!-- 7. RESULTADOS DE BUSQUEDA -->
+        <!-- ================================= -->
 
         <div class="result-title">
 
@@ -206,9 +207,7 @@
         </div>
 
 
-        <!-- ================================= -->
-        <!-- 7. LISTA DE TRABAJADORES -->
-        <!-- ================================= -->
+        <!-- Lista de trabajadores -->
 
         <div class="cards-grid">
 
@@ -216,9 +215,9 @@
 
                 <article class="worker-card">
 
-                    <!-- Encabezado del trabajador -->
-
                     <div class="worker-head">
+
+                        <!-- Inicial del trabajador -->
 
                         <div class="worker-avatar">
                             {{ t.nombre.substring(0, 1).toUpperCase() }}
@@ -245,7 +244,7 @@
                     </p>
 
 
-                    <!-- Zona y disponibilidad -->
+                    <!-- Zona y horario -->
 
                     <div class="worker-meta">
 
@@ -270,8 +269,6 @@
 
             } @empty {
 
-                <!-- Mostrar solo si no hubo error -->
-
                 @if (!error()) {
 
                     <div class="empty">
@@ -291,7 +288,7 @@
 
 
     <!-- ================================== -->
-    <!-- 8. PUBLICAR UNA SOLICITUD -->
+    <!-- 8. PUBLICAR SOLICITUD -->
     <!-- ================================== -->
 
     @if (vista() === 'publicar') {
@@ -308,7 +305,7 @@
             </p>
 
 
-            <!-- Aviso para usuarios sin sesion -->
+            <!-- Aviso si no inicio sesion -->
 
             @if (!auth.usuario()) {
 
@@ -327,7 +324,7 @@
 
 
             <!-- ================================= -->
-            <!-- 9. FORMULARIO DE SOLICITUD -->
+            <!-- 9. FORMULARIO -->
             <!-- ================================= -->
 
             <form (ngSubmit)="crear()">
@@ -451,7 +448,7 @@
                     </label>
 
 
-                    <!-- 9.7 FOTOGRAFIA OPCIONAL -->
+                    <!-- 9.7 FOTOGRAFIA -->
 
                     <label class="full">
 
@@ -538,7 +535,9 @@
 
                 <article class="job-card">
 
-                    <!-- Informacion de la solicitud -->
+                    <!-- ================================= -->
+                    <!-- 12. DATOS DE LA SOLICITUD -->
+                    <!-- ================================= -->
 
                     <div class="job-main">
 
@@ -565,7 +564,7 @@
                             </p>
 
 
-                            <!-- Zona y horario -->
+                            <!-- Zona y disponibilidad -->
 
                             <div class="job-tags">
 
@@ -582,7 +581,7 @@
                         </div>
 
 
-                        <!-- Estado de la solicitud -->
+                        <!-- Estado -->
 
                         <span class="status-pill">
                             {{ s.estado }}
@@ -592,10 +591,12 @@
 
 
                     <!-- ================================= -->
-                    <!-- 12. BOTON VER PROPUESTAS -->
+                    <!-- 13. BOTONES DE LA SOLICITUD -->
                     <!-- ================================= -->
 
                     <div class="job-actions">
+
+                        <!-- Ver propuestas -->
 
                         <button
                             type="button"
@@ -615,11 +616,40 @@
 
                         </button>
 
+
+                        <!-- ================================= -->
+                        <!-- 14. CANCELAR SOLICITUD -->
+                        <!-- NUEVO BOTON -->
+                        <!-- ================================= -->
+
+                        @if (s.estado === 'ACTIVA') {
+
+                            <button
+                                type="button"
+                                class="btn btn-outline btn-sm"
+                                [disabled]="cancelando()"
+                                (click)="cancelar(s)"
+                            >
+
+                                @if (cancelando()) {
+
+                                    Procesando...
+
+                                } @else {
+
+                                    Cancelar solicitud
+
+                                }
+
+                            </button>
+
+                        }
+
                     </div>
 
 
                     <!-- ================================= -->
-                    <!-- 13. PROPUESTAS RECIBIDAS -->
+                    <!-- 15. PROPUESTAS RECIBIDAS -->
                     <!-- ================================= -->
 
                     @if (seleccionada() === s.id) {
@@ -664,23 +694,26 @@
                                         }
 
 
-                                        <!-- Materiales incluidos -->
+                                        <!-- Materiales -->
 
                                         @if (o.materialesIncluidos != null) {
 
                                             <small>
+
                                                 Materiales:
+
                                                 {{
                                                     o.materialesIncluidos
                                                         ? 'Incluidos'
                                                         : 'No incluidos'
                                                 }}
+
                                             </small>
 
                                         }
 
 
-                                        <!-- Detalles de materiales -->
+                                        <!-- Detalles adicionales -->
 
                                         @if (o.detalleMateriales) {
 
@@ -694,7 +727,7 @@
 
 
                                     <!-- ================================= -->
-                                    <!-- 14. ACEPTAR PROPUESTA -->
+                                    <!-- 16. ACEPTAR PROPUESTA -->
                                     <!-- ================================= -->
 
                                     @if (
@@ -739,14 +772,12 @@
 
             } @empty {
 
-                <!-- No mostrar mensaje vacio si hubo error -->
+                <!-- Mostrar si la lista esta vacia -->
 
                 @if (auth.usuario() && !error()) {
 
                     <div class="empty">
-
                         Todavía no has publicado solicitudes.
-
                     </div>
 
                 }
