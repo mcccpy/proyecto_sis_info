@@ -7,7 +7,6 @@ import {
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-
 import { RouterLink } from '@angular/router';
 
 import {
@@ -37,15 +36,14 @@ import {
 
 export class ClienteComponent implements OnInit {
 
-
     // ======================================
     // 1. SERVICIOS
     // ======================================
 
-    // Servicio para comunicarse con NestJS
+    // Comunicacion con el backend
     api = inject(ApiService);
 
-    // Servicio para conocer al usuario
+    // Informacion del usuario
     auth = inject(AuthService);
 
 
@@ -53,24 +51,17 @@ export class ClienteComponent implements OnInit {
     // 2. PANTALLAS
     // ======================================
 
-    // Indica que pestaña esta abierta
+    // Indica la pestaña seleccionada
     vista = signal<'buscar' | 'publicar' | 'mias'>('buscar');
 
 
     // ======================================
-    // 3. LISTAS
+    // 3. LISTAS DE DATOS
     // ======================================
 
-    // Categorias disponibles
     categorias = signal<Categoria[]>([]);
-
-    // Trabajadores encontrados
     trabajadores = signal<Trabajador[]>([]);
-
-    // Solicitudes del cliente
     mias = signal<Solicitud[]>([]);
-
-    // Propuestas recibidas
     ofertas = signal<Propuesta[]>([]);
 
 
@@ -78,32 +69,34 @@ export class ClienteComponent implements OnInit {
     // 4. VARIABLES DE CONTROL
     // ======================================
 
-    // ID de la solicitud cuyas propuestas vemos
+    // Solicitud con las propuestas abiertas
     seleccionada = signal<number | null>(null);
 
-    // NUEVO: ID de la solicitud cuyo seguimiento vemos
+    // Solicitud con el seguimiento abierto
     seguimientoSeleccionado = signal<number | null>(null);
 
-    // Mensajes
+    // Solicitud con el formulario de visita abierto
+    visitaAbierta = signal<number | null>(null);
+
+    // Mensajes del sistema
     error = signal('');
     exito = signal('');
 
-    // Control de botones
+    // Evitar operaciones repetidas
     guardando = signal(false);
     cancelando = signal(false);
 
 
     // ======================================
-    // 5. FILTROS
+    // 5. FILTROS PARA BUSCAR
     // ======================================
 
     filtroCategoria = 0;
-
     filtroZona = '';
 
 
     // ======================================
-    // 6. FORMULARIO
+    // 6. FORMULARIO DE SOLICITUD
     // ======================================
 
     form = {
@@ -118,19 +111,38 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 7. INICIAR COMPONENTE
+    // 7. FORMULARIO DE VISITA
+    // ======================================
+
+    // Datos que propone el cliente
+    fechaPreferida = '';
+    horaPreferida = '';
+    notaVisita = '';
+
+    // Borrador temporal de la visita
+    // No se envia a la base de datos
+    borradorVisita = signal<{
+        solicitudId: number;
+        fecha: string;
+        hora: string;
+        nota: string;
+    } | null>(null);
+
+
+    // ======================================
+    // 8. INICIAR COMPONENTE
     // ======================================
 
     async ngOnInit() {
 
         try {
 
-            // Obtener las categorias
+            // Obtener categorias del servidor
             const lista = await this.api.categorias();
 
             this.categorias.set(lista);
 
-            // Buscar los trabajadores
+            // Buscar trabajadores al iniciar
             await this.buscar();
 
         } catch (e) {
@@ -142,21 +154,23 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 8. BUSCAR TRABAJADORES
+    // 9. BUSCAR TRABAJADORES
     // ======================================
 
     async buscar() {
 
+        // Limpiar mensajes anteriores
         this.error.set('');
 
         try {
 
-            // Buscar segun categoria y zona
+            // Buscar trabajadores usando los filtros
             const lista = await this.api.trabajadores({
                 categoria: this.filtroCategoria,
                 zona: this.filtroZona.trim()
             });
 
+            // Guardar los resultados
             this.trabajadores.set(lista);
 
         } catch (e) {
@@ -170,7 +184,7 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 9. PUBLICAR SOLICITUD
+    // 10. PUBLICAR SOLICITUD
     // ======================================
 
     async crear() {
@@ -185,7 +199,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VERIFICAR SESION
+        // 10.1 VERIFICAR SESION
         // ----------------------------------
 
         const usuario = this.auth.usuario();
@@ -201,7 +215,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VERIFICAR ROL
+        // 10.2 VERIFICAR ROL
         // ----------------------------------
 
         if (
@@ -218,7 +232,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // LIMPIAR ESPACIOS
+        // 10.3 QUITAR ESPACIOS
         // ----------------------------------
 
         this.form.titulo = this.form.titulo.trim();
@@ -236,7 +250,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VALIDAR TITULO
+        // 10.4 VALIDAR TITULO
         // ----------------------------------
 
         if (this.form.titulo.length < 5) {
@@ -250,7 +264,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VALIDAR DESCRIPCION
+        // 10.5 VALIDAR DESCRIPCION
         // ----------------------------------
 
         if (this.form.descripcion.length < 15) {
@@ -264,7 +278,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VALIDAR CATEGORIA
+        // 10.6 VALIDAR CATEGORIA
         // ----------------------------------
 
         if (this.form.categoriaId <= 0) {
@@ -278,7 +292,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VALIDAR ZONA
+        // 10.7 VALIDAR ZONA
         // ----------------------------------
 
         if (this.form.zona === '') {
@@ -292,7 +306,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VALIDAR DIRECCION
+        // 10.8 VALIDAR DIRECCION
         // ----------------------------------
 
         if (this.form.direccion === '') {
@@ -306,7 +320,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VALIDAR DISPONIBILIDAD
+        // 10.9 VALIDAR DISPONIBILIDAD
         // ----------------------------------
 
         if (this.form.disponibilidad === '') {
@@ -320,24 +334,25 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // ENVIAR SOLICITUD
+        // 10.10 GUARDAR SOLICITUD
         // ----------------------------------
 
         this.guardando.set(true);
 
         try {
 
+            // Enviar la solicitud al servidor
             const respuesta = await this.api.crearSolicitud(
                 this.form
             );
 
-            // Mostrar el resultado
+            // Mostrar mensaje de exito
             this.exito.set(
                 `Solicitud #${respuesta.id} creada correctamente`
             );
 
 
-            // Limpiar los campos
+            // Limpiar formulario
             this.form = {
                 titulo: '',
                 descripcion: '',
@@ -349,7 +364,7 @@ export class ClienteComponent implements OnInit {
             };
 
 
-            // Abrir mis solicitudes
+            // Abrir las solicitudes del cliente
             await this.abrirMias();
 
         } catch (e) {
@@ -358,6 +373,7 @@ export class ClienteComponent implements OnInit {
 
         } finally {
 
+            // Volver a habilitar el boton
             this.guardando.set(false);
 
         }
@@ -365,19 +381,18 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 10. VER MIS SOLICITUDES
+    // 11. VER MIS SOLICITUDES
     // ======================================
 
     async abrirMias() {
 
-        // Cambiar de pestaña
+        // Cambiar a la pestaña de solicitudes
         this.vista.set('mias');
 
-        // Limpiar mensajes de error
         this.error.set('');
 
 
-        // Verificar usuario
+        // Verificar inicio de sesion
         if (!this.auth.usuario()) {
 
             this.mias.set([]);
@@ -392,10 +407,9 @@ export class ClienteComponent implements OnInit {
 
         try {
 
-            // Consultar solicitudes
+            // Obtener solicitudes del cliente
             const lista = await this.api.misSolicitudes();
 
-            // Guardar resultados
             this.mias.set(lista);
 
         } catch (e) {
@@ -409,7 +423,7 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 11. VER PROPUESTAS
+    // 12. VER PROPUESTAS
     // ======================================
 
     async verPropuestas(id: number) {
@@ -417,7 +431,7 @@ export class ClienteComponent implements OnInit {
         this.error.set('');
 
 
-        // Si estan abiertas, cerrarlas
+        // Si ya estan abiertas, cerrarlas
         if (this.seleccionada() === id) {
 
             this.seleccionada.set(null);
@@ -430,11 +444,12 @@ export class ClienteComponent implements OnInit {
 
         try {
 
-            // Obtener propuestas
+            // Consultar las propuestas
             const lista = await this.api.propuestas(id);
 
             this.ofertas.set(lista);
 
+            // Marcar la solicitud seleccionada
             this.seleccionada.set(id);
 
         } catch (e) {
@@ -446,7 +461,7 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 12. ACEPTAR PROPUESTA
+    // 13. ACEPTAR PROPUESTA
     // ======================================
 
     async aceptar(id: number, solicitudId: number) {
@@ -456,7 +471,7 @@ export class ClienteComponent implements OnInit {
 
         try {
 
-            // Aceptar propuesta
+            // Aceptar la propuesta
             await this.api.aceptar(id);
 
             this.exito.set(
@@ -486,7 +501,7 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 13. CANCELAR SOLICITUD
+    // 14. CANCELAR SOLICITUD
     // ======================================
 
     async cancelar(solicitud: Solicitud) {
@@ -501,7 +516,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VERIFICAR SESION
+        // 14.1 VERIFICAR USUARIO
         // ----------------------------------
 
         const usuario = this.auth.usuario();
@@ -517,7 +532,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VERIFICAR ROL
+        // 14.2 VERIFICAR ROL
         // ----------------------------------
 
         if (
@@ -534,7 +549,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // VERIFICAR ESTADO
+        // 14.3 VERIFICAR ESTADO
         // ----------------------------------
 
         if (solicitud.estado !== 'ACTIVA') {
@@ -548,7 +563,7 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // CONFIRMAR CANCELACION
+        // 14.4 PEDIR CONFIRMACION
         // ----------------------------------
 
         const confirmado = window.confirm(
@@ -561,14 +576,14 @@ export class ClienteComponent implements OnInit {
 
 
         // ----------------------------------
-        // SOLICITAR CANCELACION
+        // 14.5 ENVIAR CANCELACION
         // ----------------------------------
 
         this.cancelando.set(true);
 
         try {
 
-            // Enviar peticion a NestJS
+            // Pedir al backend que cancele
             await this.api.cancelarSolicitud(solicitud.id);
 
             this.exito.set(
@@ -576,13 +591,13 @@ export class ClienteComponent implements OnInit {
             );
 
 
-            // Cerrar propuestas abiertas
+            // Cerrar las propuestas
             this.seleccionada.set(null);
 
             this.ofertas.set([]);
 
 
-            // Actualizar solicitudes
+            // Actualizar las solicitudes
             try {
 
                 const lista = await this.api.misSolicitudes();
@@ -610,20 +625,15 @@ export class ClienteComponent implements OnInit {
 
 
     // ======================================
-    // 14. VER SEGUIMIENTO DEL SERVICIO
-    // NUEVA FUNCION
+    // 15. VER SEGUIMIENTO
     // ======================================
 
     verSeguimiento(id: number) {
 
-        // Limpiar mensajes anteriores
         this.error.set('');
 
 
-        // ----------------------------------
-        // SI YA ESTA ABIERTO, CERRARLO
-        // ----------------------------------
-
+        // Si ya esta abierto, cerrarlo
         if (this.seguimientoSeleccionado() === id) {
 
             this.seguimientoSeleccionado.set(null);
@@ -632,14 +642,126 @@ export class ClienteComponent implements OnInit {
         }
 
 
-        // ----------------------------------
-        // MOSTRAR SEGUIMIENTO
-        // ----------------------------------
-
-        // Guardar el ID de la solicitud
-        // para mostrar sus detalles
-
+        // Abrir el seguimiento seleccionado
         this.seguimientoSeleccionado.set(id);
+    }
+
+
+    // ======================================
+    // 16. ABRIR COORDINACION DE VISITA
+    // NUEVA FUNCION
+    // ======================================
+
+    abrirCoordinacion(id: number) {
+
+        // Si ya esta abierto, cerrarlo
+        if (this.visitaAbierta() === id) {
+
+            this.visitaAbierta.set(null);
+
+            return;
+        }
+
+
+        // Abrir formulario de esta solicitud
+        this.visitaAbierta.set(id);
+
+
+        // Limpiar los campos anteriores
+        this.fechaPreferida = '';
+
+        this.horaPreferida = '';
+
+        this.notaVisita = '';
+
+        this.borradorVisita.set(null);
+    }
+
+
+    // ======================================
+    // 17. PREPARAR BORRADOR DE VISITA
+    // NUEVA FUNCION
+    // ======================================
+
+    prepararVisita(id: number) {
+
+        // Limpiar errores anteriores
+        this.error.set('');
+
+
+        // ----------------------------------
+        // 17.1 VERIFICAR SESION
+        // ----------------------------------
+
+        const usuario = this.auth.usuario();
+
+        if (!usuario) {
+
+            this.error.set(
+                'Debes iniciar sesión para proponer una visita.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 17.2 VERIFICAR ROL
+        // ----------------------------------
+
+        if (
+            usuario.rol !== 'CLIENTE' &&
+            usuario.rol !== 'EMPRESA'
+        ) {
+
+            this.error.set(
+                'Solo clientes y empresas pueden proponer visitas.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 17.3 VALIDAR FECHA
+        // ----------------------------------
+
+        if (this.fechaPreferida === '') {
+
+            this.error.set(
+                'Selecciona una fecha para la visita.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 17.4 VALIDAR HORA
+        // ----------------------------------
+
+        if (this.horaPreferida === '') {
+
+            this.error.set(
+                'Selecciona una hora para la visita.'
+            );
+
+            return;
+        }
+
+
+        // ----------------------------------
+        // 17.5 PREPARAR BORRADOR
+        // ----------------------------------
+
+        // No envia datos al backend
+        // Solamente guarda un borrador temporal
+        this.borradorVisita.set({
+            solicitudId: id,
+            fecha: this.fechaPreferida,
+            hora: this.horaPreferida,
+            nota: this.notaVisita.trim()
+        });
 
     }
 

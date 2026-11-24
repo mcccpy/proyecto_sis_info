@@ -1,12 +1,12 @@
 
 <!-- ====================================== -->
-<!-- PAGINA DEL CLIENTE -->
+<!-- PAGINA PRINCIPAL DEL CLIENTE -->
 <!-- ====================================== -->
 
 <main class="page shell">
 
     <!-- ================================== -->
-    <!-- 1. ENCABEZADO -->
+    <!-- 1. TITULO PRINCIPAL -->
     <!-- ================================== -->
 
     <div class="page-top">
@@ -43,7 +43,7 @@
 
             Puedes explorar técnicos sin cuenta.
 
-            Para publicar solicitudes,
+            Para publicar una solicitud,
 
             <a routerLink="/ingresar">
                 inicia sesión
@@ -55,7 +55,7 @@
 
 
     <!-- ================================== -->
-    <!-- 3. MENSAJES -->
+    <!-- 3. MENSAJES DEL SISTEMA -->
     <!-- ================================== -->
 
     @if (error()) {
@@ -76,10 +76,12 @@
 
 
     <!-- ================================== -->
-    <!-- 4. PESTAÑAS -->
+    <!-- 4. MENU DE OPCIONES -->
     <!-- ================================== -->
 
     <div class="tabs">
+
+        <!-- Buscar tecnicos -->
 
         <button
             type="button"
@@ -89,6 +91,9 @@
             Buscar técnicos
         </button>
 
+
+        <!-- Publicar solicitud -->
+
         <button
             type="button"
             [class.active]="vista() === 'publicar'"
@@ -96,6 +101,9 @@
         >
             Publicar solicitud
         </button>
+
+
+        <!-- Mis solicitudes -->
 
         <button
             type="button"
@@ -122,7 +130,7 @@
 
             <div class="search-grid">
 
-                <!-- Especialidad -->
+                <!-- Filtro de especialidad -->
 
                 <label>
 
@@ -147,7 +155,7 @@
                 </label>
 
 
-                <!-- Zona -->
+                <!-- Filtro de zona -->
 
                 <label>
 
@@ -162,7 +170,7 @@
                 </label>
 
 
-                <!-- Buscar -->
+                <!-- Boton buscar -->
 
                 <button
                     type="button"
@@ -177,7 +185,9 @@
         </section>
 
 
-        <!-- RESULTADOS -->
+        <!-- ================================= -->
+        <!-- 6. RESULTADOS DE BUSQUEDA -->
+        <!-- ================================= -->
 
         <div class="result-title">
 
@@ -192,7 +202,7 @@
         </div>
 
 
-        <!-- LISTA DE TRABAJADORES -->
+        <!-- Lista de trabajadores -->
 
         <div class="cards-grid">
 
@@ -201,6 +211,8 @@
                 <article class="worker-card">
 
                     <div class="worker-head">
+
+                        <!-- Inicial del nombre -->
 
                         <div class="worker-avatar">
                             {{ t.nombre.substring(0, 1).toUpperCase() }}
@@ -212,13 +224,22 @@
 
                     </div>
 
+
+                    <!-- Nombre -->
+
                     <h3>
                         {{ t.nombre }}
                     </h3>
 
+
+                    <!-- Categoria -->
+
                     <p class="role-label">
                         {{ t.categoria }}
                     </p>
+
+
+                    <!-- Zona y horario -->
 
                     <div class="worker-meta">
 
@@ -232,6 +253,9 @@
 
                     </div>
 
+
+                    <!-- Experiencia -->
+
                     <p class="worker-exp">
                         {{ t.experiencia }}
                     </p>
@@ -243,8 +267,8 @@
                 @if (!error()) {
 
                     <div class="empty">
-                        No encontramos técnicos para
-                        los filtros seleccionados.
+                        No encontramos técnicos
+                        para los filtros seleccionados.
                     </div>
 
                 }
@@ -257,7 +281,7 @@
 
 
     <!-- ================================== -->
-    <!-- 6. PUBLICAR SOLICITUD -->
+    <!-- 7. PUBLICAR SOLICITUD -->
     <!-- ================================== -->
 
     @if (vista() === 'publicar') {
@@ -274,7 +298,7 @@
             </p>
 
 
-            <!-- AVISO SIN SESION -->
+            <!-- Aviso si no inicio sesion -->
 
             @if (!auth.usuario()) {
 
@@ -292,7 +316,9 @@
             }
 
 
-            <!-- FORMULARIO -->
+            <!-- ================================= -->
+            <!-- 8. FORMULARIO DE SOLICITUD -->
+            <!-- ================================= -->
 
             <form (ngSubmit)="crear()">
 
@@ -432,20 +458,20 @@
                 </div>
 
 
-                <!-- AYUDA -->
+                <!-- Informacion adicional -->
 
                 <p class="help">
 
                     Por ahora puedes agregar una fotografía
                     mediante un enlace.
 
-                    Más adelante implementaremos la subida
-                    directa de imágenes.
+                    Más adelante implementaremos
+                    la subida directa de imágenes.
 
                 </p>
 
 
-                <!-- PUBLICAR -->
+                <!-- BOTON PUBLICAR -->
 
                 <button
                     type="submit"
@@ -473,7 +499,7 @@
 
 
     <!-- ================================== -->
-    <!-- 7. MIS SOLICITUDES -->
+    <!-- 9. MIS SOLICITUDES -->
     <!-- ================================== -->
 
     @if (vista() === 'mias') {
@@ -491,7 +517,7 @@
         </div>
 
 
-        <!-- LISTA -->
+        <!-- Lista de solicitudes -->
 
         <div class="list-stack">
 
@@ -501,7 +527,7 @@
 
 
                     <!-- ================================= -->
-                    <!-- 8. DATOS DE LA SOLICITUD -->
+                    <!-- 10. INFORMACION DE LA SOLICITUD -->
                     <!-- ================================= -->
 
                     <div class="job-main">
@@ -535,7 +561,7 @@
                         </div>
 
 
-                        <!-- ESTADO ACTUAL -->
+                        <!-- Estado actual -->
 
                         <span class="status-pill">
                             {{ s.estado }}
@@ -545,13 +571,13 @@
 
 
                     <!-- ================================= -->
-                    <!-- 9. BOTONES DE LA SOLICITUD -->
+                    <!-- 11. BOTONES DE LA SOLICITUD -->
                     <!-- ================================= -->
 
                     <div class="job-actions">
 
 
-                        <!-- VER PROPUESTAS -->
+                        <!-- Ver propuestas -->
 
                         <button
                             type="button"
@@ -572,10 +598,7 @@
                         </button>
 
 
-                        <!-- ================================= -->
-                        <!-- 10. VER SEGUIMIENTO -->
-                        <!-- NUEVO BOTON -->
-                        <!-- ================================= -->
+                        <!-- Ver seguimiento -->
 
                         <button
                             type="button"
@@ -597,8 +620,30 @@
 
 
                         <!-- ================================= -->
-                        <!-- 11. CANCELAR SOLICITUD -->
+                        <!-- 12. COORDINAR VISITA -->
+                        <!-- NUEVO BOTON -->
                         <!-- ================================= -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="abrirCoordinacion(s.id)"
+                        >
+
+                            @if (visitaAbierta() === s.id) {
+
+                                Cerrar coordinación
+
+                            } @else {
+
+                                Proponer visita
+
+                            }
+
+                        </button>
+
+
+                        <!-- CANCELAR SOLICITUD -->
 
                         @if (s.estado === 'ACTIVA') {
 
@@ -627,8 +672,7 @@
 
 
                     <!-- ================================= -->
-                    <!-- 12. PANEL DE SEGUIMIENTO -->
-                    <!-- NUEVA SECCION -->
+                    <!-- 13. PANEL DE SEGUIMIENTO -->
                     <!-- ================================= -->
 
                     @if (seguimientoSeleccionado() === s.id) {
@@ -640,97 +684,65 @@
                             </h4>
 
 
-                            <!-- ESTADO DE LA SOLICITUD -->
+                            <!-- Estado -->
 
                             <p>
-
-                                <strong>
-                                    Estado actual:
-                                </strong>
-
+                                <strong>Estado actual:</strong>
                                 {{ s.estado }}
-
                             </p>
 
 
-                            <!-- TITULO DEL TRABAJO -->
+                            <!-- Solicitud -->
 
                             <p>
-
-                                <strong>
-                                    Servicio solicitado:
-                                </strong>
-
+                                <strong>Servicio solicitado:</strong>
                                 {{ s.titulo }}
-
                             </p>
 
 
-                            <!-- DESCRIPCION -->
+                            <!-- Descripcion -->
 
                             <p>
-
-                                <strong>
-                                    Descripción:
-                                </strong>
-
+                                <strong>Descripción:</strong>
                                 {{ s.descripcion }}
-
                             </p>
 
 
-                            <!-- ZONA -->
+                            <!-- Zona -->
 
                             <p>
-
-                                <strong>
-                                    Zona:
-                                </strong>
-
+                                <strong>Zona:</strong>
                                 {{ s.zona }}
-
                             </p>
 
 
-                            <!-- DISPONIBILIDAD -->
+                            <!-- Disponibilidad -->
 
                             <p>
-
-                                <strong>
-                                    Disponibilidad:
-                                </strong>
-
+                                <strong>Disponibilidad:</strong>
                                 {{ s.disponibilidad }}
-
                             </p>
 
 
-                            <!-- DIRECCION PRIVADA -->
+                            <!-- Direccion privada -->
 
                             @if (s.direccion) {
 
                                 <p>
-
-                                    <strong>
-                                        Dirección:
-                                    </strong>
-
+                                    <strong>Dirección:</strong>
                                     {{ s.direccion }}
-
                                 </p>
 
                             }
 
 
-                            <!-- FOTOGRAFIA SI EXISTE -->
+                            <!-- Fotografia -->
 
                             @if (s.fotoUrl) {
 
                                 <p>
 
-                                    <strong>
-                                        Fotografía:
-                                    </strong>
+                                    <strong>Fotografía:</strong>
 
                                     <a
                                         [href]="s.fotoUrl"
@@ -745,13 +757,14 @@
                             }
 
 
-                            <!-- INFORMACION ADICIONAL -->
+                            <!-- Datos pendientes del backend -->
 
                             <p class="help">
 
-                                El técnico asignado, las visitas
+                                El técnico asignado,
+                                las visitas confirmadas
                                 y los avances de reparación
-                                aparecerán cuando el backend
+                                aparecerán cuando NestJS
                                 proporcione esa información.
 
                             </p>
@@ -762,7 +775,159 @@
 
 
                     <!-- ================================= -->
-                    <!-- 13. PROPUESTAS RECIBIDAS -->
+                    <!-- 14. FORMULARIO DE VISITA -->
+                    <!-- NUEVA SECCION -->
+                    <!-- ================================= -->
+
+                    @if (visitaAbierta() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Proponer fecha y hora de visita
+                            </h4>
+
+
+                            <!-- Aclaracion de funcionamiento -->
+
+                            <p class="help">
+
+                                Esta propuesta es un borrador
+                                temporal de la interfaz.
+
+                                No confirma una visita
+                                ni se envía al técnico.
+
+                            </p>
+
+
+                            <!-- Horario original -->
+
+                            <p>
+
+                                <strong>
+                                    Disponibilidad original:
+                                </strong>
+
+                                {{ s.disponibilidad }}
+
+                            </p>
+
+
+                            <!-- ================================= -->
+                            <!-- 15. DATOS DE LA VISITA -->
+                            <!-- ================================= -->
+
+                            <form (ngSubmit)="prepararVisita(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Fecha preferida -->
+
+                                    <label>
+
+                                        Fecha preferida
+
+                                        <input
+                                            type="date"
+                                            name="fechaPreferida"
+                                            [(ngModel)]="fechaPreferida"
+                                            required
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Hora preferida -->
+
+                                    <label>
+
+                                        Hora preferida
+
+                                        <input
+                                            type="time"
+                                            name="horaPreferida"
+                                            [(ngModel)]="horaPreferida"
+                                            required
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Indicaciones adicionales -->
+
+                                    <label class="full">
+
+                                        Indicaciones (opcional)
+
+                                        <textarea
+                                            name="notaVisita"
+                                            [(ngModel)]="notaVisita"
+                                            rows="3"
+                                            placeholder="Ej. Llamar antes de llegar"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Preparar borrador -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    Preparar borrador
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 16. RESUMEN DEL BORRADOR -->
+                            <!-- ================================= -->
+
+                            @if (borradorVisita(); as borrador) {
+
+                                @if (borrador.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Borrador preparado, no enviado.
+                                        </strong>
+
+                                        <p>
+                                            Fecha: {{ borrador.fecha }}
+                                        </p>
+
+                                        <p>
+                                            Hora: {{ borrador.hora }}
+                                        </p>
+
+                                        @if (borrador.nota) {
+
+                                            <p>
+                                                Nota: {{ borrador.nota }}
+                                            </p>
+
+                                        }
+
+                                    </div>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 17. PROPUESTAS RECIBIDAS -->
                     <!-- ================================= -->
 
                     @if (seleccionada() === s.id) {
@@ -774,7 +939,7 @@
                             </h4>
 
 
-                            <!-- LISTA DE PROPUESTAS -->
+                            <!-- Lista de presupuestos -->
 
                             @for (o of ofertas(); track o.id) {
 
@@ -782,21 +947,21 @@
 
                                     <div>
 
-                                        <!-- TRABAJADOR -->
+                                        <!-- Nombre del trabajador -->
 
                                         <strong>
                                             {{ o.trabajador?.nombre || 'Trabajador' }}
                                         </strong>
 
 
-                                        <!-- PRECIO -->
+                                        <!-- Precio del trabajo -->
 
                                         <small>
                                             Presupuesto: Bs {{ o.precio }}
                                         </small>
 
 
-                                        <!-- COSTO DE VISITA -->
+                                        <!-- Costo de visita -->
 
                                         @if (o.costoVisita != null) {
 
@@ -807,7 +972,7 @@
                                         }
 
 
-                                        <!-- MATERIALES -->
+                                        <!-- Materiales -->
 
                                         @if (o.materialesIncluidos != null) {
 
@@ -826,7 +991,7 @@
                                         }
 
 
-                                        <!-- DETALLES -->
+                                        <!-- Detalles adicionales -->
 
                                         @if (o.detalleMateriales) {
 
@@ -840,7 +1005,7 @@
 
 
                                     <!-- ================================= -->
-                                    <!-- 14. ACEPTAR PROPUESTA -->
+                                    <!-- 18. ACEPTAR PROPUESTA -->
                                     <!-- ================================= -->
 
                                     @if (
@@ -885,12 +1050,14 @@
 
             } @empty {
 
-                <!-- LISTA VACIA -->
+                <!-- No existen solicitudes -->
 
                 @if (auth.usuario() && !error()) {
 
                     <div class="empty">
+
                         Todavía no has publicado solicitudes.
+
                     </div>
 
                 }
