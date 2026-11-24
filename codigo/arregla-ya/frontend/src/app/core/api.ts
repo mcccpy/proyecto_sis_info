@@ -24,25 +24,23 @@ import {
 // 1. DIRECCION DEL BACKEND
 // ==========================================
 
-// Aqui se encuentra el servidor NestJS
+// Servidor NestJS
 export const API_URL = 'http://localhost:3000/api';
 
 
 // ==========================================
-// 2. ENVIAR EL TOKEN DEL USUARIO
+// 2. ENVIAR EL TOKEN
 // ==========================================
 
-// Esta funcion agrega el token a las peticiones
+// Agrega el token a las peticiones HTTP
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
     let token = null;
 
-    // Verificar que exista localStorage
     if (typeof localStorage !== 'undefined') {
         token = localStorage.getItem('ay_token');
     }
 
-    // Si existe un token, enviarlo al servidor
     if (token) {
 
         const nuevaPeticion = req.clone({
@@ -54,32 +52,31 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return next(nuevaPeticion);
     }
 
-    // Si no existe token, enviar normalmente
     return next(req);
 };
 
 
 // ==========================================
-// 3. MOSTRAR MENSAJES DE ERROR
+// 3. MOSTRAR ERRORES
 // ==========================================
 
 export function mensajeError(error: unknown): string {
 
     if (error instanceof HttpErrorResponse) {
 
-        // El backend no responde
+        // El servidor no responde
         if (error.status === 0) {
             return 'No se puede contactar con NestJS. Verifica que el backend este encendido en localhost:3000.';
         }
 
         const mensaje = error.error?.message;
 
-        // Si el servidor devuelve varios errores
+        // El servidor envia varios mensajes
         if (Array.isArray(mensaje)) {
             return mensaje.join(' • ');
         }
 
-        // Si devuelve un solo mensaje
+        // El servidor envia un mensaje
         if (typeof mensaje === 'string') {
             return mensaje;
         }
@@ -95,15 +92,13 @@ export function mensajeError(error: unknown): string {
 // 4. SERVICIO DE AUTENTICACION
 // ==========================================
 
-// Esta clase controla el registro,
-// inicio de sesion y cierre de sesion.
-
 @Injectable({
     providedIn: 'root'
 })
+
 export class AuthService {
 
-    // Objeto para comunicarse con el servidor
+    // Conexion HTTP
     private http = inject(HttpClient);
 
     // Usuario que inicio sesion
@@ -111,7 +106,7 @@ export class AuthService {
 
 
     // --------------------------------------
-    // LEER USUARIO GUARDADO
+    // 4.1 LEER USUARIO GUARDADO
     // --------------------------------------
 
     private leerUsuario(): Usuario | null {
@@ -134,7 +129,7 @@ export class AuthService {
 
 
     // --------------------------------------
-    // REGISTRAR USUARIO
+    // 4.2 REGISTRAR USUARIO
     // --------------------------------------
 
     async registro(datos: {
@@ -163,7 +158,7 @@ export class AuthService {
 
 
     // --------------------------------------
-    // INICIAR SESION
+    // 4.3 INICIAR SESION
     // --------------------------------------
 
     async login(datos: {
@@ -190,7 +185,7 @@ export class AuthService {
 
 
     // --------------------------------------
-    // GUARDAR DATOS DEL USUARIO
+    // 4.4 GUARDAR SESION
     // --------------------------------------
 
     private guardar(respuesta: {
@@ -198,22 +193,25 @@ export class AuthService {
         usuario: Usuario;
     }) {
 
+        // Guardamos el token
         localStorage.setItem(
             'ay_token',
             respuesta.token
         );
 
+        // Guardamos los datos del usuario
         localStorage.setItem(
             'ay_usuario',
             JSON.stringify(respuesta.usuario)
         );
 
+        // Actualizamos el usuario
         this.usuario.set(respuesta.usuario);
     }
 
 
     // --------------------------------------
-    // COMPROBAR SESION
+    // 4.5 COMPROBAR SESION
     // --------------------------------------
 
     async comprobar() {
@@ -249,7 +247,7 @@ export class AuthService {
 
 
     // --------------------------------------
-    // CERRAR SESION
+    // 4.6 CERRAR SESION
     // --------------------------------------
 
     salir() {
@@ -264,15 +262,15 @@ export class AuthService {
 
 
 // ==========================================
-// 5. SERVICIO DE LA API
+// 5. SERVICIO DE API
 // ==========================================
 
-// Esta clase contiene los metodos para
-// comunicarse con el backend NestJS.
+// Contiene las peticiones al backend NestJS
 
 @Injectable({
     providedIn: 'root'
 })
+
 export class ApiService {
 
     private http = inject(HttpClient);
@@ -284,7 +282,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // OBTENER CATEGORIAS
+    // 5.1 OBTENER CATEGORIAS
     // --------------------------------------
 
     categorias() {
@@ -300,7 +298,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // BUSCAR TRABAJADORES
+    // 5.2 BUSCAR TRABAJADORES
     // --------------------------------------
 
     trabajadores(filtros: {
@@ -308,21 +306,19 @@ export class ApiService {
         zona?: string;
     } = {}) {
 
+        // Filtros para la busqueda
         let params: Record<string, string> = {};
 
         // Filtrar por categoria
         if (filtros.categoria) {
-
             params['categoria'] = String(filtros.categoria);
         }
 
         // Filtrar por zona
         if (filtros.zona) {
-
             params['zona'] = filtros.zona;
         }
 
-        // Obtener los trabajadores
         return firstValueFrom(
 
             this.http.get<Trabajador[]>(
@@ -335,7 +331,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // CREAR UNA SOLICITUD
+    // 5.3 CREAR SOLICITUD
     // --------------------------------------
 
     crearSolicitud(datos: unknown) {
@@ -355,7 +351,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // VER MIS SOLICITUDES
+    // 5.4 VER MIS SOLICITUDES
     // --------------------------------------
 
     misSolicitudes() {
@@ -371,7 +367,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // VER SOLICITUDES DISPONIBLES
+    // 5.5 VER SOLICITUDES DISPONIBLES
     // --------------------------------------
 
     disponibles() {
@@ -387,7 +383,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // VER PROPUESTAS DE UNA SOLICITUD
+    // 5.6 VER PROPUESTAS DE SOLICITUD
     // --------------------------------------
 
     propuestas(id: number) {
@@ -403,7 +399,8 @@ export class ApiService {
 
 
     // --------------------------------------
-    // ENVIAR PROPUESTA COMO TRABAJADOR
+    // 5.7 ENVIAR PROPUESTA
+    // FUNCION DEL TRABAJADOR
     // --------------------------------------
 
     ofrecer(id: number, datos: unknown) {
@@ -420,7 +417,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // ACEPTAR UNA PROPUESTA
+    // 5.8 ACEPTAR UNA PROPUESTA
     // --------------------------------------
 
     aceptar(id: number) {
@@ -436,13 +433,35 @@ export class ApiService {
     }
 
 
+    // --------------------------------------
+    // 5.9 CANCELAR SOLICITUD
+    // NUEVA FUNCION
+    // --------------------------------------
+
+    cancelarSolicitud(id: number) {
+
+        // Solicita la cancelacion al backend
+        // Esta ruta debe ser confirmada
+        // por el encargado del backend
+
+        return firstValueFrom(
+
+            this.http.patch(
+                `${API_URL}/solicitudes/${id}/cancelar`,
+                {}
+            )
+
+        );
+    }
+
+
     // ======================================
     // FUNCIONES DEL TRABAJADOR
     // ======================================
 
 
     // --------------------------------------
-    // VER MIS PROPUESTAS
+    // 6.1 VER MIS PROPUESTAS
     // --------------------------------------
 
     misOfertas() {
@@ -458,7 +477,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // VER MI PERFIL TECNICO
+    // 6.2 VER MI PERFIL TECNICO
     // --------------------------------------
 
     miPerfilTecnico() {
@@ -474,7 +493,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // GUARDAR PERFIL TECNICO
+    // 6.3 GUARDAR PERFIL TECNICO
     // --------------------------------------
 
     guardarPerfil(datos: unknown) {
@@ -496,7 +515,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // VER TRABAJADORES PENDIENTES
+    // 7.1 VER TRABAJADORES PENDIENTES
     // --------------------------------------
 
     pendientes() {
@@ -519,7 +538,7 @@ export class ApiService {
 
 
     // --------------------------------------
-    // APROBAR TRABAJADOR
+    // 7.2 APROBAR TRABAJADOR
     // --------------------------------------
 
     aprobar(id: number) {

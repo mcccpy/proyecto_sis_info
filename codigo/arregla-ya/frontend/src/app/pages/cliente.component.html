@@ -1,68 +1,114 @@
 
+<!-- ====================================== -->
+<!-- PAGINA PRINCIPAL DEL CLIENTE -->
+<!-- ====================================== -->
+
 <main class="page shell">
 
-    <!-- TITULO PRINCIPAL -->
-    <div class="page-top">
-        <div>
-            <span class="kicker">ÁREA DE CLIENTES</span>
+    <!-- ================================== -->
+    <!-- 1. ENCABEZADO -->
+    <!-- ================================== -->
 
-            <h1>Encuentra ayuda para tu hogar</h1>
+    <div class="page-top">
+
+        <div>
+
+            <span class="kicker">
+                ÁREA DE CLIENTES
+            </span>
+
+            <h1>
+                Encuentra ayuda para tu hogar
+            </h1>
 
             <p class="subtle">
-                Busca técnicos, publica una solicitud
-                y compara sus propuestas.
+                Busca técnicos, publica solicitudes
+                y administra tus trabajos.
             </p>
+
         </div>
 
-        <span class="page-icon">⌂</span>
+        <span class="page-icon">
+            ⌂
+        </span>
+
     </div>
 
 
-    <!-- AVISO SI NO INICIO SESION -->
+    <!-- ================================== -->
+    <!-- 2. AVISO DE INICIO DE SESION -->
+    <!-- ================================== -->
+
     @if (!auth.usuario()) {
+
         <div class="alert info">
+
             Puedes explorar técnicos sin cuenta.
 
-            Para publicar una solicitud,
-            <a routerLink="/ingresar">inicia sesión</a>.
+            Para publicar solicitudes,
+
+            <a routerLink="/ingresar">
+                inicia sesión
+            </a>.
+
         </div>
+
     }
 
 
-    <!-- MENSAJES DE ERROR -->
+    <!-- ================================== -->
+    <!-- 3. MENSAJES DEL SISTEMA -->
+    <!-- ================================== -->
+
     @if (error()) {
+
         <div class="alert error">
             {{ error() }}
         </div>
+
     }
 
-
-    <!-- MENSAJES DE EXITO -->
     @if (exito()) {
+
         <div class="alert success">
             {{ exito() }}
         </div>
+
     }
 
 
-    <!-- MENU DE OPCIONES -->
+    <!-- ================================== -->
+    <!-- 4. MENU PRINCIPAL -->
+    <!-- ================================== -->
+
     <div class="tabs">
 
+        <!-- Buscar trabajadores -->
+
         <button
+            type="button"
             [class.active]="vista() === 'buscar'"
             (click)="vista.set('buscar')"
         >
             Buscar técnicos
         </button>
 
+
+        <!-- Publicar solicitudes -->
+
         <button
+            type="button"
             [class.active]="vista() === 'publicar'"
             (click)="vista.set('publicar')"
         >
             Publicar solicitud
         </button>
 
+
+        <!-- Mis solicitudes -->
+
         <button
+            type="button"
             [class.active]="vista() === 'mias'"
             (click)="abrirMias()"
         >
@@ -73,50 +119,65 @@
 
 
     <!-- ================================== -->
-    <!-- SECCION 1: BUSCAR TECNICOS         -->
+    <!-- 5. BUSCAR TRABAJADORES -->
     <!-- ================================== -->
 
     @if (vista() === 'buscar') {
 
         <section class="panel">
 
-            <h2>Busca a tu especialista</h2>
+            <h2>
+                Busca a tu especialista
+            </h2>
 
             <div class="search-grid">
 
-                <!-- FILTRO POR CATEGORIA -->
+                <!-- Categoria -->
+
                 <label>
+
                     Especialidad
 
-                    <select [(ngModel)]="filtroCategoria">
+                    <select
+                        [(ngModel)]="filtroCategoria"
+                    >
 
                         <option [ngValue]="0">
                             Todas las especialidades
                         </option>
 
                         @for (c of categorias(); track c.id) {
+
                             <option [ngValue]="c.id">
                                 {{ c.nombre }}
                             </option>
+
                         }
 
                     </select>
+
                 </label>
 
 
-                <!-- FILTRO POR ZONA -->
+                <!-- Zona -->
+
                 <label>
+
                     Zona
 
                     <input
+                        type="text"
                         [(ngModel)]="filtroZona"
-                        placeholder="Ej. Centro, Queru Queru"
+                        placeholder="Ej. Cala Cala, Centro"
                     >
+
                 </label>
 
 
-                <!-- BOTON BUSCAR -->
+                <!-- Boton buscar -->
+
                 <button
+                    type="button"
                     class="btn btn-primary"
                     (click)="buscar()"
                 >
@@ -128,10 +189,15 @@
         </section>
 
 
-        <!-- RESULTADOS DE LA BUSQUEDA -->
+        <!-- ================================= -->
+        <!-- 6. RESULTADOS DE BUSQUEDA -->
+        <!-- ================================= -->
+
         <div class="result-title">
 
-            <h3>Técnicos disponibles</h3>
+            <h3>
+                Técnicos disponibles
+            </h3>
 
             <span>
                 {{ trabajadores().length }} resultado(s)
@@ -140,7 +206,8 @@
         </div>
 
 
-        <!-- LISTA DE TRABAJADORES -->
+        <!-- Tarjetas de trabajadores -->
+
         <div class="cards-grid">
 
             @for (t of trabajadores(); track t.id) {
@@ -149,21 +216,34 @@
 
                     <div class="worker-head">
 
+                        <!-- Inicial del nombre -->
+
                         <div class="worker-avatar">
                             {{ t.nombre.substring(0, 1).toUpperCase() }}
                         </div>
 
                         <span class="status-pill">
-                            ✓ Aprobado
+                            Especialista
                         </span>
 
                     </div>
 
-                    <h3>{{ t.nombre }}</h3>
+
+                    <!-- Nombre -->
+
+                    <h3>
+                        {{ t.nombre }}
+                    </h3>
+
+
+                    <!-- Especialidad -->
 
                     <p class="role-label">
                         {{ t.categoria }}
                     </p>
+
+
+                    <!-- Datos del trabajador -->
 
                     <div class="worker-meta">
 
@@ -177,6 +257,9 @@
 
                     </div>
 
+
+                    <!-- Experiencia -->
+
                     <p class="worker-exp">
                         {{ t.experiencia }}
                     </p>
@@ -185,10 +268,14 @@
 
             } @empty {
 
-                <div class="empty">
-                    No hay técnicos aprobados para esos filtros.
-                    Puedes volver a intentarlo más tarde.
-                </div>
+                @if (!error()) {
+
+                    <div class="empty">
+                        No encontramos técnicos
+                        para los filtros seleccionados.
+                    </div>
+
+                }
 
             }
 
@@ -198,44 +285,72 @@
 
 
     <!-- ================================== -->
-    <!-- SECCION 2: PUBLICAR SOLICITUD     -->
+    <!-- 7. PUBLICAR SOLICITUD -->
     <!-- ================================== -->
 
     @if (vista() === 'publicar') {
 
         <section class="panel form-card">
 
-            <h2>Publicar una solicitud</h2>
+            <h2>
+                Publicar una solicitud
+            </h2>
 
             <p class="subtle">
                 Cuéntanos qué necesitas reparar.
-                La dirección exacta no aparecerá
-                en los listados públicos.
+                Completa los datos del trabajo.
             </p>
 
 
-            <!-- FORMULARIO -->
+            <!-- Aviso para usuarios sin sesion -->
+
+            @if (!auth.usuario()) {
+
+                <div class="alert info">
+
+                    Necesitas iniciar sesión
+                    para publicar una solicitud.
+
+                    <a routerLink="/ingresar">
+                        Iniciar sesión
+                    </a>
+
+                </div>
+
+            }
+
+
+            <!-- ================================= -->
+            <!-- 8. FORMULARIO DE PUBLICACION -->
+            <!-- ================================= -->
+
             <form (ngSubmit)="crear()">
 
                 <div class="form-grid">
 
 
-                    <!-- TITULO -->
+                    <!-- Titulo -->
+
                     <label>
+
                         Título
 
                         <input
+                            type="text"
                             name="titulo"
                             [(ngModel)]="form.titulo"
                             required
                             minlength="5"
                             placeholder="Ej. Fuga en el lavaplatos"
                         >
+
                     </label>
 
 
-                    <!-- CATEGORIA -->
+                    <!-- Categoria -->
+
                     <label>
+
                         Especialidad
 
                         <select
@@ -257,11 +372,14 @@
                             }
 
                         </select>
+
                     </label>
 
 
-                    <!-- DESCRIPCION -->
+                    <!-- Descripcion -->
+
                     <label class="full">
+
                         Descripción
 
                         <textarea
@@ -272,82 +390,105 @@
                             rows="4"
                             placeholder="Explica el problema con detalle..."
                         ></textarea>
+
                     </label>
 
 
-                    <!-- ZONA -->
+                    <!-- Zona -->
+
                     <label>
+
                         Zona general
 
                         <input
+                            type="text"
                             name="zona"
                             [(ngModel)]="form.zona"
                             required
                             placeholder="Ej. Cala Cala"
                         >
+
                     </label>
 
 
-                    <!-- DIRECCION -->
+                    <!-- Direccion -->
+
                     <label>
-                        Dirección exacta (privada)
+
+                        Dirección exacta del trabajo
 
                         <input
+                            type="text"
                             name="direccion"
                             [(ngModel)]="form.direccion"
                             required
-                            placeholder="Dirección del trabajo"
+                            placeholder="Ej. Calle España 123"
                         >
+
                     </label>
 
 
-                    <!-- HORARIO -->
+                    <!-- Horario -->
+
                     <label class="full">
+
                         Fecha u horario disponible
 
                         <input
+                            type="text"
                             name="disponibilidad"
                             [(ngModel)]="form.disponibilidad"
                             required
                             placeholder="Ej. Sábado por la mañana"
                         >
+
                     </label>
 
 
-                    <!-- FOTOGRAFIA -->
+                    <!-- Fotografia -->
+
                     <label class="full">
-                        URL de fotografía (opcional, demo)
+
+                        URL de fotografía (opcional)
 
                         <input
+                            type="url"
                             name="fotoUrl"
                             [(ngModel)]="form.fotoUrl"
-                            type="url"
                             placeholder="https://..."
                         >
+
                     </label>
 
                 </div>
 
 
+                <!-- Ayuda del formulario -->
+
                 <p class="help">
-                    En esta primera versión se admite
-                    el enlace de una foto.
-                    Subir archivos directamente será
-                    una mejora posterior.
+                    La fotografía se agrega mediante
+                    un enlace en esta versión.
                 </p>
 
 
-                <!-- BOTON PUBLICAR -->
+                <!-- Publicar -->
+
                 <button
                     type="submit"
                     class="btn btn-primary"
                     [disabled]="guardando()"
                 >
+
                     @if (guardando()) {
+
                         Publicando...
+
                     } @else {
+
                         Publicar solicitud →
+
                     }
+
                 </button>
 
             </form>
@@ -358,14 +499,16 @@
 
 
     <!-- ================================== -->
-    <!-- SECCION 3: MIS SOLICITUDES        -->
+    <!-- 9. MIS SOLICITUDES -->
     <!-- ================================== -->
 
     @if (vista() === 'mias') {
 
         <div class="result-title">
 
-            <h3>Mis solicitudes</h3>
+            <h3>
+                Mis solicitudes
+            </h3>
 
             <span>
                 {{ mias().length }} solicitudes
@@ -374,13 +517,34 @@
         </div>
 
 
+        <!-- Boton para actualizar -->
+
+        @if (auth.usuario()) {
+
+            <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                (click)="abrirMias()"
+            >
+                Actualizar solicitudes
+            </button>
+
+        }
+
+
+        <!-- Lista de solicitudes -->
+
         <div class="list-stack">
 
             @for (s of mias(); track s.id) {
 
                 <article class="job-card">
 
-                    <!-- INFORMACION DE SOLICITUD -->
+
+                    <!-- ================================= -->
+                    <!-- 10. INFORMACION DE LA SOLICITUD -->
+                    <!-- ================================= -->
+
                     <div class="job-main">
 
                         <div>
@@ -389,9 +553,16 @@
                                 SOLICITUD #{{ s.id }}
                             </span>
 
-                            <h3>{{ s.titulo }}</h3>
+                            <h3>
+                                {{ s.titulo }}
+                            </h3>
 
-                            <p>{{ s.descripcion }}</p>
+                            <p>
+                                {{ s.descripcion }}
+                            </p>
+
+
+                            <!-- Zona y disponibilidad -->
 
                             <div class="job-tags">
 
@@ -408,7 +579,8 @@
                         </div>
 
 
-                        <!-- ESTADO -->
+                        <!-- Estado -->
+
                         <span class="status-pill">
                             {{ s.estado }}
                         </span>
@@ -416,25 +588,970 @@
                     </div>
 
 
-                    <!-- BOTON VER PROPUESTAS -->
+                    <!-- ================================= -->
+                    <!-- 11. BOTONES DE CADA SOLICITUD -->
+                    <!-- ================================= -->
+
                     <div class="job-actions">
 
+
+                        <!-- Ver propuestas -->
+
                         <button
+                            type="button"
                             class="btn btn-outline btn-sm"
                             (click)="verPropuestas(s.id)"
                         >
-                            Ver propuestas
+
+                            @if (seleccionada() === s.id) {
+
+                                Ocultar propuestas
+
+                            } @else {
+
+                                Ver propuestas
+
+                            }
+
                         </button>
+
+
+                        <!-- Ver seguimiento -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="verSeguimiento(s.id)"
+                        >
+
+                            @if (seguimientoSeleccionado() === s.id) {
+
+                                Ocultar seguimiento
+
+                            } @else {
+
+                                Ver seguimiento
+
+                            }
+
+                        </button>
+
+
+                        <!-- Coordinar visita -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="abrirCoordinacion(s.id)"
+                        >
+
+                            @if (visitaAbierta() === s.id) {
+
+                                Cerrar visita
+
+                            } @else {
+
+                                Proponer visita
+
+                            }
+
+                        </button>
+
+
+                        <!-- Presupuestos -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="abrirPresupuesto(s.id)"
+                        >
+
+                            @if (presupuestoAbierto() === s.id) {
+
+                                Ocultar presupuesto
+
+                            } @else {
+
+                                Presupuestos y pagos
+
+                            }
+
+                        </button>
+
+
+                        <!-- Calificaciones y reclamos -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="abrirOpiniones(s.id)"
+                        >
+
+                            @if (opinionesAbiertas() === s.id) {
+
+                                Ocultar opiniones
+
+                            } @else {
+
+                                Calificaciones y reclamos
+
+                            }
+
+                        </button>
+
+
+                        <!-- Cancelar solicitud -->
+
+                        @if (s.estado === 'ACTIVA') {
+
+                            <button
+                                type="button"
+                                class="btn btn-outline btn-sm"
+                                [disabled]="cancelando()"
+                                (click)="cancelar(s)"
+                            >
+
+                                @if (cancelando()) {
+
+                                    Procesando...
+
+                                } @else {
+
+                                    Cancelar solicitud
+
+                                }
+
+                            </button>
+
+                        }
 
                     </div>
 
 
-                    <!-- PROPUESTAS RECIBIDAS -->
+                    <!-- ================================= -->
+                    <!-- 12. PANEL DE SEGUIMIENTO -->
+                    <!-- ================================= -->
+
+                    @if (seguimientoSeleccionado() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Seguimiento del servicio
+                            </h4>
+
+
+                            <!-- Estado -->
+
+                            <p>
+                                <strong>Estado:</strong>
+                                {{ s.estado }}
+                            </p>
+
+
+                            <!-- Servicio -->
+
+                            <p>
+                                <strong>Servicio:</strong>
+                                {{ s.titulo }}
+                            </p>
+
+
+                            <!-- Descripcion -->
+
+                            <p>
+                                <strong>Descripción:</strong>
+                                {{ s.descripcion }}
+                            </p>
+
+
+                            <!-- Zona -->
+
+                            <p>
+                                <strong>Zona:</strong>
+                                {{ s.zona }}
+                            </p>
+
+
+                            <!-- Disponibilidad -->
+
+                            <p>
+                                <strong>Disponibilidad:</strong>
+                                {{ s.disponibilidad }}
+                            </p>
+
+
+                            <!-- Direccion privada -->
+
+                            @if (s.direccion) {
+
+                                <p>
+                                    <strong>Dirección:</strong>
+                                    {{ s.direccion }}
+                                </p>
+
+                            }
+
+
+                            <!-- Fotografia -->
+
+                            @if (s.fotoUrl) {
+
+                                <p>
+
+                                    <strong>Fotografía:</strong>
+
+                                    <a
+                                        [href]="s.fotoUrl"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Ver fotografía
+                                    </a>
+
+                                </p>
+
+                            }
+
+
+                            <!-- Informacion pendiente -->
+
+                            <p class="help">
+
+                                El técnico asignado, los avances
+                                de reparación y las evidencias
+                                se mostrarán cuando estén
+                                disponibles en el backend.
+
+                            </p>
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 13. COORDINACION DE VISITAS -->
+                    <!-- ================================= -->
+
+                    @if (visitaAbierta() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Proponer fecha y hora de visita
+                            </h4>
+
+                            <p class="help">
+
+                                Borrador local de demostración.
+                                No confirma ni envía visitas.
+
+                            </p>
+
+                            <p>
+
+                                <strong>
+                                    Disponibilidad original:
+                                </strong>
+
+                                {{ s.disponibilidad }}
+
+                            </p>
+
+
+                            <!-- Formulario -->
+
+                            <form (ngSubmit)="prepararVisita(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Fecha -->
+
+                                    <label>
+
+                                        Fecha preferida
+
+                                        <input
+                                            type="date"
+                                            name="fechaPreferida"
+                                            [(ngModel)]="fechaPreferida"
+                                            required
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Hora -->
+
+                                    <label>
+
+                                        Hora preferida
+
+                                        <input
+                                            type="time"
+                                            name="horaPreferida"
+                                            [(ngModel)]="horaPreferida"
+                                            required
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Nota -->
+
+                                    <label class="full">
+
+                                        Indicaciones adicionales
+
+                                        <textarea
+                                            name="notaVisita"
+                                            [(ngModel)]="notaVisita"
+                                            rows="3"
+                                            placeholder="Ej. Llamar antes de llegar"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Preparar visita -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    Preparar borrador
+                                </button>
+
+                            </form>
+
+
+                            <!-- Resultado temporal -->
+
+                            @if (borradorVisita(); as visita) {
+
+                                @if (visita.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Visita no enviada
+                                        </strong>
+
+                                        <p>
+                                            Fecha: {{ visita.fecha }}
+                                        </p>
+
+                                        <p>
+                                            Hora: {{ visita.hora }}
+                                        </p>
+
+                                        @if (visita.nota) {
+
+                                            <p>
+                                                Nota: {{ visita.nota }}
+                                            </p>
+
+                                        }
+
+                                    </div>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 14. PRESUPUESTOS Y PAGOS -->
+                    <!-- ================================= -->
+
+                    @if (presupuestoAbierto() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Presupuestos y pagos
+                            </h4>
+
+                            <p class="help">
+
+                                Esta sección es una simulación
+                                de la interfaz del cliente.
+
+                                Los aumentos reales deberán
+                                provenir del trabajador y
+                                registrarse mediante NestJS.
+
+                            </p>
+
+
+                            <!-- ================================= -->
+                            <!-- 15. AUMENTO DE PRESUPUESTO -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Revisar aumento de presupuesto
+                            </h4>
+
+                            <form (ngSubmit)="prepararAumento(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Monto original -->
+
+                                    <label>
+
+                                        Presupuesto original (Bs)
+
+                                        <input
+                                            type="number"
+                                            name="montoBase"
+                                            [(ngModel)]="montoBase"
+                                            required
+                                            min="0.01"
+                                            step="0.01"
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Aumento -->
+
+                                    <label>
+
+                                        Aumento propuesto (Bs)
+
+                                        <input
+                                            type="number"
+                                            name="montoExtra"
+                                            [(ngModel)]="montoExtra"
+                                            required
+                                            min="0.01"
+                                            step="0.01"
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Motivo -->
+
+                                    <label class="full">
+
+                                        Motivo del aumento
+
+                                        <textarea
+                                            name="motivoAumento"
+                                            [(ngModel)]="motivoAumento"
+                                            required
+                                            rows="3"
+                                            placeholder="Ej. Materiales adicionales"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Calcular -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    Calcular presupuesto
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 16. RESULTADO DEL PRESUPUESTO -->
+                            <!-- ================================= -->
+
+                            @if (borradorAumento(); as presupuesto) {
+
+                                @if (presupuesto.solicitudId === s.id) {
+
+                                    <div class="panel">
+
+                                        <h4>
+                                            Resumen de simulación
+                                        </h4>
+
+                                        <p>
+
+                                            <strong>
+                                                Original:
+                                            </strong>
+
+                                            Bs {{ presupuesto.original.toFixed(2) }}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Aumento:
+                                            </strong>
+
+                                            Bs {{ presupuesto.extra.toFixed(2) }}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Nuevo total:
+                                            </strong>
+
+                                            Bs {{
+                                                (
+                                                    presupuesto.original +
+                                                    presupuesto.extra
+                                                ).toFixed(2)
+                                            }}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Motivo:
+                                            </strong>
+
+                                            {{ presupuesto.motivo }}
+
+                                        </p>
+
+
+                                        <!-- Simular decision -->
+
+                                        <div class="job-actions">
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline btn-sm"
+                                                (click)="simularDecision(false)"
+                                            >
+                                                Simular rechazo
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-primary btn-sm"
+                                                (click)="simularDecision(true)"
+                                            >
+                                                Simular aprobación
+                                            </button>
+
+                                        </div>
+
+
+                                        <!-- Mensaje -->
+
+                                        @if (decisionAumento()) {
+
+                                            <div class="alert info">
+                                                {{ decisionAumento() }}
+                                            </div>
+
+                                        }
+
+                                    </div>
+
+                                }
+
+                            }
+
+
+                            <!-- ================================= -->
+                            <!-- 17. PAGO EN EFECTIVO -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Pago del servicio
+                            </h4>
+
+                            <p>
+                                <strong>Método:</strong>
+                                Efectivo
+                            </p>
+
+                            <p>
+                                <strong>Estado:</strong>
+                                No verificado en el backend
+                            </p>
+
+                            <p class="help">
+
+                                Preparar una nota no significa
+                                que se haya realizado el pago.
+
+                            </p>
+
+
+                            <!-- Formulario de pago -->
+
+                            <form (ngSubmit)="prepararPago(s.id)">
+
+                                <div class="form-grid">
+
+                                    <label class="full">
+
+                                        Indicaciones sobre el pago
+
+                                        <textarea
+                                            name="notaPago"
+                                            [(ngModel)]="notaPago"
+                                            rows="3"
+                                            placeholder="Ej. Pago en efectivo al inicio de la visita"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline btn-sm"
+                                >
+                                    Preparar nota de pago
+                                </button>
+
+                            </form>
+
+
+                            <!-- Nota temporal -->
+
+                            @if (borradorPago(); as pago) {
+
+                                @if (pago.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Nota preparada, no enviada
+                                        </strong>
+
+                                        <p>
+                                            Método: Efectivo
+                                        </p>
+
+                                        <p>
+                                            Estado: No registrado
+                                        </p>
+
+                                        @if (pago.nota) {
+
+                                            <p>
+                                                {{ pago.nota }}
+                                            </p>
+
+                                        }
+
+                                    </div>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 18. CALIFICACIONES Y RECLAMOS -->
+                    <!-- ================================= -->
+
+                    @if (opinionesAbiertas() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Calificaciones y reclamos
+                            </h4>
+
+                            <p class="help">
+
+                                Puedes preparar borradores
+                                para probar el frontend.
+
+                                No se envían al trabajador ni
+                                se guardan en PostgreSQL.
+
+                            </p>
+
+
+                            <!-- ================================= -->
+                            <!-- 19. CALIFICAR TRABAJADOR -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Calificar el servicio
+                            </h4>
+
+                            <p class="subtle">
+                                En el sistema final,
+                                solo se podrá calificar
+                                después de finalizar el trabajo.
+                            </p>
+
+
+                            <!-- Formulario de calificacion -->
+
+                            <form (ngSubmit)="prepararValoracion(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Estrellas -->
+
+                                    <label>
+
+                                        Calificación
+
+                                        <select
+                                            name="estrellas"
+                                            [(ngModel)]="estrellas"
+                                            required
+                                        >
+
+                                            <option [ngValue]="1">
+                                                ★ 1 estrella
+                                            </option>
+
+                                            <option [ngValue]="2">
+                                                ★★ 2 estrellas
+                                            </option>
+
+                                            <option [ngValue]="3">
+                                                ★★★ 3 estrellas
+                                            </option>
+
+                                            <option [ngValue]="4">
+                                                ★★★★ 4 estrellas
+                                            </option>
+
+                                            <option [ngValue]="5">
+                                                ★★★★★ 5 estrellas
+                                            </option>
+
+                                        </select>
+
+                                    </label>
+
+
+                                    <!-- Comentario -->
+
+                                    <label class="full">
+
+                                        Comentario del servicio
+
+                                        <textarea
+                                            name="comentarioValoracion"
+                                            [(ngModel)]="comentarioValoracion"
+                                            required
+                                            minlength="10"
+                                            rows="4"
+                                            placeholder="Describe cómo trabajó el técnico"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Preparar calificacion -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    Preparar calificación
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 20. RESUMEN DE CALIFICACION -->
+                            <!-- ================================= -->
+
+                            @if (borradorValoracion(); as valoracion) {
+
+                                @if (valoracion.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Calificación no enviada
+                                        </strong>
+
+                                        <p>
+                                            Estrellas:
+                                            {{ valoracion.estrellas }} / 5
+                                        </p>
+
+                                        <p>
+                                            Comentario:
+                                            {{ valoracion.comentario }}
+                                        </p>
+
+                                    </div>
+
+                                }
+
+                            }
+
+
+                            <!-- ================================= -->
+                            <!-- 21. RECLAMOS -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Presentar un reclamo
+                            </h4>
+
+                            <p class="subtle">
+                                Describe el problema
+                                relacionado con el servicio.
+                            </p>
+
+
+                            <!-- Formulario de reclamo -->
+
+                            <form (ngSubmit)="prepararReclamo(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Tipo de reclamo -->
+
+                                    <label>
+
+                                        Tipo de reclamo
+
+                                        <select
+                                            name="tipoReclamo"
+                                            [(ngModel)]="tipoReclamo"
+                                            required
+                                        >
+
+                                            <option value="">
+                                                Selecciona una opción
+                                            </option>
+
+                                            <option value="Incumplimiento">
+                                                Incumplimiento
+                                            </option>
+
+                                            <option value="Calidad">
+                                                Problema de calidad
+                                            </option>
+
+                                            <option value="Pago">
+                                                Problema de pago
+                                            </option>
+
+                                            <option value="Otro">
+                                                Otro problema
+                                            </option>
+
+                                        </select>
+
+                                    </label>
+
+
+                                    <!-- Descripcion del reclamo -->
+
+                                    <label class="full">
+
+                                        Descripción del reclamo
+
+                                        <textarea
+                                            name="descripcionReclamo"
+                                            [(ngModel)]="descripcionReclamo"
+                                            required
+                                            minlength="15"
+                                            rows="4"
+                                            placeholder="Explica qué ocurrió"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Preparar reclamo -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline btn-sm"
+                                >
+                                    Preparar reclamo
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 22. RESUMEN DEL RECLAMO -->
+                            <!-- ================================= -->
+
+                            @if (borradorReclamo(); as reclamo) {
+
+                                @if (reclamo.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Reclamo no enviado
+                                        </strong>
+
+                                        <p>
+                                            Tipo: {{ reclamo.tipo }}
+                                        </p>
+
+                                        <p>
+                                            Descripción:
+                                            {{ reclamo.descripcion }}
+                                        </p>
+
+                                    </div>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 23. PROPUESTAS DE TRABAJADORES -->
+                    <!-- ================================= -->
+
                     @if (seleccionada() === s.id) {
 
                         <div class="offers">
 
-                            <h4>Propuestas recibidas</h4>
+                            <h4>
+                                Propuestas recibidas
+                            </h4>
+
+
+                            <!-- Lista de propuestas -->
 
                             @for (o of ofertas(); track o.id) {
 
@@ -442,31 +1559,74 @@
 
                                     <div>
 
+                                        <!-- Trabajador -->
+
                                         <strong>
-                                            {{ o.trabajador?.nombre }}
+                                            {{ o.trabajador?.nombre || 'Trabajador' }}
                                         </strong>
 
-                                        <small>
-                                            Bs {{ o.precio }}
-                                            · Visita: Bs {{ o.costoVisita }}
-                                            · Materiales:
-                                            {{ o.materialesIncluidos ? 'incluidos' : 'no incluidos' }}
-                                        </small>
+
+                                        <!-- Precio -->
 
                                         <small>
-                                            {{ o.detalleMateriales }}
+                                            Presupuesto: Bs {{ o.precio }}
                                         </small>
+
+
+                                        <!-- Costo de visita -->
+
+                                        @if (o.costoVisita != null) {
+
+                                            <small>
+                                                Visita: Bs {{ o.costoVisita }}
+                                            </small>
+
+                                        }
+
+
+                                        <!-- Materiales -->
+
+                                        @if (o.materialesIncluidos != null) {
+
+                                            <small>
+
+                                                Materiales:
+
+                                                {{
+                                                    o.materialesIncluidos
+                                                        ? 'Incluidos'
+                                                        : 'No incluidos'
+                                                }}
+
+                                            </small>
+
+                                        }
+
+
+                                        <!-- Detalle -->
+
+                                        @if (o.detalleMateriales) {
+
+                                            <small>
+                                                {{ o.detalleMateriales }}
+                                            </small>
+
+                                        }
 
                                     </div>
 
 
-                                    <!-- ACEPTAR PROPUESTA -->
+                                    <!-- ================================= -->
+                                    <!-- 24. ACEPTAR PROPUESTA -->
+                                    <!-- ================================= -->
+
                                     @if (
                                         o.estado === 'PENDIENTE' &&
                                         s.estado === 'ACTIVA'
                                     ) {
 
                                         <button
+                                            type="button"
                                             class="btn btn-primary btn-sm"
                                             (click)="aceptar(o.id, s.id)"
                                         >
@@ -500,9 +1660,15 @@
 
             } @empty {
 
-                <div class="empty">
-                    Todavía no has publicado solicitudes.
-                </div>
+                <!-- Mensaje si no existen solicitudes -->
+
+                @if (auth.usuario() && !error()) {
+
+                    <div class="empty">
+                        Todavía no has publicado solicitudes.
+                    </div>
+
+                }
 
             }
 
@@ -511,4 +1677,3 @@
     }
 
 </main>
-

@@ -1,0 +1,227 @@
+
+<!-- ======================================= -->
+<!-- 1. ESTRUCTURA PRINCIPAL -->
+<!-- ======================================= -->
+
+<div class="auth-layout">
+
+  <!-- ===================================== -->
+  <!-- 2. PANEL IZQUIERDO: BIENVENIDA -->
+  <!-- ===================================== -->
+
+  <section class="auth-aside">
+
+    <span class="kicker">
+      BIENVENIDO A ARREGLA YA
+    </span>
+
+    <h2>
+      Tu próximo proyecto empieza aquí.
+    </h2>
+
+    <p>
+      Una plataforma para conectar necesidades reales
+      con trabajadores de confianza.
+    </p>
+
+    <div class="aside-circle">
+      ✳
+    </div>
+
+  </section>
+
+
+  <!-- ===================================== -->
+  <!-- 3. PANEL DERECHO: FORMULARIO -->
+  <!-- ===================================== -->
+
+  <section class="auth-form">
+
+    <div class="form-panel">
+
+      <span class="kicker">
+        {{ esRegistro ? 'CREA TU CUENTA' : 'ACCEDE A TU CUENTA' }}
+      </span>
+
+      <h1>
+        {{ esRegistro ? 'Empieza ahora' : 'Qué bueno verte' }}
+      </h1>
+
+      <p class="subtle">
+        {{
+          esRegistro
+            ? 'Completa tus datos para formar parte de ARREGLA YA.'
+            : 'Ingresa tus credenciales para continuar.'
+        }}
+      </p>
+
+
+      <!-- ================================= -->
+      <!-- 4. MENSAJES DE ERROR -->
+      <!-- ================================= -->
+
+      @if (error()) {
+
+        <div class="alert error">
+          {{ error() }}
+        </div>
+
+      }
+
+
+      <!-- ================================= -->
+      <!-- 5. FORMULARIO -->
+      <!-- ================================= -->
+
+      <form (ngSubmit)="enviar()">
+
+        <!-- Nombre: solo aparece en registro -->
+
+        @if (esRegistro) {
+
+          <label>
+            Nombre completo
+
+            <input
+              name="nombre"
+              type="text"
+              [(ngModel)]="nombre"
+              required
+              minlength="2"
+              autocomplete="name"
+              placeholder="Ej. María López"
+            >
+
+          </label>
+
+        }
+
+
+        <!-- Correo electronico -->
+
+        <label>
+          Correo electrónico
+
+          <input
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            required
+            autocomplete="email"
+            placeholder="correo@ejemplo.com"
+          >
+
+        </label>
+
+
+        <!-- Contraseña -->
+
+        <label>
+          Contraseña
+
+          <input
+            name="password"
+            type="password"
+            [(ngModel)]="password"
+            required
+            minlength="8"
+            [attr.autocomplete]="esRegistro ? 'new-password' : 'current-password'"
+            placeholder="Mínimo 8 caracteres"
+          >
+
+        </label>
+
+
+        <!-- ================================= -->
+        <!-- 6. ELEGIR TIPO DE CUENTA -->
+        <!-- Solo aparece al registrarse -->
+        <!-- ================================= -->
+
+        @if (esRegistro) {
+
+          <label>
+            Tipo de cuenta
+
+            <select
+              name="rol"
+              [(ngModel)]="rol"
+            >
+
+              <option value="CLIENTE">
+                Cliente particular
+              </option>
+
+              <option value="EMPRESA">
+                Empresa cliente
+              </option>
+
+              <option value="TRABAJADOR">
+                Trabajador / técnico
+              </option>
+
+            </select>
+
+          </label>
+
+          <p class="help">
+            Los técnicos necesitan aprobación administrativa
+            antes de ofrecer servicios.
+          </p>
+
+        }
+
+
+        <!-- ================================= -->
+        <!-- 7. BOTON PARA ENVIAR -->
+        <!-- ================================= -->
+
+        <button
+          class="btn btn-primary wide"
+          type="submit"
+          [disabled]="cargando()"
+        >
+
+          {{
+            cargando()
+              ? 'Procesando...'
+              : esRegistro
+                ? 'Crear cuenta'
+                : 'Iniciar sesión'
+          }}
+
+          →
+
+        </button>
+
+      </form>
+
+
+      <!-- ================================= -->
+      <!-- 8. CAMBIAR ENTRE LOGIN Y REGISTRO -->
+      <!-- ================================= -->
+
+      <p class="auth-switch">
+
+        {{
+          esRegistro
+            ? '¿Ya tienes cuenta?'
+            : '¿Todavía no tienes cuenta?'
+        }}
+
+        <a [routerLink]="esRegistro ? '/ingresar' : '/registro'">
+
+          {{
+            esRegistro
+              ? 'Inicia sesión'
+              : 'Regístrate'
+          }}
+
+        </a>
+
+      </p>
+
+    </div>
+
+  </section>
+
+</div>
