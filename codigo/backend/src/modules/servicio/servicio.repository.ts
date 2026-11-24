@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { PrismaQueryContext } from '../../prisma/prisma.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MARCADOR_SOLICITUD_CANCELACION_REPARADOR } from '../reclamo/reclamo.constants';
 
 export interface CrearIncrementoPresupuestoData {
   idServicio: number;
@@ -36,8 +37,11 @@ export class ServicioRepository {
   }
 
   /** Busca el detalle completo de un servicio y sus relaciones operativas. */
-  findByIdWithDetails(id_servicio: number) {
-    return this.prisma.db.orm.public.Servicio.include(
+  findByIdWithDetails(
+    id_servicio: number,
+    query_context: PrismaQueryContext = this.prisma.db,
+  ) {
+    return query_context.orm.public.Servicio.include(
       'propuesta',
       (propuesta) => propuesta.include('trabajo'),
     )
@@ -58,6 +62,60 @@ export class ServicioRepository {
     )
       .where({ idServicio: id_servicio })
       .first();
+  }
+
+  /** Busca una solicitud de cancelación pendiente del reparador del servicio. */
+  async findSolicitudCancelacionReparador(
+    id_servicio: number,
+    id_reparador: number,
+  ) {
+    const reclamos = await this.prisma.db.orm.public.Reclamo.where({
+      idServicio: id_servicio,
+      idUsuario: id_reparador,
+    })
+      .where((reclamo) => reclamo.estado.in(['abierto', 'en_revision']))
+      .all();
+
+    return reclamos.find((reclamo) =>
+      reclamo.motivo.startsWith(MARCADOR_SOLICITUD_CANCELACION_REPARADOR),
+    ) ?? null;
+  }
+
+  /** Registra en la bandeja administrativa la solicitud de baja del reparador. */
+  crearSolicitudCancelacionReparador(
+    id_servicio: number,
+    id_reparador: number,
+    motivo: string,
+  ) {
+    return this.prisma.db.orm.public.Reclamo.create({
+      idServicio: id_servicio,
+      idUsuario: id_reparador,
+      motivo: `${MARCADOR_SOLICITUD_CANCELACION_REPARADOR} ${motivo}`,
+      estado: 'abierto',
+    });
+  }
+
+  /** Elimina el reclamo genérico duplicado que inserta el trigger al aprobar la solicitud. */
+  async eliminarReclamoAutomaticoDuplicado(
+    id_servicio: number,
+    id_solicitud: number,
+  ) {
+    const reclamos = await this.prisma.db.orm.public.Reclamo.where({
+      idServicio: id_servicio,
+    }).all();
+    const reclamo_automatico = reclamos.find(
+      (reclamo) =>
+        reclamo.idReclamo !== id_solicitud &&
+        reclamo.motivo.startsWith('Solicitud de cancelación de servicio #'),
+    );
+
+    if (reclamo_automatico) {
+      return this.prisma.db.orm.public.Reclamo.where({
+        idReclamo: reclamo_automatico.idReclamo,
+      }).delete();
+    }
+
+    return null;
   }
 
   /** Obtiene un servicio junto a su propuesta y los pagos asociados. */
@@ -207,21 +265,34 @@ export class ServicioRepository {
   }
 
   /** Cancela un servicio activo y devuelve sus relaciones operativas actualizadas. */
-  async cancelarServicio(id_servicio: number) {
-    const servicio_actualizado =
-      await this.prisma.db.orm.public.Servicio.where({
-        idServicio: id_servicio,
-      })
-        .where((servicio) =>
-          servicio.estado.in(['programado', 'en_progreso']),
-        )
-        .update({ estado: 'cancelado' });
+  cancelarServicio(
+    id_servicio: number,
+    id_usuario: number,
+    motivo_cancelacion: string,
+  ) {
+    return this.prisma.db.transaction(async (transaccion) => {
+      await transaccion.query(
+        transaccion.raw.sql`SELECT set_config('app.current_user_id', ${String(id_usuario)}, true) AS id_usuario, set_config('app.motivo_cancelacion', ${motivo_cancelacion}, true) AS motivo`.returnsRow({
+          id_usuario: 'pg/text@1',
+          motivo: 'pg/text@1',
+        }).build(),
+      );
 
-    if (!servicio_actualizado) {
-      return null;
-    }
+      const servicio_actualizado =
+        await transaccion.orm.public.Servicio.where({
+          idServicio: id_servicio,
+        })
+          .where((servicio) =>
+            servicio.estado.in(['programado', 'en_progreso']),
+          )
+          .update({ estado: 'cancelado' });
 
-    return this.findByIdWithDetails(id_servicio);
+      if (!servicio_actualizado) {
+        return null;
+      }
+
+      return this.findByIdWithDetails(id_servicio, transaccion);
+    });
   }
 
   /** Actualiza el precio y crea el registro de disminución en una transacción. */

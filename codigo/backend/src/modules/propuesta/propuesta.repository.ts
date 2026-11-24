@@ -194,14 +194,32 @@ export class PropuestaRepository {
       }).update({ estadoPublicacion: 'cerrado' });
 
       if (!trabajo_cerrado) {
-        throw new Error(
-          `No se pudo cerrar el trabajo ${trabajo.idTrabajo} al aceptar la propuesta.`,
-        );
+        // En el esquema de integración, el trigger de aceptación puede cerrar
+        // el trabajo al cambiar la propuesta. Aceptamos ese cierre ya aplicado.
+        const trabajo_despues_de_aceptar =
+          await transaccion.orm.public.Trabajo.where({
+            idTrabajo: trabajo.idTrabajo,
+          }).first();
+
+        if (trabajo_despues_de_aceptar?.estadoPublicacion !== 'cerrado') {
+          throw new Error(
+            `No se pudo cerrar el trabajo ${trabajo.idTrabajo} al aceptar la propuesta.`,
+          );
+        }
       }
 
-      await transaccion.orm.public.Servicio.create({
-        idPropuesta: id_propuesta,
-      });
+      // Algunas instalaciones crean el servicio mediante un trigger al aceptar
+      // la propuesta; evita duplicarlo cuando ese trigger ya lo insertó.
+      const servicio_existente =
+        await transaccion.orm.public.Servicio.where({
+          idPropuesta: id_propuesta,
+        }).first();
+
+      if (!servicio_existente) {
+        await transaccion.orm.public.Servicio.create({
+          idPropuesta: id_propuesta,
+        });
+      }
 
       return this.findById(id_propuesta, transaccion);
     });

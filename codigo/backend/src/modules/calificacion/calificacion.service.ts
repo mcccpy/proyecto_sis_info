@@ -93,12 +93,23 @@ export class CalificacionService {
   }
 
   /** Busca una calificación y notifica cuando el identificador no existe. */
-  async obtenerPorId(id_calificacion: number) {
+  async obtenerPorId(id_calificacion: number, id_usuario: number) {
     const calificacion =
       await this.calificacionRepository.findById(id_calificacion);
 
     if (!calificacion) {
       throw new NotFoundException('Calificación no encontrada');
+    }
+
+    const es_participante =
+      calificacion.idEvaluador === id_usuario ||
+      calificacion.idEvaluado === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_participante && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar esta calificación',
+      );
     }
 
     return calificacion;

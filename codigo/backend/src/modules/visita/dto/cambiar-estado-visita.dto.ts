@@ -8,6 +8,6 @@ export class CambiarEstadoVisitaDto {
   @Min(1)
   id_usuario!: number;
 
-  @IsIn(['realizada', 'cancelada'])
-  estado!: 'realizada' | 'cancelada';
+  @IsIn(['cancelada'])
+  estado!: 'cancelada';
 }

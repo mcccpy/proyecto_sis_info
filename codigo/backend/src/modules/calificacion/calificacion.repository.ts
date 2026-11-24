@@ -26,7 +26,11 @@ export class CalificacionRepository {
   findById(id_calificacion: number) {
     return this.prisma.db.orm.public.Calificacion.include('usuario')
       .include('usuarioUsuario')
-      .include('servicio')
+      .include('servicio', (servicio) =>
+        servicio.include('propuesta', (propuesta) =>
+          propuesta.include('trabajo'),
+        ),
+      )
       .where({ idCalificacion: id_calificacion })
       .first();
   }

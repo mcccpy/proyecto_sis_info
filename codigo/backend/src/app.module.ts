@@ -11,6 +11,8 @@ import { TrabajoModule } from './modules/trabajo/trabajo.module';
 import { UsuarioModule } from './modules/usuario/usuario.module';
 import { VisitaModule } from './modules/visita/visita.module';
 import { ZonaModule } from './modules/zona/zona.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { SecurityModule } from './modules/auth/security.module';
 
 /** Ensambla los módulos de infraestructura y las funcionalidades del sistema. */
 @Module({
@@ -28,6 +30,8 @@ import { ZonaModule } from './modules/zona/zona.module';
     UsuarioModule,
     VisitaModule,
     ZonaModule,
+    AuthModule,
+    SecurityModule,
   ],
   controllers: [],
   providers: [],

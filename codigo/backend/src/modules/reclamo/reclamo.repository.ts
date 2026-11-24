@@ -65,6 +65,11 @@ export class ReclamoRepository {
   /** Busca un reclamo con todas las acciones registradas. */
   findByIdWithAcciones(id_reclamo: number) {
     return this.prisma.db.orm.public.Reclamo.include('reclamoAccions')
+      .include('servicio', (servicio) =>
+        servicio.include('propuesta', (propuesta) =>
+          propuesta.include('trabajo'),
+        ),
+      )
       .where({ idReclamo: id_reclamo })
       .first();
   }
@@ -82,11 +87,15 @@ export class ReclamoRepository {
     id_reclamo: number,
     datos_accion: CrearAccionReclamoData,
     estado_reclamo: 'en_revision' | 'resuelto' | 'rechazado',
+    motivo_reclamo?: string,
   ) {
     return this.prisma.db.transaction(async (transaccion) => {
       const reclamo_actualizado = await transaccion.orm.public.Reclamo.where({
         idReclamo: id_reclamo,
-      }).update({ estado: estado_reclamo });
+      }).update({
+        estado: estado_reclamo,
+        ...(motivo_reclamo !== undefined && { motivo: motivo_reclamo }),
+      });
 
       if (!reclamo_actualizado) {
         return null;

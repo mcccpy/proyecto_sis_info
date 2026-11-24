@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ServicioRepository } from '../servicio/servicio.repository';
+import { UsuarioRepository } from '../usuario/usuario.repository';
 import { CambiarEstadoVisitaDto } from './dto/cambiar-estado-visita.dto';
 import { CreateVisitaDto } from './dto/create-visita.dto';
 import { MarcarVisitaRealizadaDto } from './dto/marcar-visita-realizada.dto';
@@ -17,6 +18,7 @@ export class VisitaService {
   constructor(
     private readonly visitaRepository: VisitaRepository,
     private readonly servicioRepository: ServicioRepository,
+    private readonly usuarioRepository: UsuarioRepository,
   ) {}
 
   /** Lista visitas reales junto a sus servicios. */
@@ -25,11 +27,24 @@ export class VisitaService {
   }
 
   /** Busca una visita y notifica cuando el identificador no existe. */
-  async obtenerPorId(id_visita: number) {
-    const visita = await this.visitaRepository.findById(id_visita);
+  async obtenerPorId(id_visita: number, id_usuario: number) {
+    const visita =
+      await this.visitaRepository.findByIdWithParticipants(id_visita);
 
     if (!visita) {
       throw new NotFoundException('Visita no encontrada');
+    }
+
+    const propuesta = visita.servicio?.propuesta;
+    const es_cliente =
+      propuesta?.trabajo?.idCliente === id_usuario;
+    const es_reparador = propuesta?.idReparador === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_cliente && !es_reparador && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar esta visita',
+      );
     }
 
     return visita;
@@ -111,7 +126,7 @@ export class VisitaService {
     return resultado_creacion.visita;
   }
 
-  /** Permite a cualquiera de los participantes cerrar una visita programada. */
+  /** Permite al cliente cancelar una visita antes de iniciar el servicio. */
   async cambiarEstado(id_visita: number, datos_cambio: CambiarEstadoVisitaDto) {
     const visita =
       await this.visitaRepository.findByIdWithParticipants(id_visita);
@@ -143,9 +158,25 @@ export class VisitaService {
       );
     }
 
+    if (datos_cambio.id_usuario !== propuesta.trabajo.idCliente) {
+      throw new ForbiddenException(
+        'Solo el cliente puede cancelar una visita programada',
+      );
+    }
+
     if (visita.estado !== 'programada') {
       throw new BadRequestException(
         'Solo se puede cambiar el estado de visitas programadas',
+      );
+    }
+
+    if (
+      visita.servicio.estado === 'en_progreso' ||
+      visita.servicio.estado === 'completado' ||
+      visita.servicio.estado === 'cancelado'
+    ) {
+      throw new BadRequestException(
+        'No se puede cancelar la visita después de iniciar o cancelar el servicio',
       );
     }
 

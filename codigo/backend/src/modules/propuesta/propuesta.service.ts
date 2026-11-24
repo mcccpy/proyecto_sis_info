@@ -10,6 +10,7 @@ import { CotizarPropuestaDto } from './dto/cotizar-propuesta.dto';
 import { PostularPropuestaDto } from './dto/postular-propuesta.dto';
 import { ResolverPropuestaDto } from './dto/resolver-propuesta.dto';
 import { PropuestaRepository } from './propuesta.repository';
+import { UsuarioRepository } from '../usuario/usuario.repository';
 
 type PropuestaConTrabajo = NonNullable<
   Awaited<ReturnType<PropuestaRepository['findById']>>
@@ -27,6 +28,7 @@ export class PropuestaService {
   constructor(
     private readonly propuestaRepository: PropuestaRepository,
     private readonly perfilTrabajadorRepository: PerfilTrabajadorRepository,
+    private readonly usuarioRepository: UsuarioRepository,
   ) {}
 
   /** Crea una postulación inicial únicamente para reparadores aprobados. */
@@ -303,11 +305,21 @@ export class PropuestaService {
   }
 
   /** Busca una propuesta y notifica cuando no existe. */
-  async obtenerPorId(id_propuesta: number) {
+  async obtenerPorId(id_propuesta: number, id_usuario: number) {
     const propuesta = await this.propuestaRepository.findById(id_propuesta);
 
     if (!propuesta) {
       throw new NotFoundException('Propuesta no encontrada');
+    }
+
+    const es_cliente = propuesta.trabajo?.idCliente === id_usuario;
+    const es_reparador = propuesta.idReparador === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_cliente && !es_reparador && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar esta propuesta',
+      );
     }
 
     return propuesta;

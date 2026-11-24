@@ -290,6 +290,16 @@ export class UsuarioRepository {
     return query_context.orm.public.Usuario.where({ telefono }).first();
   }
 
+  /** Busca por correo sin distinguir mayúsculas y carga los roles para autenticación. */
+  findByEmailForAuth(email: string) {
+    return this.prisma.db.orm.public.Usuario.include(
+      'usuarioRols',
+      (asignaciones) => asignaciones.include('rol'),
+    )
+      .where((usuario) => usuario.email.ilike(email))
+      .first();
+  }
+
   /** Busca el identificador de un rol a partir de su nombre. */
   findRolByNombre(
     nombre_rol: string,

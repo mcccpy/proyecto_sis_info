@@ -146,11 +146,23 @@ export class PagoService {
   }
 
   /** Busca un pago y notifica cuando el identificador no existe. */
-  async obtenerPorId(id_pago: number) {
+  async obtenerPorId(id_pago: number, id_usuario: number) {
     const pago = await this.pagoRepository.findById(id_pago);
 
     if (!pago) {
       throw new NotFoundException('Pago no encontrado');
+    }
+
+    const propuesta = pago.servicio?.propuesta;
+    const es_cliente =
+      propuesta?.trabajo?.idCliente === id_usuario;
+    const es_reparador = propuesta?.idReparador === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_cliente && !es_reparador && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar este pago',
+      );
     }
 
     return pago;

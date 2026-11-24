@@ -5,7 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ServicioRepository } from '../servicio/servicio.repository';
+import { ServicioService } from '../servicio/servicio.service';
 import { UsuarioRepository } from '../usuario/usuario.repository';
+import { MARCADOR_SOLICITUD_CANCELACION_REPARADOR } from './reclamo.constants';
 import { CrearReclamoDto } from './dto/create-reclamo.dto';
 import { ResolverReclamoAdminDto } from './dto/resolver-reclamo-admin.dto';
 import type { FiltroBandejaReclamosAdminDto } from './dto/filtro-bandeja-reclamos-admin.dto';
@@ -19,6 +21,7 @@ export class ReclamoService {
   constructor(
     private readonly reclamoRepository: ReclamoRepository,
     private readonly servicioRepository: ServicioRepository,
+    private readonly servicioService: ServicioService,
     private readonly usuarioRepository: UsuarioRepository,
   ) {}
 
@@ -69,7 +72,8 @@ export class ReclamoService {
   }
 
   /** Devuelve reclamos e historial de acciones asociados a un servicio. */
-  listarPorServicio(id_servicio: number) {
+  async listarPorServicio(id_servicio: number, id_usuario: number) {
+    await this.validarAccesoServicio(id_servicio, id_usuario);
     return this.reclamoRepository.findByServicio(id_servicio);
   }
 
@@ -110,6 +114,29 @@ export class ReclamoService {
       throw new NotFoundException('Reclamo no encontrado');
     }
 
+    if (
+      reclamo_existente.motivo.startsWith(
+        MARCADOR_SOLICITUD_CANCELACION_REPARADOR,
+      ) &&
+      datos_resolucion.estado === 'resuelto'
+    ) {
+      if (!reclamo_existente.servicio) {
+        throw new NotFoundException(
+          'No se encontró el servicio de la solicitud de cancelación',
+        );
+      }
+
+      await this.servicioService.aprobarCancelacionSolicitada(
+        reclamo_existente.idServicio,
+        id_reclamo,
+        reclamo_existente.idUsuario,
+        reclamo_existente.motivo.replace(
+          `${MARCADOR_SOLICITUD_CANCELACION_REPARADOR} `,
+          '',
+        ),
+      );
+    }
+
     const reclamo_actualizado = await this.reclamoRepository.gestionarReclamo(
       id_reclamo,
       {
@@ -118,6 +145,14 @@ export class ReclamoService {
         descripcion: datos_resolucion.descripcion,
       },
       datos_resolucion.estado,
+      reclamo_existente.motivo.startsWith(
+        MARCADOR_SOLICITUD_CANCELACION_REPARADOR,
+      )
+        ? reclamo_existente.motivo.replace(
+            `${MARCADOR_SOLICITUD_CANCELACION_REPARADOR} `,
+            '',
+          )
+        : undefined,
     );
 
     if (!reclamo_actualizado) {
@@ -133,7 +168,7 @@ export class ReclamoService {
   }
 
   /** Busca un reclamo con su historial de acciones. */
-  async obtenerPorId(id_reclamo: number) {
+  async obtenerPorId(id_reclamo: number, id_usuario: number) {
     const reclamo =
       await this.reclamoRepository.findByIdWithAcciones(id_reclamo);
 
@@ -141,6 +176,43 @@ export class ReclamoService {
       throw new NotFoundException('Reclamo no encontrado');
     }
 
+    const propuesta = reclamo.servicio?.propuesta;
+    const es_cliente =
+      propuesta?.trabajo?.idCliente === id_usuario;
+    const es_reparador = propuesta?.idReparador === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_cliente && !es_reparador && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar este reclamo',
+      );
+    }
+
     return reclamo;
+  }
+
+  /** Comprueba acceso antes de listar reclamaciones asociadas a un servicio. */
+  private async validarAccesoServicio(
+    id_servicio: number,
+    id_usuario: number,
+  ): Promise<void> {
+    const servicio =
+      await this.servicioRepository.findByIdWithPropuestaAndTrabajo(
+        id_servicio,
+      );
+    if (!servicio) {
+      throw new NotFoundException('Servicio no encontrado');
+    }
+
+    const es_cliente =
+      servicio.propuesta?.trabajo.idCliente === id_usuario;
+    const es_reparador = servicio.propuesta?.idReparador === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_cliente && !es_reparador && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar los reclamos',
+      );
+    }
   }
 }

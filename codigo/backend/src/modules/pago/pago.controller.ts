@@ -6,11 +6,16 @@ import {
   Patch,
   Param,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import { PagoService } from './pago.service';
 import { ConfirmarPagoDto } from './dto/confirmar-pago.dto';
 import { DeclararPagoDto } from './dto/declarar-pago.dto';
 import { DictamenPagoAdminDto } from './dto/dictamen-pago-admin.dto';
+import { Roles } from '../auth/auth.decorators';
+import type { UsuarioAutenticado } from '../auth/jwt-token.service';
+
+type RequestAutenticada = { usuarioAutenticado: UsuarioAutenticado };
 
 /**
  * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
@@ -22,12 +27,14 @@ export class PagoController {
 
   /** Registra un pago declarado por el cliente del servicio. */
   @Post('declarar')
+  @Roles('cliente')
   declararPago(@Body() datos_pago: DeclararPagoDto) {
     return this.pagoService.declararPago(datos_pago);
   }
 
   /** Valida un pago declarado mediante una cuenta administradora. */
   @Patch(':id_pago/confirmar')
+  @Roles('reparador')
   confirmarPago(
     @Param('id_pago', ParseIntPipe) id_pago: number,
     @Body() datos_confirmacion: ConfirmarPagoDto,
@@ -37,6 +44,7 @@ export class PagoController {
 
   /** Aprueba o rechaza un pago mediante una cuenta administradora. */
   @Patch(':id_pago/auditar')
+  @Roles('administrador')
   aprobarORechazarPagoAdmin(
     @Param('id_pago', ParseIntPipe) id_pago: number,
     @Body() datos_dictamen: DictamenPagoAdminDto,
@@ -49,13 +57,21 @@ export class PagoController {
 
   /** Delega al servicio la consulta de todos los registros. */
   @Get()
+  @Roles('administrador')
   listarTodos() {
     return this.pagoService.listarTodos();
   }
 
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
-  obtenerPorId(@Param('id', ParseIntPipe) identificador: number) {
-    return this.pagoService.obtenerPorId(identificador);
+  @Roles('cliente', 'reparador', 'administrador')
+  obtenerPorId(
+    @Param('id', ParseIntPipe) identificador: number,
+    @Req() request: RequestAutenticada,
+  ) {
+    return this.pagoService.obtenerPorId(
+      identificador,
+      request.usuarioAutenticado.sub,
+    );
   }
 }

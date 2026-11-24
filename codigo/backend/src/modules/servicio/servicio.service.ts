@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -171,12 +172,23 @@ export class ServicioService {
   }
 
   /** Busca el detalle de un servicio y notifica cuando no existe. */
-  async obtenerPorId(id_servicio: number) {
+  async obtenerPorId(id_servicio: number, id_usuario: number) {
     const servicio =
       await this.servicioRepository.findByIdWithDetails(id_servicio);
 
     if (!servicio) {
       throw new NotFoundException('Servicio no encontrado');
+    }
+
+    const es_cliente =
+      servicio.propuesta?.trabajo?.idCliente === id_usuario;
+    const es_reparador = servicio.propuesta?.idReparador === id_usuario;
+    const es_administrador =
+      await this.usuarioRepository.esAdministrador(id_usuario);
+    if (!es_cliente && !es_reparador && !es_administrador) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar este servicio',
+      );
     }
 
     return servicio;
@@ -361,14 +373,89 @@ export class ServicioService {
       );
     }
 
+    if (es_reparador) {
+      const solicitud_existente =
+        await this.servicioRepository.findSolicitudCancelacionReparador(
+          id_servicio,
+          datos_cancelacion.id_usuario,
+        );
+      if (solicitud_existente) {
+        throw new ConflictException(
+          'Ya existe una solicitud de cancelación pendiente para este servicio',
+        );
+      }
+
+      const reclamo_pendiente =
+        await this.servicioRepository.crearSolicitudCancelacionReparador(
+          id_servicio,
+          datos_cancelacion.id_usuario,
+          datos_cancelacion.motivo,
+        );
+
+      return {
+        estado: 'pendiente_aprobacion',
+        reclamo: reclamo_pendiente,
+      };
+    }
+
     const servicio_cancelado =
-      await this.servicioRepository.cancelarServicio(id_servicio);
+      await this.servicioRepository.cancelarServicio(
+        id_servicio,
+        datos_cancelacion.id_usuario,
+        datos_cancelacion.motivo,
+      );
 
     if (!servicio_cancelado) {
       throw new BadRequestException(
         'El servicio ya no está disponible para cancelarse',
       );
     }
+
+    return servicio_cancelado;
+  }
+
+  /** Aplica una cancelación solicitada por un reparador tras aprobarla administración. */
+  async aprobarCancelacionSolicitada(
+    id_servicio: number,
+    id_reclamo_solicitud: number,
+    id_reparador: number,
+    motivo: string,
+  ) {
+    const servicio =
+      await this.servicioRepository.findByIdWithPropuestaAndTrabajo(
+        id_servicio,
+      );
+
+    if (!servicio) {
+      throw new NotFoundException('Servicio no encontrado');
+    }
+
+    if (
+      servicio.estado === 'completado' ||
+      servicio.estado === 'cancelado'
+    ) {
+      throw new BadRequestException(
+        'El servicio ya no está disponible para cancelarse',
+      );
+    }
+
+    const servicio_cancelado =
+      await this.servicioRepository.cancelarServicio(
+        id_servicio,
+        id_reparador,
+        motivo,
+      );
+
+    if (!servicio_cancelado) {
+      throw new BadRequestException(
+        'El servicio ya no está disponible para cancelarse',
+      );
+    }
+
+    await this.servicioRepository.eliminarReclamoAutomaticoDuplicado(
+      id_servicio,
+      id_reclamo_solicitud,
+    );
 
     return servicio_cancelado;
   }

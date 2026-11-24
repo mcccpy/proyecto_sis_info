@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { AgregarRolDto } from './dto/agregar-rol.dto';
 import { AsignarRevocarRolDto } from './dto/asignar-revocar-rol.dto';
@@ -24,20 +25,29 @@ import {
 } from './dto/filtros-admin.dto';
 import { RegistroUsuarioDto } from './dto/registro-usuario.dto';
 import { UsuarioService } from './usuario.service';
+import { Public, Roles } from '../auth/auth.decorators';
+import { JwtTokenService, type UsuarioAutenticado } from '../auth/jwt-token.service';
+
+type RequestAutenticada = { usuarioAutenticado: UsuarioAutenticado };
 
 /** Expone las rutas de cuenta y delega las reglas al servicio de usuarios. */
 @Controller('usuario')
 export class UsuarioController {
-  constructor(private readonly usuarioService: UsuarioService) {}
+  constructor(
+    private readonly usuarioService: UsuarioService,
+    private readonly tokenService: JwtTokenService,
+  ) {}
 
   /** Registra una cuenta con el rol elegido durante el alta. */
   @Post('registro')
+  @Public()
   registrar(@Body() datosRegistro: RegistroUsuarioDto) {
     return this.usuarioService.registrarUsuario(datosRegistro);
   }
 
   /** Lista solicitudes de inscripción priorizando las que esperan revisión. */
   @Get('admin/reparadores')
+  @Roles('administrador')
   listarSolicitudesReparadores(
     @Query() filtros: FiltroModeracionReparadoresDto,
   ) {
@@ -49,6 +59,7 @@ export class UsuarioController {
 
   /** Devuelve el detalle administrativo de un perfil reparador. */
   @Get('admin/reparadores/:id_reparador')
+  @Roles('administrador')
   obtenerDetalleReparadorAdmin(
     @Param('id_reparador', ParseIntPipe) id_reparador: number,
     @Query() consulta_admin: ConsultaAdminDto,
@@ -61,6 +72,7 @@ export class UsuarioController {
 
   /** Aprueba o rechaza el perfil profesional de un reparador. */
   @Patch('admin/reparadores/:id_reparador/estado')
+  @Roles('administrador')
   dictaminarPerfilReparador(
     @Param('id_reparador', ParseIntPipe) id_reparador: number,
     @Body() dictamen: DictamenReparadorDto,
@@ -73,6 +85,7 @@ export class UsuarioController {
 
   /** Lista documentos asociados a usuarios que tienen el rol cliente. */
   @Get('admin/documentos-clientes')
+  @Roles('administrador')
   listarDocumentosClientes(@Query() filtros: FiltroDocumentosClientesDto) {
     return this.usuarioService.listarDocumentosClientes(
       filtros.id_admin,
@@ -82,6 +95,7 @@ export class UsuarioController {
 
   /** Aprueba o rechaza un documento de usuario. */
   @Patch('admin/documentos-usuario/:id_documento/estado')
+  @Roles('administrador')
   revisarDocumentoUsuario(
     @Param('id_documento', ParseIntPipe) id_documento: number,
     @Body() dictamen: DictamenDocumentoDto,
@@ -91,18 +105,21 @@ export class UsuarioController {
 
   /** Lista los roles existentes después de validar la cuenta administradora. */
   @Get('admin/roles')
+  @Roles('administrador')
   listarRolesAdmin(@Query('id_admin', ParseIntPipe) id_admin: number) {
     return this.usuarioService.listarRolesAdmin(id_admin);
   }
 
   /** Crea un rol personalizado desde el panel administrativo. */
   @Post('admin/roles')
+  @Roles('administrador')
   crearRolAdmin(@Body() datos_rol: CrearRolAdminDto) {
     return this.usuarioService.crearRolAdmin(datos_rol);
   }
 
   /** Elimina un rol personalizado y conserva protegidos los roles base. */
   @Delete('admin/roles/:id_rol')
+  @Roles('administrador')
   eliminarRolAdmin(
     @Param('id_rol', ParseIntPipe) id_rol: number,
     @Query('id_admin', ParseIntPipe) id_admin: number,
@@ -112,37 +129,53 @@ export class UsuarioController {
 
   /** Asigna un rol existente a una cuenta indicada por el administrador. */
   @Post('admin/usuario-rol')
+  @Roles('administrador')
   asignarRolManualAdmin(@Body() datos_asignacion: AsignarRevocarRolDto) {
     return this.usuarioService.asignarRolManualAdmin(datos_asignacion);
   }
 
   /** Revoca un rol asignado a una cuenta indicada por el administrador. */
   @Delete('admin/usuario-rol')
+  @Roles('administrador')
   revocarRolManualAdmin(@Body() datos_asignacion: AsignarRevocarRolDto) {
     return this.usuarioService.revocarRolManualAdmin(datos_asignacion);
   }
 
   /** Obtiene la cuenta, sus roles, documentos y el perfil profesional asociado. */
   @Get(':id')
-  obtenerPorId(@Param('id', ParseIntPipe) idUsuario: number) {
-    return this.usuarioService.obtenerUsuario(idUsuario);
+  obtenerPorId(@Req() request: RequestAutenticada) {
+    return this.usuarioService.obtenerUsuario(request.usuarioAutenticado.sub);
   }
 
   /** Agrega un rol sin quitar los roles que ya tiene la cuenta. */
   @Post(':id/agregar-rol')
   agregarRol(
-    @Param('id', ParseIntPipe) idUsuario: number,
     @Body() datosNuevoRol: AgregarRolDto,
+    @Req() request: RequestAutenticada,
   ) {
-    return this.usuarioService.agregarRol(idUsuario, datosNuevoRol);
+    return this.usuarioService.agregarRol(
+      request.usuarioAutenticado.sub,
+      datosNuevoRol,
+    );
   }
 
   /** Selecciona un rol existente para la sesion actual; no lo persiste en la cuenta. */
   @Patch(':id/cambiar-rol')
   cambiarModoRol(
-    @Param('id', ParseIntPipe) idUsuario: number,
     @Body() datosCambioRol: CambiarModoRolDto,
+    @Req() request: RequestAutenticada,
   ) {
-    return this.usuarioService.cambiarModoRol(idUsuario, datosCambioRol);
+    const idUsuario = request.usuarioAutenticado.sub;
+    return this.usuarioService
+      .cambiarModoRol(idUsuario, datosCambioRol)
+      .then((resultado) => ({
+        ...resultado,
+        token: this.tokenService.crearToken(
+          idUsuario,
+          datosCambioRol.rol_objetivo,
+        ),
+        token_type: 'Bearer',
+        expires_in: 8 * 60 * 60,
+      }));
   }
 }

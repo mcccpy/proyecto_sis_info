@@ -282,11 +282,28 @@ export class TrabajoService {
   }
 
   /** Busca un trabajo activo y notifica cuando no existe. */
-  async obtenerPorId(id_trabajo: number) {
+  async obtenerPorId(id_trabajo: number, id_usuario: number) {
     const trabajo = await this.trabajoRepository.findById(id_trabajo);
 
     if (!trabajo) {
       throw new NotFoundException('Trabajo no encontrado');
+    }
+
+    const participa_como_cliente = trabajo.idCliente === id_usuario;
+    const participa_como_reparador = trabajo.propuestas.some(
+      (propuesta) => propuesta.idReparador === id_usuario,
+    );
+    const es_administrador = await this.usuarioRepository.esAdministrador(
+      id_usuario,
+    );
+    if (
+      !participa_como_cliente &&
+      !participa_como_reparador &&
+      !es_administrador
+    ) {
+      throw new ForbiddenException(
+        'Solo los participantes o un administrador pueden consultar este trabajo',
+      );
     }
 
     return trabajo;

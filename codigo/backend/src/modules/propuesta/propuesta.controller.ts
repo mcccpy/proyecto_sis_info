@@ -6,12 +6,17 @@ import {
   Patch,
   Param,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import { PropuestaService } from './propuesta.service';
 import { RetirarPropuestaDto } from './dto/retirar-propuesta.dto';
 import { PostularPropuestaDto } from './dto/postular-propuesta.dto';
 import { CotizarPropuestaDto } from './dto/cotizar-propuesta.dto';
 import { ResolverPropuestaDto } from './dto/resolver-propuesta.dto';
+import { Roles } from '../auth/auth.decorators';
+import type { UsuarioAutenticado } from '../auth/jwt-token.service';
+
+type RequestAutenticada = { usuarioAutenticado: UsuarioAutenticado };
 
 /**
  * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
@@ -23,12 +28,14 @@ export class PropuestaController {
 
   /** Registra una postulación y su cotización inicial. */
   @Post('postular')
+  @Roles('reparador')
   postular(@Body() datos_propuesta: PostularPropuestaDto) {
     return this.propuestaService.postular(datos_propuesta);
   }
 
   /** Actualiza la cotización enviada por el reparador asignado. */
   @Patch(':id_propuesta/cotizar')
+  @Roles('reparador')
   cotizar(
     @Param('id_propuesta', ParseIntPipe) id_propuesta: number,
     @Body() datos_cotizacion: CotizarPropuestaDto,
@@ -38,6 +45,7 @@ export class PropuestaController {
 
   /** Acepta una propuesta por decisión del cliente propietario del trabajo. */
   @Patch(':id_propuesta/aceptar')
+  @Roles('cliente')
   aceptarPropuesta(
     @Param('id_propuesta', ParseIntPipe) id_propuesta: number,
     @Body() datos_decision: ResolverPropuestaDto,
@@ -47,6 +55,7 @@ export class PropuestaController {
 
   /** Rechaza una propuesta por decisión del cliente propietario del trabajo. */
   @Patch(':id_propuesta/rechazar')
+  @Roles('cliente')
   rechazarPropuesta(
     @Param('id_propuesta', ParseIntPipe) id_propuesta: number,
     @Body() datos_decision: ResolverPropuestaDto,
@@ -59,6 +68,7 @@ export class PropuestaController {
 
   /** Retira una postulación si está pendiente y pertenece al reparador indicado. */
   @Patch(':id_propuesta/retirar')
+  @Roles('reparador')
   retirarPostulacion(
     @Param('id_propuesta', ParseIntPipe) id_propuesta: number,
     @Body() datos_retiro: RetirarPropuestaDto,
@@ -71,13 +81,21 @@ export class PropuestaController {
 
   /** Delega al servicio la consulta de todos los registros. */
   @Get()
+  @Roles('administrador')
   listarTodos() {
     return this.propuestaService.listarTodos();
   }
 
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
-  obtenerPorId(@Param('id', ParseIntPipe) identificador: number) {
-    return this.propuestaService.obtenerPorId(identificador);
+  @Roles('cliente', 'reparador', 'administrador')
+  obtenerPorId(
+    @Param('id', ParseIntPipe) identificador: number,
+    @Req() request: RequestAutenticada,
+  ) {
+    return this.propuestaService.obtenerPorId(
+      identificador,
+      request.usuarioAutenticado.sub,
+    );
   }
 }

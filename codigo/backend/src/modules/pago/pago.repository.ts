@@ -20,7 +20,11 @@ export class PagoRepository {
 
   /** Busca un pago junto al servicio relacionado. */
   findById(id_pago: number) {
-    return this.prisma.db.orm.public.Pago.include('servicio')
+    return this.prisma.db.orm.public.Pago.include('servicio', (servicio) =>
+      servicio.include('propuesta', (propuesta) =>
+        propuesta.include('trabajo'),
+      ),
+    )
       .where({ idPago: id_pago })
       .first();
   }

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PerfilTrabajadorService } from './perfil-trabajador.service';
 import { UpdatePerfilTrabajadorDto } from './dto/update-perfil-trabajador.dto';
+import { Roles } from '../auth/auth.decorators';
 
 /**
  * Expone las rutas HTTP y delega cada operacion al servicio del recurso.
@@ -21,18 +22,21 @@ export class PerfilTrabajadorController {
 
   /** Delega al servicio la consulta de todos los registros. */
   @Get()
+  @Roles('administrador')
   listarTodos() {
     return this.perfilTrabajadorService.listarTodos();
   }
 
   /** Delega la consulta del registro identificado en la ruta. */
   @Get(':id')
+  @Roles('cliente', 'reparador', 'administrador')
   obtenerPorId(@Param('id', ParseIntPipe) id_usuario: number) {
     return this.perfilTrabajadorService.obtenerPorId(id_usuario);
   }
 
   /** Entrega al servicio el identificador y los cambios parciales recibidos. */
   @Patch(':id')
+  @Roles('reparador')
   actualizar(
     @Param('id', ParseIntPipe) id_usuario: number,
     @Body() datosParaActualizarPerfilTrabajador: UpdatePerfilTrabajadorDto,
