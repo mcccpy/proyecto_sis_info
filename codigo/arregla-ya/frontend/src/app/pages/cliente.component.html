@@ -6,7 +6,7 @@
 <main class="page shell">
 
     <!-- ================================== -->
-    <!-- 1. TITULO PRINCIPAL -->
+    <!-- 1. ENCABEZADO -->
     <!-- ================================== -->
 
     <div class="page-top">
@@ -22,13 +22,15 @@
             </h1>
 
             <p class="subtle">
-                Busca técnicos, publica una solicitud
-                y compara sus propuestas.
+                Busca técnicos, publica solicitudes
+                y administra tus trabajos.
             </p>
 
         </div>
 
-        <span class="page-icon">⌂</span>
+        <span class="page-icon">
+            ⌂
+        </span>
 
     </div>
 
@@ -43,7 +45,7 @@
 
             Puedes explorar técnicos sin cuenta.
 
-            Para publicar una solicitud,
+            Para publicar solicitudes,
 
             <a routerLink="/ingresar">
                 inicia sesión
@@ -76,12 +78,12 @@
 
 
     <!-- ================================== -->
-    <!-- 4. MENU DE OPCIONES -->
+    <!-- 4. MENU PRINCIPAL -->
     <!-- ================================== -->
 
     <div class="tabs">
 
-        <!-- Buscar tecnicos -->
+        <!-- Buscar trabajadores -->
 
         <button
             type="button"
@@ -92,7 +94,7 @@
         </button>
 
 
-        <!-- Publicar solicitud -->
+        <!-- Publicar solicitudes -->
 
         <button
             type="button"
@@ -117,7 +119,7 @@
 
 
     <!-- ================================== -->
-    <!-- 5. BUSCAR TECNICOS -->
+    <!-- 5. BUSCAR TRABAJADORES -->
     <!-- ================================== -->
 
     @if (vista() === 'buscar') {
@@ -130,13 +132,15 @@
 
             <div class="search-grid">
 
-                <!-- Filtro de especialidad -->
+                <!-- Categoria -->
 
                 <label>
 
                     Especialidad
 
-                    <select [(ngModel)]="filtroCategoria">
+                    <select
+                        [(ngModel)]="filtroCategoria"
+                    >
 
                         <option [ngValue]="0">
                             Todas las especialidades
@@ -155,7 +159,7 @@
                 </label>
 
 
-                <!-- Filtro de zona -->
+                <!-- Zona -->
 
                 <label>
 
@@ -164,7 +168,7 @@
                     <input
                         type="text"
                         [(ngModel)]="filtroZona"
-                        placeholder="Ej. Centro, Cala Cala"
+                        placeholder="Ej. Cala Cala, Centro"
                     >
 
                 </label>
@@ -202,7 +206,7 @@
         </div>
 
 
-        <!-- Lista de trabajadores -->
+        <!-- Tarjetas de trabajadores -->
 
         <div class="cards-grid">
 
@@ -232,14 +236,14 @@
                     </h3>
 
 
-                    <!-- Categoria -->
+                    <!-- Especialidad -->
 
                     <p class="role-label">
                         {{ t.categoria }}
                     </p>
 
 
-                    <!-- Zona y horario -->
+                    <!-- Datos del trabajador -->
 
                     <div class="worker-meta">
 
@@ -298,7 +302,7 @@
             </p>
 
 
-            <!-- Aviso si no inicio sesion -->
+            <!-- Aviso para usuarios sin sesion -->
 
             @if (!auth.usuario()) {
 
@@ -317,14 +321,15 @@
 
 
             <!-- ================================= -->
-            <!-- 8. FORMULARIO DE SOLICITUD -->
+            <!-- 8. FORMULARIO DE PUBLICACION -->
             <!-- ================================= -->
 
             <form (ngSubmit)="crear()">
 
                 <div class="form-grid">
 
-                    <!-- TITULO -->
+
+                    <!-- Titulo -->
 
                     <label>
 
@@ -342,7 +347,7 @@
                     </label>
 
 
-                    <!-- CATEGORIA -->
+                    <!-- Categoria -->
 
                     <label>
 
@@ -371,7 +376,7 @@
                     </label>
 
 
-                    <!-- DESCRIPCION -->
+                    <!-- Descripcion -->
 
                     <label class="full">
 
@@ -389,7 +394,7 @@
                     </label>
 
 
-                    <!-- ZONA -->
+                    <!-- Zona -->
 
                     <label>
 
@@ -406,7 +411,7 @@
                     </label>
 
 
-                    <!-- DIRECCION -->
+                    <!-- Direccion -->
 
                     <label>
 
@@ -423,7 +428,7 @@
                     </label>
 
 
-                    <!-- DISPONIBILIDAD -->
+                    <!-- Horario -->
 
                     <label class="full">
 
@@ -440,7 +445,7 @@
                     </label>
 
 
-                    <!-- FOTOGRAFIA OPCIONAL -->
+                    <!-- Fotografia -->
 
                     <label class="full">
 
@@ -458,20 +463,15 @@
                 </div>
 
 
-                <!-- Informacion adicional -->
+                <!-- Ayuda del formulario -->
 
                 <p class="help">
-
-                    Por ahora puedes agregar una fotografía
-                    mediante un enlace.
-
-                    Más adelante implementaremos
-                    la subida directa de imágenes.
-
+                    La fotografía se agrega mediante
+                    un enlace en esta versión.
                 </p>
 
 
-                <!-- BOTON PUBLICAR -->
+                <!-- Publicar -->
 
                 <button
                     type="submit"
@@ -517,6 +517,21 @@
         </div>
 
 
+        <!-- Boton para actualizar -->
+
+        @if (auth.usuario()) {
+
+            <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                (click)="abrirMias()"
+            >
+                Actualizar solicitudes
+            </button>
+
+        }
+
+
         <!-- Lista de solicitudes -->
 
         <div class="list-stack">
@@ -546,6 +561,9 @@
                                 {{ s.descripcion }}
                             </p>
 
+
+                            <!-- Zona y disponibilidad -->
+
                             <div class="job-tags">
 
                                 <span>
@@ -561,7 +579,7 @@
                         </div>
 
 
-                        <!-- Estado actual -->
+                        <!-- Estado -->
 
                         <span class="status-pill">
                             {{ s.estado }}
@@ -571,7 +589,7 @@
 
 
                     <!-- ================================= -->
-                    <!-- 11. BOTONES DE LA SOLICITUD -->
+                    <!-- 11. BOTONES DE CADA SOLICITUD -->
                     <!-- ================================= -->
 
                     <div class="job-actions">
@@ -619,10 +637,7 @@
                         </button>
 
 
-                        <!-- ================================= -->
-                        <!-- 12. COORDINAR VISITA -->
-                        <!-- NUEVO BOTON -->
-                        <!-- ================================= -->
+                        <!-- Coordinar visita -->
 
                         <button
                             type="button"
@@ -632,7 +647,7 @@
 
                             @if (visitaAbierta() === s.id) {
 
-                                Cerrar coordinación
+                                Cerrar visita
 
                             } @else {
 
@@ -643,7 +658,49 @@
                         </button>
 
 
-                        <!-- CANCELAR SOLICITUD -->
+                        <!-- Presupuestos -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="abrirPresupuesto(s.id)"
+                        >
+
+                            @if (presupuestoAbierto() === s.id) {
+
+                                Ocultar presupuesto
+
+                            } @else {
+
+                                Presupuestos y pagos
+
+                            }
+
+                        </button>
+
+
+                        <!-- Calificaciones y reclamos -->
+
+                        <button
+                            type="button"
+                            class="btn btn-outline btn-sm"
+                            (click)="abrirOpiniones(s.id)"
+                        >
+
+                            @if (opinionesAbiertas() === s.id) {
+
+                                Ocultar opiniones
+
+                            } @else {
+
+                                Calificaciones y reclamos
+
+                            }
+
+                        </button>
+
+
+                        <!-- Cancelar solicitud -->
 
                         @if (s.estado === 'ACTIVA') {
 
@@ -672,7 +729,7 @@
 
 
                     <!-- ================================= -->
-                    <!-- 13. PANEL DE SEGUIMIENTO -->
+                    <!-- 12. PANEL DE SEGUIMIENTO -->
                     <!-- ================================= -->
 
                     @if (seguimientoSeleccionado() === s.id) {
@@ -680,22 +737,22 @@
                         <div class="offers">
 
                             <h4>
-                                Seguimiento del trabajo
+                                Seguimiento del servicio
                             </h4>
 
 
                             <!-- Estado -->
 
                             <p>
-                                <strong>Estado actual:</strong>
+                                <strong>Estado:</strong>
                                 {{ s.estado }}
                             </p>
 
 
-                            <!-- Solicitud -->
+                            <!-- Servicio -->
 
                             <p>
-                                <strong>Servicio solicitado:</strong>
+                                <strong>Servicio:</strong>
                                 {{ s.titulo }}
                             </p>
 
@@ -757,15 +814,14 @@
                             }
 
 
-                            <!-- Datos pendientes del backend -->
+                            <!-- Informacion pendiente -->
 
                             <p class="help">
 
-                                El técnico asignado,
-                                las visitas confirmadas
-                                y los avances de reparación
-                                aparecerán cuando NestJS
-                                proporcione esa información.
+                                El técnico asignado, los avances
+                                de reparación y las evidencias
+                                se mostrarán cuando estén
+                                disponibles en el backend.
 
                             </p>
 
@@ -775,8 +831,7 @@
 
 
                     <!-- ================================= -->
-                    <!-- 14. FORMULARIO DE VISITA -->
-                    <!-- NUEVA SECCION -->
+                    <!-- 13. COORDINACION DE VISITAS -->
                     <!-- ================================= -->
 
                     @if (visitaAbierta() === s.id) {
@@ -787,21 +842,12 @@
                                 Proponer fecha y hora de visita
                             </h4>
 
-
-                            <!-- Aclaracion de funcionamiento -->
-
                             <p class="help">
 
-                                Esta propuesta es un borrador
-                                temporal de la interfaz.
-
-                                No confirma una visita
-                                ni se envía al técnico.
+                                Borrador local de demostración.
+                                No confirma ni envía visitas.
 
                             </p>
-
-
-                            <!-- Horario original -->
 
                             <p>
 
@@ -814,16 +860,14 @@
                             </p>
 
 
-                            <!-- ================================= -->
-                            <!-- 15. DATOS DE LA VISITA -->
-                            <!-- ================================= -->
+                            <!-- Formulario -->
 
                             <form (ngSubmit)="prepararVisita(s.id)">
 
                                 <div class="form-grid">
 
 
-                                    <!-- Fecha preferida -->
+                                    <!-- Fecha -->
 
                                     <label>
 
@@ -839,7 +883,7 @@
                                     </label>
 
 
-                                    <!-- Hora preferida -->
+                                    <!-- Hora -->
 
                                     <label>
 
@@ -855,11 +899,11 @@
                                     </label>
 
 
-                                    <!-- Indicaciones adicionales -->
+                                    <!-- Nota -->
 
                                     <label class="full">
 
-                                        Indicaciones (opcional)
+                                        Indicaciones adicionales
 
                                         <textarea
                                             name="notaVisita"
@@ -873,7 +917,7 @@
                                 </div>
 
 
-                                <!-- Preparar borrador -->
+                                <!-- Preparar visita -->
 
                                 <button
                                     type="submit"
@@ -885,32 +929,30 @@
                             </form>
 
 
-                            <!-- ================================= -->
-                            <!-- 16. RESUMEN DEL BORRADOR -->
-                            <!-- ================================= -->
+                            <!-- Resultado temporal -->
 
-                            @if (borradorVisita(); as borrador) {
+                            @if (borradorVisita(); as visita) {
 
-                                @if (borrador.solicitudId === s.id) {
+                                @if (visita.solicitudId === s.id) {
 
                                     <div class="alert info">
 
                                         <strong>
-                                            Borrador preparado, no enviado.
+                                            Visita no enviada
                                         </strong>
 
                                         <p>
-                                            Fecha: {{ borrador.fecha }}
+                                            Fecha: {{ visita.fecha }}
                                         </p>
 
                                         <p>
-                                            Hora: {{ borrador.hora }}
+                                            Hora: {{ visita.hora }}
                                         </p>
 
-                                        @if (borrador.nota) {
+                                        @if (visita.nota) {
 
                                             <p>
-                                                Nota: {{ borrador.nota }}
+                                                Nota: {{ visita.nota }}
                                             </p>
 
                                         }
@@ -927,7 +969,577 @@
 
 
                     <!-- ================================= -->
-                    <!-- 17. PROPUESTAS RECIBIDAS -->
+                    <!-- 14. PRESUPUESTOS Y PAGOS -->
+                    <!-- ================================= -->
+
+                    @if (presupuestoAbierto() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Presupuestos y pagos
+                            </h4>
+
+                            <p class="help">
+
+                                Esta sección es una simulación
+                                de la interfaz del cliente.
+
+                                Los aumentos reales deberán
+                                provenir del trabajador y
+                                registrarse mediante NestJS.
+
+                            </p>
+
+
+                            <!-- ================================= -->
+                            <!-- 15. AUMENTO DE PRESUPUESTO -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Revisar aumento de presupuesto
+                            </h4>
+
+                            <form (ngSubmit)="prepararAumento(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Monto original -->
+
+                                    <label>
+
+                                        Presupuesto original (Bs)
+
+                                        <input
+                                            type="number"
+                                            name="montoBase"
+                                            [(ngModel)]="montoBase"
+                                            required
+                                            min="0.01"
+                                            step="0.01"
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Aumento -->
+
+                                    <label>
+
+                                        Aumento propuesto (Bs)
+
+                                        <input
+                                            type="number"
+                                            name="montoExtra"
+                                            [(ngModel)]="montoExtra"
+                                            required
+                                            min="0.01"
+                                            step="0.01"
+                                        >
+
+                                    </label>
+
+
+                                    <!-- Motivo -->
+
+                                    <label class="full">
+
+                                        Motivo del aumento
+
+                                        <textarea
+                                            name="motivoAumento"
+                                            [(ngModel)]="motivoAumento"
+                                            required
+                                            rows="3"
+                                            placeholder="Ej. Materiales adicionales"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Calcular -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    Calcular presupuesto
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 16. RESULTADO DEL PRESUPUESTO -->
+                            <!-- ================================= -->
+
+                            @if (borradorAumento(); as presupuesto) {
+
+                                @if (presupuesto.solicitudId === s.id) {
+
+                                    <div class="panel">
+
+                                        <h4>
+                                            Resumen de simulación
+                                        </h4>
+
+                                        <p>
+
+                                            <strong>
+                                                Original:
+                                            </strong>
+
+                                            Bs {{ presupuesto.original.toFixed(2) }}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Aumento:
+                                            </strong>
+
+                                            Bs {{ presupuesto.extra.toFixed(2) }}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Nuevo total:
+                                            </strong>
+
+                                            Bs {{
+                                                (
+                                                    presupuesto.original +
+                                                    presupuesto.extra
+                                                ).toFixed(2)
+                                            }}
+
+                                        </p>
+
+                                        <p>
+
+                                            <strong>
+                                                Motivo:
+                                            </strong>
+
+                                            {{ presupuesto.motivo }}
+
+                                        </p>
+
+
+                                        <!-- Simular decision -->
+
+                                        <div class="job-actions">
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline btn-sm"
+                                                (click)="simularDecision(false)"
+                                            >
+                                                Simular rechazo
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-primary btn-sm"
+                                                (click)="simularDecision(true)"
+                                            >
+                                                Simular aprobación
+                                            </button>
+
+                                        </div>
+
+
+                                        <!-- Mensaje -->
+
+                                        @if (decisionAumento()) {
+
+                                            <div class="alert info">
+                                                {{ decisionAumento() }}
+                                            </div>
+
+                                        }
+
+                                    </div>
+
+                                }
+
+                            }
+
+
+                            <!-- ================================= -->
+                            <!-- 17. PAGO EN EFECTIVO -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Pago del servicio
+                            </h4>
+
+                            <p>
+                                <strong>Método:</strong>
+                                Efectivo
+                            </p>
+
+                            <p>
+                                <strong>Estado:</strong>
+                                No verificado en el backend
+                            </p>
+
+                            <p class="help">
+
+                                Preparar una nota no significa
+                                que se haya realizado el pago.
+
+                            </p>
+
+
+                            <!-- Formulario de pago -->
+
+                            <form (ngSubmit)="prepararPago(s.id)">
+
+                                <div class="form-grid">
+
+                                    <label class="full">
+
+                                        Indicaciones sobre el pago
+
+                                        <textarea
+                                            name="notaPago"
+                                            [(ngModel)]="notaPago"
+                                            rows="3"
+                                            placeholder="Ej. Pago en efectivo al inicio de la visita"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline btn-sm"
+                                >
+                                    Preparar nota de pago
+                                </button>
+
+                            </form>
+
+
+                            <!-- Nota temporal -->
+
+                            @if (borradorPago(); as pago) {
+
+                                @if (pago.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Nota preparada, no enviada
+                                        </strong>
+
+                                        <p>
+                                            Método: Efectivo
+                                        </p>
+
+                                        <p>
+                                            Estado: No registrado
+                                        </p>
+
+                                        @if (pago.nota) {
+
+                                            <p>
+                                                {{ pago.nota }}
+                                            </p>
+
+                                        }
+
+                                    </div>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 18. CALIFICACIONES Y RECLAMOS -->
+                    <!-- ================================= -->
+
+                    @if (opinionesAbiertas() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>
+                                Calificaciones y reclamos
+                            </h4>
+
+                            <p class="help">
+
+                                Puedes preparar borradores
+                                para probar el frontend.
+
+                                No se envían al trabajador ni
+                                se guardan en PostgreSQL.
+
+                            </p>
+
+
+                            <!-- ================================= -->
+                            <!-- 19. CALIFICAR TRABAJADOR -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Calificar el servicio
+                            </h4>
+
+                            <p class="subtle">
+                                En el sistema final,
+                                solo se podrá calificar
+                                después de finalizar el trabajo.
+                            </p>
+
+
+                            <!-- Formulario de calificacion -->
+
+                            <form (ngSubmit)="prepararValoracion(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Estrellas -->
+
+                                    <label>
+
+                                        Calificación
+
+                                        <select
+                                            name="estrellas"
+                                            [(ngModel)]="estrellas"
+                                            required
+                                        >
+
+                                            <option [ngValue]="1">
+                                                ★ 1 estrella
+                                            </option>
+
+                                            <option [ngValue]="2">
+                                                ★★ 2 estrellas
+                                            </option>
+
+                                            <option [ngValue]="3">
+                                                ★★★ 3 estrellas
+                                            </option>
+
+                                            <option [ngValue]="4">
+                                                ★★★★ 4 estrellas
+                                            </option>
+
+                                            <option [ngValue]="5">
+                                                ★★★★★ 5 estrellas
+                                            </option>
+
+                                        </select>
+
+                                    </label>
+
+
+                                    <!-- Comentario -->
+
+                                    <label class="full">
+
+                                        Comentario del servicio
+
+                                        <textarea
+                                            name="comentarioValoracion"
+                                            [(ngModel)]="comentarioValoracion"
+                                            required
+                                            minlength="10"
+                                            rows="4"
+                                            placeholder="Describe cómo trabajó el técnico"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Preparar calificacion -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary btn-sm"
+                                >
+                                    Preparar calificación
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 20. RESUMEN DE CALIFICACION -->
+                            <!-- ================================= -->
+
+                            @if (borradorValoracion(); as valoracion) {
+
+                                @if (valoracion.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Calificación no enviada
+                                        </strong>
+
+                                        <p>
+                                            Estrellas:
+                                            {{ valoracion.estrellas }} / 5
+                                        </p>
+
+                                        <p>
+                                            Comentario:
+                                            {{ valoracion.comentario }}
+                                        </p>
+
+                                    </div>
+
+                                }
+
+                            }
+
+
+                            <!-- ================================= -->
+                            <!-- 21. RECLAMOS -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Presentar un reclamo
+                            </h4>
+
+                            <p class="subtle">
+                                Describe el problema
+                                relacionado con el servicio.
+                            </p>
+
+
+                            <!-- Formulario de reclamo -->
+
+                            <form (ngSubmit)="prepararReclamo(s.id)">
+
+                                <div class="form-grid">
+
+
+                                    <!-- Tipo de reclamo -->
+
+                                    <label>
+
+                                        Tipo de reclamo
+
+                                        <select
+                                            name="tipoReclamo"
+                                            [(ngModel)]="tipoReclamo"
+                                            required
+                                        >
+
+                                            <option value="">
+                                                Selecciona una opción
+                                            </option>
+
+                                            <option value="Incumplimiento">
+                                                Incumplimiento
+                                            </option>
+
+                                            <option value="Calidad">
+                                                Problema de calidad
+                                            </option>
+
+                                            <option value="Pago">
+                                                Problema de pago
+                                            </option>
+
+                                            <option value="Otro">
+                                                Otro problema
+                                            </option>
+
+                                        </select>
+
+                                    </label>
+
+
+                                    <!-- Descripcion del reclamo -->
+
+                                    <label class="full">
+
+                                        Descripción del reclamo
+
+                                        <textarea
+                                            name="descripcionReclamo"
+                                            [(ngModel)]="descripcionReclamo"
+                                            required
+                                            minlength="15"
+                                            rows="4"
+                                            placeholder="Explica qué ocurrió"
+                                        ></textarea>
+
+                                    </label>
+
+                                </div>
+
+
+                                <!-- Preparar reclamo -->
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline btn-sm"
+                                >
+                                    Preparar reclamo
+                                </button>
+
+                            </form>
+
+
+                            <!-- ================================= -->
+                            <!-- 22. RESUMEN DEL RECLAMO -->
+                            <!-- ================================= -->
+
+                            @if (borradorReclamo(); as reclamo) {
+
+                                @if (reclamo.solicitudId === s.id) {
+
+                                    <div class="alert info">
+
+                                        <strong>
+                                            Reclamo no enviado
+                                        </strong>
+
+                                        <p>
+                                            Tipo: {{ reclamo.tipo }}
+                                        </p>
+
+                                        <p>
+                                            Descripción:
+                                            {{ reclamo.descripcion }}
+                                        </p>
+
+                                    </div>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
+
+
+                    <!-- ================================= -->
+                    <!-- 23. PROPUESTAS DE TRABAJADORES -->
                     <!-- ================================= -->
 
                     @if (seleccionada() === s.id) {
@@ -939,7 +1551,7 @@
                             </h4>
 
 
-                            <!-- Lista de presupuestos -->
+                            <!-- Lista de propuestas -->
 
                             @for (o of ofertas(); track o.id) {
 
@@ -947,14 +1559,14 @@
 
                                     <div>
 
-                                        <!-- Nombre del trabajador -->
+                                        <!-- Trabajador -->
 
                                         <strong>
                                             {{ o.trabajador?.nombre || 'Trabajador' }}
                                         </strong>
 
 
-                                        <!-- Precio del trabajo -->
+                                        <!-- Precio -->
 
                                         <small>
                                             Presupuesto: Bs {{ o.precio }}
@@ -991,7 +1603,7 @@
                                         }
 
 
-                                        <!-- Detalles adicionales -->
+                                        <!-- Detalle -->
 
                                         @if (o.detalleMateriales) {
 
@@ -1005,7 +1617,7 @@
 
 
                                     <!-- ================================= -->
-                                    <!-- 18. ACEPTAR PROPUESTA -->
+                                    <!-- 24. ACEPTAR PROPUESTA -->
                                     <!-- ================================= -->
 
                                     @if (
@@ -1034,10 +1646,8 @@
                             } @empty {
 
                                 <p class="subtle">
-
                                     Todavía no hay propuestas
                                     para esta solicitud.
-
                                 </p>
 
                             }
@@ -1050,14 +1660,12 @@
 
             } @empty {
 
-                <!-- No existen solicitudes -->
+                <!-- Mensaje si no existen solicitudes -->
 
                 @if (auth.usuario() && !error()) {
 
                     <div class="empty">
-
                         Todavía no has publicado solicitudes.
-
                     </div>
 
                 }
