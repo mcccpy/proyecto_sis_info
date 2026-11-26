@@ -34,6 +34,13 @@ export interface CrearTrabajoDirectoData extends CrearTrabajoClienteData {
 export class TrabajoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Solo cancela una publicación que aún está abierta y pertenece al cliente. */
+  cancelarPublicacion(idTrabajo: number, idCliente: number) {
+    return this.prisma.db.orm.public.Trabajo.where({
+      idTrabajo, idCliente, estadoPublicacion: 'abierto', deletedAt: null,
+    }).update({ estadoPublicacion: 'cancelado' });
+  }
+
   /** Lista trabajos con cliente, categorías y documentos por fecha descendente. */
   findAll() {
     return this.prisma.db.orm.public.Trabajo.where({ deletedAt: null })

@@ -1,4 +1,4 @@
-﻿
+
 import { inject, Injectable, signal } from '@angular/core';
 
 import {
@@ -116,7 +116,7 @@ export class AuthService {
             const datos = localStorage.getItem('ay_usuario');
 
             if (datos) {
-                return JSON.parse(datos) as Usuario;
+                return this.normalizarUsuario(JSON.parse(datos) as Usuario);
             }
 
             return null;
@@ -136,6 +136,7 @@ export class AuthService {
         nombre: string;
         email: string;
         password: string;
+        telefono: string;
         rol: Rol;
         perfil_reparador?: unknown;
         documentos?: unknown;
@@ -195,20 +196,10 @@ export class AuthService {
         usuario: Usuario;
     }) {
 
-        // Guardamos el token
-        localStorage.setItem(
-            'ay_token',
-            respuesta.token
-        );
-
-        // Guardamos los datos del usuario
-        localStorage.setItem(
-            'ay_usuario',
-            JSON.stringify(respuesta.usuario)
-        );
-
-        // Actualizamos el usuario
-        this.usuario.set(respuesta.usuario);
+        const usuario = this.normalizarUsuario(respuesta.usuario);
+        localStorage.setItem('ay_token', respuesta.token);
+        localStorage.setItem('ay_usuario', JSON.stringify(usuario));
+        this.usuario.set(usuario);
     }
 
 
@@ -234,12 +225,9 @@ export class AuthService {
 
             );
 
-            this.usuario.set(usuario);
-
-            localStorage.setItem(
-                'ay_usuario',
-                JSON.stringify(usuario)
-            );
+            const normalizado = this.normalizarUsuario(usuario);
+            this.usuario.set(normalizado);
+            localStorage.setItem('ay_usuario', JSON.stringify(normalizado));
 
         } catch (error) {
 
@@ -247,6 +235,22 @@ export class AuthService {
         }
     }
 
+
+    private normalizarUsuario(raw: unknown): Usuario {
+        const obj = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+        const id = Number(obj['id'] ?? obj['id_usuario'] ?? obj['idUsuario'] ?? 0);
+        const rol = String(obj['rol'] ?? '').toUpperCase();
+        if (!Number.isSafeInteger(id) || id <= 0) {
+            throw new Error('La API no devolvio un ID de usuario valido.');
+        }
+        return {
+            id,
+            nombre: String(obj['nombre'] ?? ''),
+            email: String(obj['email'] ?? ''),
+            rol: (rol === 'TRABAJADOR' || rol === 'ADMIN' || rol === 'EMPRESA'
+                ? rol : 'CLIENTE') as Rol,
+        };
+    }
 
     // --------------------------------------
     // 4.6 CERRAR SESION
@@ -262,6 +266,13 @@ export class AuthService {
     }
 }
 
+
+function injectarUsuarioDesdeStorage(): number {
+    try {
+        const guardado = JSON.parse(localStorage.getItem('ay_usuario') || '{}');
+        return Number(guardado.id || 0);
+    } catch { return 0; }
+}
 
 // ==========================================
 // 5. SERVICIO DE API
@@ -426,8 +437,7 @@ export class ApiService {
                 .filter((t) => {
                     const matchCat =
                         !filtroCatNum ||
-                        !t._categoriaIds?.length ||
-                        t._categoriaIds.includes(filtroCatNum);
+                        t._categoriaIds?.includes(filtroCatNum);
                     const matchZona =
                         !filtroZonaTxt ||
                         t.zona.toLowerCase().includes(filtroZonaTxt);
@@ -463,15 +473,41 @@ export class ApiService {
     // 5.4 VER MIS SOLICITUDES
     // --------------------------------------
 
-    misSolicitudes() {
+    async misSolicitudes(): Promise<Solicitud[]> {
+        const idCliente = injectarUsuarioDesdeStorage();
 
-        return firstValueFrom(
+        if (!idCliente) {
+            throw new Error('Debes iniciar sesión.');
+        }
 
-            this.http.get<Solicitud[]>(
-                `${API_URL}/solicitudes/mias`
+        const lista = await firstValueFrom(
+            this.http.get<Array<{
+                id: number;
+                titulo: string;
+                direccion: string;
+                fecha_preferida: string | null;
+                fecha_creacion: string;
+                estado_publicacion: string;
+            }>>(
+                `${API_URL}/trabajo/cliente/${idCliente}/dashboard`
             )
-
         );
+
+        return lista.map(t => ({
+            id: t.id,
+            titulo: t.titulo,
+            descripcion: '',
+            direccion: t.direccion,
+            zona: t.direccion,
+            disponibilidad: t.fecha_preferida
+                ? new Date(t.fecha_preferida).toLocaleString('es-BO')
+                : 'Por coordinar',
+            estado: t.estado_publicacion === 'abierto'
+                ? 'ACTIVA'
+                : t.estado_publicacion.toUpperCase(),
+            creadaEn: t.fecha_creacion,
+            categoria: 'Sin categoría informada'
+        }));
     }
 
 
@@ -589,12 +625,35 @@ export class ApiService {
     // 6.2 VER MI PERFIL TECNICO
     // --------------------------------------
 
-    miPerfilTecnico(idUsuario: number) {
-        return firstValueFrom(
-            this.http.get<PerfilTrabajador>(
-                `${API_URL}/perfil-trabajador/${idUsuario}`
-            )
-        );
+    async miPerfilTecnico(idUsuario: number): Promise<PerfilTrabajador> {
+        const raw = await firstValueFrom(this.http.get<unknown>(
+            `${API_URL}/perfil-trabajador/${idUsuario}`
+        ));
+        const p = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+        const categorias = Array.isArray(p['categoriaReparadors'])
+            ? p['categoriaReparadors'] as Array<Record<string, unknown>> : [];
+        const cr = categorias[0] ?? {};
+        const cat = (cr['categoria'] && typeof cr['categoria'] === 'object'
+            ? cr['categoria'] : {}) as Record<string, unknown>;
+        const zonas = Array.isArray(p['zonaReparadors'])
+            ? p['zonaReparadors'] as Array<Record<string, unknown>> : [];
+        const disp = Array.isArray(p['disponibilidads'])
+            ? p['disponibilidads'] as Array<Record<string, unknown>> : [];
+        const horario = disp[0] ?? {};
+        const anios = Number(p['experienciaAnios'] ?? 0);
+        return {
+            id: Number(p['idUsuario'] ?? idUsuario),
+            aprobado: String(p['estadoAprobacion'] ?? '') === 'aprobado',
+            experiencia: String(p['experiencia'] ?? `${anios} año(s) de experiencia`),
+            zona: String(p['zona'] ?? zonas[0]?.['etiqueta'] ?? ''),
+            disponibilidad: String(p['disponibilidad'] ??
+                (horario['horaInicio'] && horario['horaFin']
+                    ? `${horario['horaInicio']} - ${horario['horaFin']}` : '')),
+            categoria: cat['nombre'] ? {
+                id: Number(cat['idCategoria'] ?? cr['idCategoria'] ?? 0),
+                nombre: String(cat['nombre'])
+            } : null,
+        };
     }
 
 
@@ -602,16 +661,13 @@ export class ApiService {
     // 6.3 GUARDAR PERFIL TECNICO
     // --------------------------------------
 
-    guardarPerfil(datos: unknown) {
-
-        return firstValueFrom(
-
-            this.http.patch(
-                `${API_URL}/trabajadores/mi-perfil`,
-                datos
-            )
-
-        );
+    async guardarPerfil(datos: unknown): Promise<PerfilTrabajador> {
+        const usuario = injectarUsuarioDesdeStorage();
+        if (!usuario) throw new Error('Debes iniciar sesion.');
+        await firstValueFrom(this.http.patch(
+            `${API_URL}/trabajadores/mi-perfil`, datos
+        ));
+        return this.miPerfilTecnico(usuario);
     }
 
 

@@ -445,6 +445,24 @@
                     </label>
 
 
+                    <!-- Ubicación y fecha necesarias para el flujo geográfico real -->
+                    <label>
+                        Latitud del trabajo (Google Maps)
+                        <input type="number" name="latitudTrabajo" [(ngModel)]="form.latitud"
+                            required min="-90" max="90" step="any" placeholder="Ej. -17.39">
+                    </label>
+                    <label>
+                        Longitud del trabajo (Google Maps)
+                        <input type="number" name="longitudTrabajo" [(ngModel)]="form.longitud"
+                            required min="-180" max="180" step="any" placeholder="Ej. -66.16">
+                    </label>
+                    <label class="full">
+                        Fecha y hora preferidas (futura)
+                        <input type="datetime-local" name="fechaPreferidaTrabajo"
+                            [(ngModel)]="form.fechaPreferida" required>
+                    </label>
+                    <p class="help full">Abre Google Maps, mantén pulsado el lugar del trabajo y copia las coordenadas reales.</p>
+
                     <!-- Fotografia -->
 
                     <label class="full">
@@ -793,7 +811,25 @@
                             }
 
 
-                            <!-- Fotografia -->
+                            <!-- Ubicación y fecha necesarias para el flujo geográfico real -->
+                    <label>
+                        Latitud del trabajo (Google Maps)
+                        <input type="number" name="latitudTrabajo" [(ngModel)]="form.latitud"
+                            required min="-90" max="90" step="any" placeholder="Ej. -17.39">
+                    </label>
+                    <label>
+                        Longitud del trabajo (Google Maps)
+                        <input type="number" name="longitudTrabajo" [(ngModel)]="form.longitud"
+                            required min="-180" max="180" step="any" placeholder="Ej. -66.16">
+                    </label>
+                    <label class="full">
+                        Fecha y hora preferidas (futura)
+                        <input type="datetime-local" name="fechaPreferidaTrabajo"
+                            [(ngModel)]="form.fechaPreferida" required>
+                    </label>
+                    <p class="help full">Abre Google Maps, mantén pulsado el lugar del trabajo y copia las coordenadas reales.</p>
+
+                    <!-- Fotografia -->
 
                             @if (s.fotoUrl) {
 

@@ -224,6 +224,18 @@ export class TrabajoService {
     );
   }
 
+  /** Cancela únicamente una publicación abierta propia, sin suplantar al cliente. */
+  async cancelarTrabajoCliente(id_trabajo: number, id_cliente: number) {
+    await this.validarCliente(id_cliente);
+    const trabajo = await this.trabajoRepository.findById(id_trabajo);
+    if (!trabajo) throw new NotFoundException('Solicitud no encontrada');
+    if (trabajo.idCliente !== id_cliente) throw new ForbiddenException('No puedes cancelar trabajos ajenos');
+    if (trabajo.estadoPublicacion !== 'abierto') throw new BadRequestException('Solo puedes cancelar trabajos abiertos');
+    const resultado = await this.trabajoRepository.cancelarPublicacion(id_trabajo, id_cliente);
+    if (!resultado) throw new BadRequestException('No se pudo cancelar el trabajo');
+    return { id: id_trabajo, estado: 'CANCELADA' };
+  }
+
   /** Crea una publicación abierta para un cliente validado. */
   async crearTrabajoAbierto(datos_trabajo: CrearTrabajoAbiertoDto) {
     await this.validarCliente(datos_trabajo.id_cliente);

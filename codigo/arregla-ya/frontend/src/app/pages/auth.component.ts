@@ -1,9 +1,9 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { AuthService, mensajeError } from '../core/api';
-import { Rol } from '../core/models';
+import { ApiService, AuthService, mensajeError } from '../core/api';
+import { Categoria, Rol } from '../core/models';
 
 @Component({
   selector: 'app-auth',
@@ -15,32 +15,35 @@ import { Rol } from '../core/models';
 export class AuthComponent {
 
   auth = inject(AuthService);
+  api = inject(ApiService);
   router = inject(Router);
   route = inject(ActivatedRoute);
 
   esRegistro = this.route.snapshot.data['modo'] === 'registro';
 
   nombre = '';
+  telefono = '';
   email = '';
   password = '';
   rol: Rol = 'CLIENTE';
 
-  // Solo campos esenciales visibles para el técnico
-  experienciaAnios = 2;
-  categoriasTexto = '1';
-  zonaEtiqueta = 'Zona Central';
+  categorias = signal<Categoria[]>([]);
+  experienciaAnios = 0;
+  categoriaId = 0;
+  zonaEtiqueta = '';
+  latitud: number | null = null;
+  longitud: number | null = null;
+  radioGood = 1000;
+  radioMedio = 3000;
+  radioBad = 6000;
+  diaSemana = 1;
+  horaInicio = '08:00';
+  horaFin = '18:00';
+  documentoUrl = '';
 
-  // Valores técnicos por defecto para cumplir con el DTO sin saturar el formulario
-  private readonly latitudDefecto = -17.3895;
-  private readonly longitudDefecto = -66.1568;
-  private readonly radioGoodDefecto = 1000;
-  private readonly radioMedioDefecto = 3000;
-  private readonly radioBadDefecto = 6000;
-  private readonly diaSemanaDefecto = 1;
-  private readonly horaInicioDefecto = '08:00';
-  private readonly horaFinDefecto = '18:00';
-  private readonly tipoDocumentoDefecto = 'CI';
-  private readonly ubicacionArchivoDefecto = 'documento-identidad.pdf';
+  constructor() {
+    void this.api.categorias().then(lista => this.categorias.set(lista)).catch(() => {});
+  }
 
   error = signal('');
   cargando = signal(false);
@@ -55,6 +58,7 @@ export class AuthComponent {
 
     this.nombre = this.nombre.trim();
     this.email = this.email.trim();
+    this.telefono = this.telefono.trim();
 
     if (this.esRegistro && this.nombre.length < 2) {
       this.error.set('El nombre debe tener al menos 2 caracteres.');
@@ -63,6 +67,11 @@ export class AuthComponent {
 
     if (this.email === '') {
       this.error.set('Debes ingresar tu correo.');
+      return;
+    }
+
+    if (this.esRegistro && this.telefono.length < 5) {
+      this.error.set('Ingresa un teléfono de contacto válido.');
       return;
     }
 
@@ -75,10 +84,7 @@ export class AuthComponent {
     let documentos: unknown = undefined;
 
     if (this.esRegistro && this.rol === 'TRABAJADOR') {
-      const categorias = this.categoriasTexto
-        .split(',')
-        .map((item) => Number(item.trim()))
-        .filter((n) => Number.isInteger(n) && n >= 1);
+      const categorias = [Number(this.categoriaId)].filter(n => Number.isInteger(n) && n > 0);
 
       const exp = Number(this.experienciaAnios);
 
@@ -88,7 +94,23 @@ export class AuthComponent {
       }
 
       if (categorias.length === 0) {
-        this.error.set('Ingresa al menos un ID de categoría válido (ej. 1).');
+        this.error.set('Selecciona una categoría.');
+        return;
+      }
+
+      if (this.latitud === null || this.longitud === null ||
+          !Number.isFinite(this.latitud) || !Number.isFinite(this.longitud) ||
+          this.latitud < -90 || this.latitud > 90 ||
+          this.longitud < -180 || this.longitud > 180) {
+        this.error.set('Introduce coordenadas reales de tu zona de cobertura.');
+        return;
+      }
+      if (!(this.radioGood > 0 && this.radioMedio > this.radioGood && this.radioBad > this.radioMedio)) {
+        this.error.set('Los radios deben ser crecientes.');
+        return;
+      }
+      if (!/^https?:\/\//i.test(this.documentoUrl.trim())) {
+        this.error.set('Ingresa un enlace real al documento del trabajador.');
         return;
       }
 
@@ -97,27 +119,27 @@ export class AuthComponent {
         categorias,
         zonas: [
           {
-            etiqueta: this.zonaEtiqueta.trim() || 'Zona principal',
-            latitud: this.latitudDefecto,
-            longitud: this.longitudDefecto,
-            radio_good: this.radioGoodDefecto,
-            radio_medio: this.radioMedioDefecto,
-            radio_bad: this.radioBadDefecto,
+            etiqueta: this.zonaEtiqueta.trim(),
+            latitud: this.latitud,
+            longitud: this.longitud,
+            radio_good: this.radioGood,
+            radio_medio: this.radioMedio,
+            radio_bad: this.radioBad,
           },
         ],
         disponibilidades: [
           {
-            dia_semana: this.diaSemanaDefecto,
-            hora_inicio: this.horaInicioDefecto,
-            hora_fin: this.horaFinDefecto,
+            dia_semana: this.diaSemana,
+            hora_inicio: this.horaInicio,
+            hora_fin: this.horaFin,
           },
         ],
       };
 
       documentos = [
         {
-          tipo_documento: this.tipoDocumentoDefecto,
-          ubucacion_archivo: this.ubicacionArchivoDefecto,
+          tipo_documento: 'CI',
+          ubucacion_archivo: this.documentoUrl.trim(),
           url_y_n: false,
         },
       ];
@@ -131,6 +153,7 @@ export class AuthComponent {
         ? await this.auth.registro({
             nombre: this.nombre,
             email: this.email,
+            telefono: this.telefono,
             password: this.password,
             rol: this.rol,
             perfil_reparador,

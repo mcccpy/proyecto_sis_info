@@ -1,5 +1,4 @@
-﻿import {
-  BadRequestException,
+import {
   Body,
   Controller,
   Get,
@@ -10,12 +9,14 @@
 import { CategoriaService } from '../modules/categoria/categoria.service';
 import { PerfilTrabajadorService } from '../modules/perfil-trabajador/perfil-trabajador.service';
 import { UpdatePerfilTrabajadorDto } from '../modules/perfil-trabajador/dto/update-perfil-trabajador.dto';
+import { SesionService } from './sesion.service';
 
 @Controller()
 export class CatalogoTrabajadoresController {
   constructor(
     private readonly categoriaService: CategoriaService,
     private readonly perfilTrabajadorService: PerfilTrabajadorService,
+    private readonly sesiones: SesionService,
   ) {}
 
   @Get('catalogo/categorias')
@@ -28,32 +29,17 @@ export class CatalogoTrabajadoresController {
     @Query('categoria') _categoria?: string,
     @Query('zona') _zona?: string,
   ) {
-    return this.perfilTrabajadorService.listarTodos();
+    return this.perfilTrabajadorService.listarTodos().then(lista =>
+      lista.filter(perfil => perfil.estadoAprobacion === 'aprobado'));
   }
 
   @Patch('trabajadores/mi-perfil')
-  async actualizarMiPerfil(
+  actualizarMiPerfil(
     @Body() body: UpdatePerfilTrabajadorDto,
-    @Headers('x-user-id') headerUserId?: string,
+    @Headers('authorization') autorizacion?: string,
   ) {
-    let idUsuario = Number(body?.idUsuario ?? headerUserId ?? 0) || 0;
-
-    if (!idUsuario) {
-      const todos = await this.perfilTrabajadorService.listarTodos();
-      const lista = Array.isArray(todos) ? todos : [];
-      const primero = lista[0] as Record<string, unknown> | undefined;
-      idUsuario = Number(primero?.idUsuario ?? primero?.id_usuario ?? 0) || 0;
-    }
-
-    if (!idUsuario) {
-      throw new BadRequestException(
-        'No se pudo identificar el usuario del perfil profesional',
-      );
-    }
-
-    return this.perfilTrabajadorService.actualizarPerfilCompleto(
-      idUsuario,
-      body,
-    );
+    const idUsuario = this.sesiones.verificar(autorizacion);
+    // La identidad la determina el token, nunca el primer trabajador de la lista.
+    return this.perfilTrabajadorService.actualizarPerfilCompleto(idUsuario, body);
   }
 }

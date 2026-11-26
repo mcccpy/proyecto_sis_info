@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { PrismaQueryContext } from '../../prisma/prisma.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -34,7 +34,7 @@ export class PerfilTrabajadorRepository {
 
   /** Lista perfiles con sus datos de usuario y relaciones profesionales. */
   findAll() {
-    return this.prisma.db.orm.public.PerfilTrabajador.include('usuario')
+    return this.prisma.db.orm.public.PerfilTrabajador.include('usuario', (usuario) => usuario.select('idUsuario', 'nombre', 'email', 'telefono'))
       .include('categoriaReparadors', (categorias_del_reparador) =>
         categorias_del_reparador.include('categoria'),
       )
@@ -55,7 +55,7 @@ export class PerfilTrabajadorRepository {
       .include('usuario', (usuario) =>
         usuario.include('calificacions', (calificaciones) =>
           calificaciones.include('servicio'),
-        ),
+        ).select('idUsuario', 'nombre', 'email', 'telefono'),
       )
       .where({ idUsuario: id_usuario })
       .first();

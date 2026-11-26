@@ -113,7 +113,10 @@ export class ClienteComponent implements OnInit {
         zona: '',
         disponibilidad: '',
         categoriaId: 0,
-        fotoUrl: ''
+        fotoUrl: '',
+        latitud: null as number | null,
+        longitud: null as number | null,
+        fechaPreferida: ''
     };
 
 
@@ -404,6 +407,20 @@ export class ClienteComponent implements OnInit {
         }
 
 
+        if (this.form.latitud === null || this.form.longitud === null ||
+            !Number.isFinite(this.form.latitud) || !Number.isFinite(this.form.longitud) ||
+            this.form.latitud < -90 || this.form.latitud > 90 ||
+            this.form.longitud < -180 || this.form.longitud > 180) {
+            this.error.set('Ingresa coordenadas reales de la ubicación del trabajo.');
+            return;
+        }
+        if (!this.form.fechaPreferida ||
+            !Number.isFinite(new Date(this.form.fechaPreferida).getTime()) ||
+            new Date(this.form.fechaPreferida).getTime() <= Date.now()) {
+            this.error.set('Selecciona una fecha y hora futuras para el trabajo.');
+            return;
+        }
+
         // ----------------------------------
         // ENVIAR SOLICITUD AL BACKEND
         // ----------------------------------
@@ -429,7 +446,10 @@ export class ClienteComponent implements OnInit {
                 zona: '',
                 disponibilidad: '',
                 categoriaId: 0,
-                fotoUrl: ''
+                fotoUrl: '',
+                latitud: null,
+                longitud: null,
+                fechaPreferida: ''
             };
 
 

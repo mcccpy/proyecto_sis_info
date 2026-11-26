@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TrabajoService } from './trabajo.service';
 import { TrabajoController } from './trabajo.controller';
+import { SolicitudesCompatController } from './solicitudes-compat.controller';
+import { SesionService } from '../../auth/sesion.service';
 import { TrabajoRepository } from './trabajo.repository';
 import { PropuestaModule } from '../propuesta/propuesta.module';
 import { ServicioModule } from '../servicio/servicio.module';
@@ -15,7 +17,7 @@ import { PerfilTrabajadorModule } from '../perfil-trabajador/perfil-trabajador.m
     UsuarioModule,
     PerfilTrabajadorModule,
   ],
-  controllers: [TrabajoController],
-  providers: [TrabajoService, TrabajoRepository],
+  controllers: [TrabajoController, SolicitudesCompatController],
+  providers: [TrabajoService, TrabajoRepository, SesionService],
 })
 export class TrabajoModule {}
