@@ -1,5 +1,4 @@
-
-import { Component, inject, signal } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -15,71 +14,48 @@ import { Rol } from '../core/models';
 
 export class AuthComponent {
 
-  // ==========================================
-  // 1. SERVICIOS QUE UTILIZAMOS
-  // ==========================================
-
-  // Servicio para registrar e iniciar sesion
   auth = inject(AuthService);
-
-  // Servicio para cambiar de pagina
   router = inject(Router);
-
-  // Servicio para saber en que pagina estamos
   route = inject(ActivatedRoute);
 
-
-  // ==========================================
-  // 2. SABER SI ES REGISTRO O INICIO DE SESION
-  // ==========================================
-
-  // Si estamos en /registro, sera verdadero
-  // Si estamos en /ingresar, sera falso
   esRegistro = this.route.snapshot.data['modo'] === 'registro';
-
-
-  // ==========================================
-  // 3. DATOS DEL FORMULARIO
-  // ==========================================
 
   nombre = '';
   email = '';
   password = '';
-
-  // Por defecto, la cuenta sera de cliente
   rol: Rol = 'CLIENTE';
 
+  // Solo campos esenciales visibles para el técnico
+  experienciaAnios = 2;
+  categoriasTexto = '1';
+  zonaEtiqueta = 'Zona Central';
 
-  // ==========================================
-  // 4. MENSAJES Y ESTADO DEL BOTON
-  // ==========================================
+  // Valores técnicos por defecto para cumplir con el DTO sin saturar el formulario
+  private readonly latitudDefecto = -17.3895;
+  private readonly longitudDefecto = -66.1568;
+  private readonly radioGoodDefecto = 1000;
+  private readonly radioMedioDefecto = 3000;
+  private readonly radioBadDefecto = 6000;
+  private readonly diaSemanaDefecto = 1;
+  private readonly horaInicioDefecto = '08:00';
+  private readonly horaFinDefecto = '18:00';
+  private readonly tipoDocumentoDefecto = 'CI';
+  private readonly ubicacionArchivoDefecto = 'documento-identidad.pdf';
 
-  // Guarda los mensajes de error
   error = signal('');
-
-  // Indica si se esta procesando el formulario
   cargando = signal(false);
-
-
-  // ==========================================
-  // 5. REGISTRARSE O INICIAR SESION
-  // ==========================================
 
   async enviar() {
 
-    // Evita enviar dos veces el formulario
     if (this.cargando()) {
       return;
     }
 
-    // Limpiamos los mensajes anteriores
     this.error.set('');
 
-    // Quitamos espacios innecesarios
     this.nombre = this.nombre.trim();
     this.email = this.email.trim();
 
-    // Verificamos los datos basicos
     if (this.esRegistro && this.nombre.length < 2) {
       this.error.set('El nombre debe tener al menos 2 caracteres.');
       return;
@@ -95,54 +71,94 @@ export class AuthComponent {
       return;
     }
 
-    // Desactivamos el boton mientras se procesa
+    let perfil_reparador: unknown = undefined;
+    let documentos: unknown = undefined;
+
+    if (this.esRegistro && this.rol === 'TRABAJADOR') {
+      const categorias = this.categoriasTexto
+        .split(',')
+        .map((item) => Number(item.trim()))
+        .filter((n) => Number.isInteger(n) && n >= 1);
+
+      const exp = Number(this.experienciaAnios);
+
+      if (!Number.isInteger(exp) || exp < 0 || exp > 100) {
+        this.error.set('Los años de experiencia deben ser un número entre 0 y 100.');
+        return;
+      }
+
+      if (categorias.length === 0) {
+        this.error.set('Ingresa al menos un ID de categoría válido (ej. 1).');
+        return;
+      }
+
+      perfil_reparador = {
+        experiencia_anios: exp,
+        categorias,
+        zonas: [
+          {
+            etiqueta: this.zonaEtiqueta.trim() || 'Zona principal',
+            latitud: this.latitudDefecto,
+            longitud: this.longitudDefecto,
+            radio_good: this.radioGoodDefecto,
+            radio_medio: this.radioMedioDefecto,
+            radio_bad: this.radioBadDefecto,
+          },
+        ],
+        disponibilidades: [
+          {
+            dia_semana: this.diaSemanaDefecto,
+            hora_inicio: this.horaInicioDefecto,
+            hora_fin: this.horaFinDefecto,
+          },
+        ],
+      };
+
+      documentos = [
+        {
+          tipo_documento: this.tipoDocumentoDefecto,
+          ubucacion_archivo: this.ubicacionArchivoDefecto,
+          url_y_n: false,
+        },
+      ];
+    }
+
     this.cargando.set(true);
 
     try {
 
-      // Si es registro, creamos la cuenta.
-      // Si no es registro, iniciamos sesion.
       const respuesta = this.esRegistro
         ? await this.auth.registro({
             nombre: this.nombre,
             email: this.email,
             password: this.password,
-            rol: this.rol
+            rol: this.rol,
+            perfil_reparador,
+            documentos,
           })
         : await this.auth.login({
             email: this.email,
             password: this.password
           });
 
-
-      // ======================================
-      // 6. REDIRIGIR SEGUN EL TIPO DE USUARIO
-      // ======================================
-
-      // Por defecto, enviamos al area de clientes
       let destino = '/cliente';
 
-      // Si es trabajador, va a su seccion
       if (respuesta.usuario.rol === 'TRABAJADOR') {
         destino = '/trabajador';
       }
 
-      // Si es administrador, va a su seccion
       if (respuesta.usuario.rol === 'ADMIN') {
         destino = '/administrador';
       }
 
-      // Cambiamos a la pagina correspondiente
       await this.router.navigateByUrl(destino);
 
     } catch (e) {
 
-      // Si ocurre un error, lo mostramos
       this.error.set(mensajeError(e));
 
     } finally {
 
-      // Volvemos a activar el boton
       this.cargando.set(false);
 
     }

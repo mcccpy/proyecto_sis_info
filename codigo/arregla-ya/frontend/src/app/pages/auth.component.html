@@ -1,13 +1,4 @@
-
-<!-- ======================================= -->
-<!-- 1. ESTRUCTURA PRINCIPAL -->
-<!-- ======================================= -->
-
-<div class="auth-layout">
-
-  <!-- ===================================== -->
-  <!-- 2. PANEL IZQUIERDO: BIENVENIDA -->
-  <!-- ===================================== -->
+﻿<div class="auth-layout">
 
   <section class="auth-aside">
 
@@ -30,11 +21,6 @@
 
   </section>
 
-
-  <!-- ===================================== -->
-  <!-- 3. PANEL DERECHO: FORMULARIO -->
-  <!-- ===================================== -->
-
   <section class="auth-form">
 
     <div class="form-panel">
@@ -55,11 +41,6 @@
         }}
       </p>
 
-
-      <!-- ================================= -->
-      <!-- 4. MENSAJES DE ERROR -->
-      <!-- ================================= -->
-
       @if (error()) {
 
         <div class="alert error">
@@ -68,14 +49,7 @@
 
       }
 
-
-      <!-- ================================= -->
-      <!-- 5. FORMULARIO -->
-      <!-- ================================= -->
-
       <form (ngSubmit)="enviar()">
-
-        <!-- Nombre: solo aparece en registro -->
 
         @if (esRegistro) {
 
@@ -96,9 +70,6 @@
 
         }
 
-
-        <!-- Correo electronico -->
-
         <label>
           Correo electrónico
 
@@ -112,9 +83,6 @@
           >
 
         </label>
-
-
-        <!-- Contraseña -->
 
         <label>
           Contraseña
@@ -130,12 +98,6 @@
           >
 
         </label>
-
-
-        <!-- ================================= -->
-        <!-- 6. ELEGIR TIPO DE CUENTA -->
-        <!-- Solo aparece al registrarse -->
-        <!-- ================================= -->
 
         @if (esRegistro) {
 
@@ -168,12 +130,49 @@
             antes de ofrecer servicios.
           </p>
 
+          @if (rol === 'TRABAJADOR') {
+
+            <fieldset class="worker-box">
+              <legend>Datos del técnico</legend>
+
+              <label>
+                Años de experiencia
+                <input
+                  name="experienciaAnios"
+                  type="number"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="experienciaAnios"
+                  required
+                >
+              </label>
+
+              <label>
+                ID de categoría
+                <input
+                  name="categoriasTexto"
+                  type="text"
+                  [(ngModel)]="categoriasTexto"
+                  placeholder="Ej. 1"
+                  required
+                >
+              </label>
+
+              <label>
+                Zona de cobertura
+                <input
+                  name="zonaEtiqueta"
+                  type="text"
+                  [(ngModel)]="zonaEtiqueta"
+                  placeholder="Ej. Cala Cala"
+                  required
+                >
+              </label>
+            </fieldset>
+
+          }
+
         }
-
-
-        <!-- ================================= -->
-        <!-- 7. BOTON PARA ENVIAR -->
-        <!-- ================================= -->
 
         <button
           class="btn btn-primary wide"
@@ -194,11 +193,6 @@
         </button>
 
       </form>
-
-
-      <!-- ================================= -->
-      <!-- 8. CAMBIAR ENTRE LOGIN Y REGISTRO -->
-      <!-- ================================= -->
 
       <p class="auth-switch">
 

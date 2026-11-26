@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+﻿import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService, AuthService, mensajeError } from '../core/api';
@@ -169,13 +169,15 @@ export class TrabajadorComponent implements OnInit {
     if (this.auth.usuario()?.rol !== 'TRABAJADOR') return;
     try {
       this.categorias.set(await this.api.categorias());
-      const p = await this.api.miPerfilTecnico();
+      const idUsuario = this.auth.usuario()?.id;
+      if (!idUsuario) return;
+      const p = await this.api.miPerfilTecnico(idUsuario);
       this.perfil.set(p);
       this.pf = {
         experiencia: p.experiencia || '',
         zona: p.zona || '',
         disponibilidad: p.disponibilidad || '',
-        categoriaId: p.categoria?.id || 0
+        categoriaId: Number(p.categoria?.id || 0)
       };
     } catch (e) {
       this.error.set(mensajeError(e));
@@ -195,7 +197,7 @@ export class TrabajadorComponent implements OnInit {
   async guardarPerfil() {
     this.error.set('');
     this.exito.set('');
-    if (!this.pf.categoriaId || this.pf.zona.trim().length < 2 ||
+    if (!(Number(this.pf.categoriaId) > 0) || (this.pf.zona || '').trim().length < 2 ||
         this.pf.experiencia.trim().length < 3 || this.pf.disponibilidad.trim().length < 3) {
       this.error.set('Completa especialidad, zona, experiencia y disponibilidad antes de guardar.');
       return;
@@ -204,6 +206,7 @@ export class TrabajadorComponent implements OnInit {
     try {
       const p = await this.api.guardarPerfil({
         ...this.pf,
+        categoriaId: Number(this.pf.categoriaId),
         zona: this.pf.zona.trim(),
         experiencia: this.pf.experiencia.trim(),
         disponibilidad: this.pf.disponibilidad.trim()
@@ -302,3 +305,7 @@ export class TrabajadorComponent implements OnInit {
     return typeof c === 'string' ? c : c.nombre;
   }
 }
+
+
+
+

@@ -1,4 +1,4 @@
-
+﻿
 import { inject, Injectable, signal } from '@angular/core';
 
 import {
@@ -137,6 +137,8 @@ export class AuthService {
         email: string;
         password: string;
         rol: Rol;
+        perfil_reparador?: unknown;
+        documentos?: unknown;
     }) {
 
         const respuesta = await firstValueFrom(
@@ -285,15 +287,24 @@ export class ApiService {
     // 5.1 OBTENER CATEGORIAS
     // --------------------------------------
 
-    categorias() {
-
-        return firstValueFrom(
-
-            this.http.get<Categoria[]>(
-                `${API_URL}/catalogo/categorias`
-            )
-
+    async categorias(): Promise<Categoria[]> {
+        const raw = await firstValueFrom(
+            this.http.get<unknown>(`${API_URL}/catalogo/categorias`)
         );
+        const lista = Array.isArray(raw)
+            ? raw
+            : Array.isArray((raw as { value?: unknown[] })?.value)
+                ? (raw as { value: unknown[] }).value
+                : [];
+        return lista.map((item) => {
+            const obj = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+            const idNum = Number(obj['id'] ?? obj['idCategoria'] ?? obj['id_categoria'] ?? 0) || 0;
+            return {
+                ...obj,
+                id: idNum,
+                nombre: String(obj['nombre'] ?? ''),
+            } as Categoria;
+        });
     }
 
 
@@ -304,30 +315,128 @@ export class ApiService {
     trabajadores(filtros: {
         categoria?: number;
         zona?: string;
-    } = {}) {
-
-        // Filtros para la busqueda
-        let params: Record<string, string> = {};
-
-        // Filtrar por categoria
+    } = {}): Promise<Trabajador[]> {
+        const params: Record<string, string> = {};
         if (filtros.categoria) {
             params['categoria'] = String(filtros.categoria);
         }
-
-        // Filtrar por zona
         if (filtros.zona) {
             params['zona'] = filtros.zona;
         }
 
         return firstValueFrom(
+            this.http.get<unknown>(`${API_URL}/trabajadores`, { params })
+        ).then((raw) => {
+            const lista = Array.isArray(raw)
+                ? raw
+                : Array.isArray((raw as { value?: unknown[] })?.value)
+                    ? (raw as { value: unknown[] }).value
+                    : [];
 
-            this.http.get<Trabajador[]>(
-                `${API_URL}/trabajadores`,
-                { params }
-            )
+            const normalizados = lista.map((item) => {
+                const obj = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+                const usuario = (obj['usuario'] && typeof obj['usuario'] === 'object'
+                    ? obj['usuario']
+                    : {}) as Record<string, unknown>;
 
-        );
+                const catsRel = Array.isArray(obj['categoriaReparadors'])
+                    ? (obj['categoriaReparadors'] as Array<Record<string, unknown>>)
+                    : [];
+                const nombresCats = catsRel
+                    .map((cr) => {
+                        const cObj = (cr['categoria'] && typeof cr['categoria'] === 'object'
+                            ? cr['categoria']
+                            : {}) as Record<string, unknown>;
+                        return String(cObj['nombre'] ?? cr['nombre'] ?? '').trim();
+                    })
+                    .filter(Boolean);
+                const idsCats = catsRel
+                    .map((cr) => {
+                        const cObj = (cr['categoria'] && typeof cr['categoria'] === 'object'
+                            ? cr['categoria']
+                            : {}) as Record<string, unknown>;
+                        return Number(cr['idCategoria'] ?? cObj['id'] ?? cObj['idCategoria'] ?? 0) || 0;
+                    })
+                    .filter((n) => n > 0);
+
+                const zonasRel = Array.isArray(obj['zonaReparadors'])
+                    ? (obj['zonaReparadors'] as Array<Record<string, unknown>>)
+                    : [];
+                const nombresZonas = zonasRel
+                    .map((zr) => String(zr['etiqueta'] ?? zr['zona'] ?? '').trim())
+                    .filter(Boolean);
+
+                const dispRel = Array.isArray(obj['disponibilidads'])
+                    ? (obj['disponibilidads'] as Array<Record<string, unknown>>)
+                    : [];
+                const textoDisp = dispRel
+                    .map((dr) => {
+                        const hIni = String(dr['horaInicio'] ?? dr['hora_inicio'] ?? '').trim();
+                        const hFin = String(dr['horaFin'] ?? dr['hora_fin'] ?? '').trim();
+                        return hIni && hFin ? `${hIni} - ${hFin}` : '';
+                    })
+                    .filter(Boolean)
+                    .join(', ');
+
+                const expAnios = obj['experienciaAnios'] ?? obj['experiencia_anios'];
+                const experienciaTexto =
+                    String(obj['experiencia'] ?? '').trim() ||
+                    (expAnios !== undefined && expAnios !== null && String(expAnios).trim() !== ''
+                        ? `${expAnios} año(s) de experiencia`
+                        : 'Experiencia registrada');
+
+                const idFinal = Number(
+                    obj['id'] ?? obj['idUsuario'] ?? obj['id_usuario'] ?? usuario['idUsuario'] ?? 0
+                ) || 0;
+
+                const nombreFinal =
+                    String(obj['nombre'] ?? usuario['nombre'] ?? '').trim() ||
+                    `Técnico #${idFinal || ''}`.trim();
+
+                const categoriaFinal =
+                    String(obj['categoria'] ?? '').trim() ||
+                    nombresCats.join(', ') ||
+                    'Especialista';
+
+                const zonaFinal =
+                    String(obj['zona'] ?? '').trim() ||
+                    nombresZonas.join(', ') ||
+                    'Zona por confirmar';
+
+                const disponibilidadFinal =
+                    String(obj['disponibilidad'] ?? '').trim() ||
+                    textoDisp ||
+                    'Horario por confirmar';
+
+                return {
+                    id: idFinal,
+                    nombre: nombreFinal,
+                    categoria: categoriaFinal,
+                    zona: zonaFinal,
+                    disponibilidad: disponibilidadFinal,
+                    experiencia: experienciaTexto,
+                    _categoriaIds: idsCats,
+                } as Trabajador & { _categoriaIds?: number[] };
+            });
+
+            const filtroCatNum = Number(filtros.categoria ?? 0) || 0;
+            const filtroZonaTxt = String(filtros.zona ?? '').trim().toLowerCase();
+
+            return normalizados
+                .filter((t) => {
+                    const matchCat =
+                        !filtroCatNum ||
+                        !t._categoriaIds?.length ||
+                        t._categoriaIds.includes(filtroCatNum);
+                    const matchZona =
+                        !filtroZonaTxt ||
+                        t.zona.toLowerCase().includes(filtroZonaTxt);
+                    return matchCat && matchZona;
+                })
+                .map(({ _categoriaIds: _ignored, ...rest }) => rest);
+        });
     }
+
 
 
     // --------------------------------------
@@ -480,14 +589,11 @@ export class ApiService {
     // 6.2 VER MI PERFIL TECNICO
     // --------------------------------------
 
-    miPerfilTecnico() {
-
+    miPerfilTecnico(idUsuario: number) {
         return firstValueFrom(
-
             this.http.get<PerfilTrabajador>(
-                `${API_URL}/trabajadores/mi-perfil`
+                `${API_URL}/perfil-trabajador/${idUsuario}`
             )
-
         );
     }
 
@@ -554,3 +660,12 @@ export class ApiService {
     }
 
 }
+
+
+
+
+
+
+
+
+
