@@ -1,0 +1,129 @@
+<main class="page shell">
+  <div class="page-top">
+    <div>
+      <span class="kicker">DEFENSA INDIVIDUAL · JOEL TORRICO</span>
+      <h1>Reprogramación de visitas técnicas</h1>
+      <p class="subtle">Solicita cambios, revisa conflictos y consulta el historial real.</p>
+    </div>
+  </div>
+
+  @if (!puedeEntrar()) {
+    <div class="alert info">
+      Debes iniciar sesión como cliente o trabajador.
+      <a routerLink="/ingresar">Iniciar sesión</a>
+    </div>
+  } @else {
+    @if (error()) { <div class="visita-mensaje visita-error">{{ error() }}</div> }
+    @if (exito()) { <div class="visita-mensaje visita-exito">{{ exito() }}</div> }
+
+    <section class="panel visitas-panel">
+      <div class="visita-botones">
+        <button type="button" class="btn btn-outline" (click)="cargarDatos()" [disabled]="cargando()">
+          {{ cargando() ? 'Cargando...' : 'Actualizar visitas' }}
+        </button>
+      </div>
+      <p class="subtle">Solo verás visitas de servicios donde eres cliente o trabajador asignado.</p>
+    </section>
+
+    <!-- Para demostrar una reprogramacion necesitamos una visita creada. -->
+    <section class="panel visitas-panel">
+      <h2>1. Programar una visita inicial</h2>
+      <p class="subtle">Usa un servicio activo que ya tenga una propuesta aceptada.</p>
+      <form (ngSubmit)="programar()" class="visita-form">
+        <label>Servicio
+          <select name="idServicio" [(ngModel)]="idServicio" required>
+            <option [ngValue]="0">Seleccionar servicio</option>
+            @for (s of servicios(); track s.id_servicio) {
+              <option [ngValue]="s.id_servicio">#{{ s.id_servicio }} · {{ s.titulo }}</option>
+            }
+          </select>
+        </label>
+        <label>Fecha y hora de inicio
+          <input type="datetime-local" name="inicioInicial" [(ngModel)]="inicioInicial" required>
+        </label>
+        <label>Fecha y hora de fin
+          <input type="datetime-local" name="finInicial" [(ngModel)]="finInicial" required>
+        </label>
+        <div class="visita-botones">
+          <button class="btn btn-primary" type="submit" [disabled]="ocupado()">Programar visita</button>
+        </div>
+      </form>
+      @if (servicios().length === 0) {
+        <p class="subtle">No hay servicios activos. Primero acepta una propuesta en ARREGLA YA.</p>
+      }
+    </section>
+
+    <section class="panel visitas-panel">
+      <h2>2. Mis visitas técnicas</h2>
+      @for (v of visitas(); track v.id_visita) {
+        <article class="visita-card">
+          <h3>Visita #{{ v.id_visita }} · {{ v.titulo }}</h3>
+          <div class="visita-grid">
+            <div>
+              <p><strong>Inicio:</strong> {{ v.fecha_inicio | date:'dd/MM/yyyy HH:mm' }}</p>
+              <p><strong>Fin:</strong> {{ v.fecha_fin | date:'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+            <div>
+              <p><strong>Estado:</strong> {{ v.estado }}</p>
+              <p><strong>Cliente:</strong> {{ v.nombre_cliente }}</p>
+              <p><strong>Trabajador:</strong> {{ v.nombre_reparador }}</p>
+            </div>
+          </div>
+          <button class="btn btn-outline" type="button" (click)="abrirHistorial(v.id_visita)">
+            {{ seleccionada() === v.id_visita ? 'Ocultar historial' : 'Ver historial y reprogramar' }}
+          </button>
+
+          @if (seleccionada() === v.id_visita) {
+            @if (v.estado === 'programada' && (v.estado_servicio === 'programado' || v.estado_servicio === 'en_progreso')) {
+              <h3 style="margin-top:18px">Solicitar nueva fecha</h3>
+              <form (ngSubmit)="solicitar(v.id_visita)" class="visita-form">
+                <label>Nuevo inicio
+                  <input type="datetime-local" name="nuevoInicio" [(ngModel)]="nuevoInicio" required>
+                </label>
+                <label>Nuevo fin
+                  <input type="datetime-local" name="nuevoFin" [(ngModel)]="nuevoFin" required>
+                </label>
+                <label>Motivo (mínimo 5 caracteres)
+                  <textarea name="motivo" [(ngModel)]="motivo" rows="2" minlength="5" maxlength="500" required></textarea>
+                </label>
+                <div class="visita-botones">
+                  <button class="btn btn-primary" type="submit" [disabled]="ocupado()">Enviar solicitud</button>
+                </div>
+              </form>
+            }
+
+            <h3 style="margin-top:22px">3. Historial de reprogramaciones</h3>
+            @for (h of historial(); track h.id_reprogramacion) {
+              <div class="historial-item">
+                <p><strong>Solicitud #{{ h.id_reprogramacion }} · {{ h.estado }}</strong></p>
+                <p>Solicitó: {{ h.nombre_solicitante }} · {{ h.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</p>
+                <p>Horario anterior: {{ h.fecha_anterior_inicio | date:'dd/MM/yyyy HH:mm' }}
+                  – {{ h.fecha_anterior_fin | date:'HH:mm' }}</p>
+                <p>Horario propuesto: {{ h.fecha_nueva_inicio | date:'dd/MM/yyyy HH:mm' }}
+                  – {{ h.fecha_nueva_fin | date:'HH:mm' }}</p>
+                <p>Motivo: {{ h.motivo }}</p>
+                @if (h.nombre_revisor) {
+                  <p>Respondió: {{ h.nombre_revisor }} · {{ h.fecha_respuesta | date:'dd/MM/yyyy HH:mm' }}</p>
+                }
+                <!-- El mismo solicitante NO puede responder su propia solicitud. -->
+                @if (h.estado === 'pendiente' && h.id_solicitante !== auth.usuario()?.id) {
+                  <div class="visita-botones">
+                    <button type="button" class="btn btn-primary" (click)="responder(h.id_reprogramacion, 'aprobar')" [disabled]="ocupado()">Aceptar horario</button>
+                    <button type="button" class="btn btn-outline" (click)="responder(h.id_reprogramacion, 'rechazar')" [disabled]="ocupado()">Rechazar</button>
+                  </div>
+                }
+                @if (h.estado === 'pendiente' && h.id_solicitante === auth.usuario()?.id) {
+                  <p class="muted">Esperando respuesta de la otra persona.</p>
+                }
+              </div>
+            } @empty {
+              <p class="subtle">Esta visita aún no tiene reprogramaciones.</p>
+            }
+          }
+        </article>
+      } @empty {
+        <div class="empty">Todavía no tienes visitas. Puedes programar una arriba.</div>
+      }
+    </section>
+  }
+</main>

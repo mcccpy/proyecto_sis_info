@@ -10,6 +10,7 @@ import { ServicioModule } from './modules/servicio/servicio.module';
 import { TrabajoModule } from './modules/trabajo/trabajo.module';
 import { UsuarioModule } from './modules/usuario/usuario.module';
 import { VisitaModule } from './modules/visita/visita.module';
+import { ReprogramacionModule } from './modules/reprogramacion-visita/reprogramacion.module';
 import { ZonaModule } from './modules/zona/zona.module';
 import { AuthModule } from './auth/auth.module';
 
@@ -28,6 +29,7 @@ import { AuthModule } from './auth/auth.module';
     TrabajoModule,
     UsuarioModule,
     VisitaModule,
+    ReprogramacionModule,
     ZonaModule,
     AuthModule,
   ],
