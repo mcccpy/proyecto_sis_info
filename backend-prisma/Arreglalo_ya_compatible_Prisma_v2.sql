@@ -32,7 +32,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- solo se usa para hashear contraseÃ
 
 CREATE TYPE estado_aprobacion_enum   AS ENUM ('pendiente', 'aprobado', 'rechazado');
 CREATE TYPE estado_publicacion_enum  AS ENUM ('abierto', 'cerrado', 'cancelado');
-CREATE TYPE estado_propuesta_enum    AS ENUM ('pendiente', 'aceptada', 'rechazada', 'retirada');
+CREATE TYPE estado_propuesta_enum    AS ENUM ('pendiente','contrapropuesta', 'aceptada', 'rechazada', 'retirada');
 CREATE TYPE estado_visita_enum       AS ENUM ('programada', 'realizada', 'cancelada');
 CREATE TYPE estado_servicio_enum     AS ENUM ('programado', 'en_progreso', 'completado', 'cancelado');
 CREATE TYPE metodo_pago_enum         AS ENUM ('efectivo', 'qr', 'transferencia');
@@ -152,6 +152,7 @@ CREATE TABLE propuesta (
     id_trabajo           INT NOT NULL REFERENCES trabajo (id_trabajo) ON DELETE CASCADE,
     id_reparador         INT NOT NULL REFERENCES perfil_trabajador (id_usuario) ON DELETE RESTRICT,
     precio_total         NUMERIC(12,2) NOT NULL CHECK (precio_total >= 0),
+    precio_contrapropuesta NUMERIC(12,2) CHECK (precio_contrapropuesta >= 0),
     costo_visita         NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (costo_visita >= 0),
     materiales_incluidos BOOLEAN NOT NULL DEFAULT false,
     detalle_materiales   TEXT,
