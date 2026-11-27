@@ -1,4 +1,4 @@
-
+﻿
 import {
     Component,
     inject,
@@ -1069,4 +1069,106 @@ export class ClienteComponent implements OnInit {
         // No registra reclamos en PostgreSQL
     }
 
+
+    // ======================================
+    // 30. DEVOLUCIONES PARCIALES DE PAGO
+    // ======================================
+
+    idPagoDevolucion = 0;
+    montoDevolucion = 0;
+    motivoDevolucion = '';
+    registrandoDevolucion = signal(false);
+
+    resumenDevoluciones = signal<{
+        idPago: number;
+        estadoPago: string;
+        montoOriginal: number;
+        totalDevuelto: number;
+        saldoResultante: number;
+        historial: Array<{
+            idDevolucion: number;
+            idPago: number;
+            monto: number;
+            motivo: string;
+            creadoEn: string;
+        }>;
+    } | null>(null);
+
+    async cargarDevoluciones(idPago: number) {
+        this.error.set('');
+        const idNum = Number(idPago);
+        if (!Number.isInteger(idNum) || idNum <= 0) {
+            this.error.set('Ingresa un ID de pago válido para consultar el historial.');
+            return;
+        }
+
+        try {
+            const datos = (await this.api.obtenerDevolucionesPago(idNum)) as { idPago: number; estadoPago: string; montoOriginal: number; totalDevuelto: number; saldoResultante: number; historial: Array<{ idDevolucion: number; idPago: number; monto: number; motivo: string; creadoEn: string; }>; };
+            this.resumenDevoluciones.set(datos);
+        } catch (e) {
+            this.resumenDevoluciones.set(null);
+            this.error.set(mensajeError(e));
+        }
+    }
+
+    async registrarDevolucion() {
+        if (this.registrandoDevolucion()) {
+            return;
+        }
+
+        this.error.set('');
+        this.exito.set('');
+
+        const idPago = Number(this.idPagoDevolucion);
+        const monto = Number(this.montoDevolucion);
+        const motivo = this.motivoDevolucion.trim();
+
+        if (!Number.isInteger(idPago) || idPago <= 0) {
+            this.error.set('Debes indicar un ID de pago válido.');
+            return;
+        }
+
+        if (!Number.isFinite(monto) || monto <= 0) {
+            this.error.set('El monto de la devolución parcial debe ser mayor que cero.');
+            return;
+        }
+
+        if (motivo.length < 5) {
+            this.error.set('Debes ingresar un motivo justificado de al menos 5 caracteres.');
+            return;
+        }
+
+        const actual = this.resumenDevoluciones();
+        if (actual && actual.idPago === idPago && monto > actual.saldoResultante) {
+            this.error.set(
+                `El monto (${monto.toFixed(2)} Bs) supera el saldo resultante disponible (${actual.saldoResultante.toFixed(2)} Bs).`
+            );
+            return;
+        }
+
+        this.registrandoDevolucion.set(true);
+        try {
+            const resp = (await this.api.registrarDevolucionParcial(idPago, {
+                monto,
+                motivo,
+            })) as { idPago: number; estadoPago: string; montoOriginal: number; totalDevuelto: number; saldoResultante: number; historial: Array<{ idDevolucion: number; idPago: number; monto: number; motivo: string; creadoEn: string; }>; };
+            this.resumenDevoluciones.set({
+                idPago: resp.idPago,
+                estadoPago: resp.estadoPago,
+                montoOriginal: resp.montoOriginal,
+                totalDevuelto: resp.totalDevuelto,
+                saldoResultante: resp.saldoResultante,
+                historial: resp.historial,
+            });
+            this.montoDevolucion = 0;
+            this.motivoDevolucion = '';
+            this.exito.set('Devolución parcial registrada correctamente.');
+        } catch (e) {
+            this.error.set(mensajeError(e));
+        } finally {
+            this.registrandoDevolucion.set(false);
+        }
+    }
 }
+
+

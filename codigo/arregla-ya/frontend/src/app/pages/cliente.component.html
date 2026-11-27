@@ -1,4 +1,4 @@
-
+﻿
 <!-- ====================================== -->
 <!-- PAGINA PRINCIPAL DEL CLIENTE -->
 <!-- ====================================== -->
@@ -993,6 +993,128 @@
 
 
                             <!-- ================================= -->
+                            
+                            <!-- ================================= -->
+                            <!-- 14.1 DEVOLUCIONES PARCIALES DE PAGO -->
+                            <!-- ================================= -->
+
+                            <h4>
+                                Devolución parcial de pago
+                            </h4>
+
+                            <div class="form-grid">
+
+                                <label>
+
+                                    ID de pago
+
+                                    <input
+                                        type="number"
+                                        name="idPagoDevolucion"
+                                        [(ngModel)]="idPagoDevolucion"
+                                        min="1"
+                                        step="1"
+                                        placeholder="Ej. 1"
+                                    >
+
+                                </label>
+
+                                <label>
+
+                                    Monto a devolver (Bs)
+
+                                    <input
+                                        type="number"
+                                        name="montoDevolucion"
+                                        [(ngModel)]="montoDevolucion"
+                                        min="0.01"
+                                        step="0.01"
+                                    >
+
+                                </label>
+
+                                <label class="full">
+
+                                    Motivo justificado de la devolución
+
+                                    <textarea
+                                        name="motivoDevolucion"
+                                        [(ngModel)]="motivoDevolucion"
+                                        rows="2"
+                                        placeholder="Ej. Ajuste por repuesto no utilizado o cobro excedente"
+                                    ></textarea>
+
+                                </label>
+
+                            </div>
+
+                            <div class="actions">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline btn-sm"
+                                    (click)="cargarDevoluciones(idPagoDevolucion)"
+                                >
+                                    Consultar saldo e historial
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm"
+                                    [disabled]="registrandoDevolucion()"
+                                    (click)="registrarDevolucion()"
+                                >
+                                    Registrar devolución parcial
+                                </button>
+
+                            </div>
+
+                            @if (resumenDevoluciones(); as res) {
+
+                                <div class="alert info">
+
+                                    <p>
+                                        <strong>Pago #{{ res.idPago }}</strong>
+                                        (Estado: {{ res.estadoPago }})
+                                    </p>
+                                    <p>
+                                        <strong>Monto original:</strong>
+                                        {{ res.montoOriginal.toFixed(2) }} Bs
+                                    </p>
+                                    <p>
+                                        <strong>Total devuelto acumulado:</strong>
+                                        {{ res.totalDevuelto.toFixed(2) }} Bs
+                                    </p>
+                                    <p>
+                                        <strong>Saldo resultante:</strong>
+                                        {{ res.saldoResultante.toFixed(2) }} Bs
+                                    </p>
+
+                                    <h5>Historial de devoluciones</h5>
+
+                                    @if (res.historial.length === 0) {
+
+                                        <p class="help">
+                                            No hay devoluciones parciales registradas para este pago.
+                                        </p>
+
+                                    } @else {
+
+                                        <ul>
+                                            @for (item of res.historial; track item.idDevolucion) {
+                                                <li>
+                                                    <strong>{{ item.monto.toFixed(2) }} Bs</strong> — {{ item.motivo }}
+                                                    <small>({{ item.creadoEn }})</small>
+                                                </li>
+                                            }
+                                        </ul>
+
+                                    }
+
+                                </div>
+
+                            }
+
                             <!-- 15. AUMENTO DE PRESUPUESTO -->
                             <!-- ================================= -->
 
@@ -1677,3 +1799,4 @@
     }
 
 </main>
+
