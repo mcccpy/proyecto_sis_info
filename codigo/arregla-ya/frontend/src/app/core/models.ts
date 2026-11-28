@@ -54,6 +54,45 @@ export interface Propuesta {
     estado: string;
 }
 
+/** Ajuste histórico de precio asociado a un servicio. */
+export interface AjustePresupuesto {
+    id_incremento: number;
+    id_solicitante: number | null;
+    nombre_solicitante: string;
+    monto_anterior: string;
+    monto_nuevo: string;
+    motivo: string;
+    estado_aprobacion: string;
+    fecha_solicitud: string;
+    fecha_respuesta: string | null;
+}
+
+/** Servicio activo o histórico visible para una de sus partes. */
+export interface ServicioPresupuesto {
+    id_servicio: number;
+    estado: string;
+    id_trabajo: number;
+    titulo_trabajo: string;
+    id_reparador: number;
+    id_propuesta: number;
+    precio_total: string;
+    incrementos: AjustePresupuesto[];
+}
+
+/** Solicitud pendiente que espera la decisión de administración. */
+export interface IncrementoPendienteAdmin {
+    idIncremento: number;
+    montoAnterior: string;
+    montoNuevo: string;
+    motivo: string;
+    fechaSolicitud: string;
+    usuario?: { idUsuario: number; nombre: string; email: string } | null;
+    servicio?: {
+        idServicio: number;
+        propuesta?: { trabajo?: { idTrabajo: number; titulo: string } | null } | null;
+    } | null;
+}
+
 // Perfil profesional de un trabajador
 export interface PerfilTrabajador {
     id: number;

@@ -11,6 +11,8 @@ import { firstValueFrom } from 'rxjs';
 
 import {
     Categoria,
+    IncrementoPendienteAdmin,
+    ServicioPresupuesto,
     PerfilTrabajador,
     Propuesta,
     Rol,
@@ -575,6 +577,63 @@ export class ApiService {
             )
 
         );
+    }
+
+    /** Rechaza una propuesta desde la ruta compatible del cliente. */
+    rechazar(id: number) {
+        return firstValueFrom(
+            this.http.patch(
+                `${API_URL}/propuestas/${id}/rechazar`,
+                {}
+            )
+        );
+    }
+
+    /** Obtiene servicios e historial de presupuesto del cliente actual. */
+    serviciosCliente(idCliente: number): Promise<ServicioPresupuesto[]> {
+        return firstValueFrom(
+            this.http.get<ServicioPresupuesto[]>(
+                `${API_URL}/servicio/cliente/${idCliente}`
+            )
+        );
+    }
+
+    /** Obtiene los servicios activos e historial del reparador actual. */
+    serviciosReparador(idReparador: number): Promise<ServicioPresupuesto[]> {
+        return firstValueFrom(
+            this.http.get<ServicioPresupuesto[]>(
+                `${API_URL}/servicio/reparador/${idReparador}`
+            )
+        );
+    }
+
+    /** Envía un cambio del precio total vigente para revisión administrativa. */
+    solicitarAjustePresupuesto(
+        idServicio: number,
+        datos: { id_solicitante: number; monto_anterior: number; monto_nuevo: number; motivo: string }
+    ) {
+        return firstValueFrom(
+            this.http.post(
+                `${API_URL}/servicio/${idServicio}/presupuesto`,
+                datos
+            )
+        );
+    }
+
+    /** Lista las solicitudes de presupuesto pendientes de dictamen. */
+    presupuestosPendientesAdmin(idAdmin: number): Promise<IncrementoPendienteAdmin[]> {
+        return firstValueFrom(this.http.get<IncrementoPendienteAdmin[]>(
+            `${API_URL}/servicio/admin/presupuestos-pendientes`,
+            { params: { id_admin: idAdmin } },
+        ));
+    }
+
+    /** Guarda la aprobación o el rechazo administrativo de un aumento. */
+    dictaminarPresupuesto(idIncremento: number, idAdmin: number, estado: 'aprobado' | 'rechazado') {
+        return firstValueFrom(this.http.patch(
+            `${API_URL}/servicio/presupuesto/${idIncremento}/dictaminar`,
+            { id_admin: idAdmin, estado_aprobacion: estado },
+        ));
     }
 
 

@@ -73,6 +73,23 @@ export class ServicioController {
     );
   }
 
+  /** Lista los servicios e historial presupuestario de un cliente. */
+  // Endpoints de lectura para mostrar a cada parte sus servicios e historial de precio.
+  @Get('cliente/:id_cliente')
+  listarServiciosCliente(
+    @Param('id_cliente', ParseIntPipe) id_cliente: number,
+  ) {
+    return this.servicioService.listarServiciosCliente(id_cliente);
+  }
+
+  /** Lista los servicios activos e historial presupuestario de un reparador. */
+  @Get('reparador/:id_reparador')
+  listarServiciosReparador(
+    @Param('id_reparador', ParseIntPipe) id_reparador: number,
+  ) {
+    return this.servicioService.listarServiciosReparador(id_reparador);
+  }
+
   /** Completa un servicio después de comprobar el pago confirmado. */
   @Patch(':id_servicio/completar')
   completarServicio(

@@ -51,7 +51,34 @@ export class ServicioService {
       );
     }
 
+    // Se compara contra el precio vigente para rechazar solicitudes basadas en datos desfasados.
     const propuesta = servicio.propuesta;
+    const monto_vigente = Number(propuesta.precioTotal);
+    const monto_anterior = Number(datos_ajuste.monto_anterior.toFixed(2));
+    const monto_nuevo = Number(datos_ajuste.monto_nuevo.toFixed(2));
+
+    if (monto_anterior !== monto_vigente) {
+      throw new BadRequestException(
+        `El monto anterior debe coincidir con el presupuesto vigente de Bs ${monto_vigente.toFixed(2)}`,
+      );
+    }
+
+    if (monto_nuevo === monto_vigente) {
+      throw new BadRequestException(
+        'El monto nuevo debe ser distinto al presupuesto vigente',
+      );
+    }
+
+    // Evita acumular solicitudes mientras una modificación anterior espera dictamen.
+    const ajuste_pendiente =
+      await this.servicioRepository.tieneAjustePendiente(id_servicio);
+
+    if (ajuste_pendiente) {
+      throw new BadRequestException(
+        'Ya existe una solicitud de cambio de presupuesto pendiente para este servicio',
+      );
+    }
+
     const es_cliente_del_trabajo =
       datos_ajuste.id_solicitante === propuesta.trabajo.idCliente;
     const es_reparador_asignado =
@@ -66,15 +93,17 @@ export class ServicioService {
     const datos_incremento = {
       idServicio: id_servicio,
       idSolicitante: datos_ajuste.id_solicitante,
-      montoAnterior: datos_ajuste.monto_anterior.toFixed(2),
-      montoNuevo: datos_ajuste.monto_nuevo.toFixed(2),
+      montoAnterior: monto_anterior.toFixed(2),
+      montoNuevo: monto_nuevo.toFixed(2),
       motivo: datos_ajuste.motivo,
     };
 
+    // Los aumentos quedan pendientes de aprobación administrativa.
     if (datos_ajuste.monto_nuevo > datos_ajuste.monto_anterior) {
       return this.servicioRepository.crearIncrementoPendiente(datos_incremento);
     }
 
+    // La disminución se aplica directamente y solo la puede solicitar el reparador asignado.
     if (!es_reparador_asignado) {
       throw new ForbiddenException(
         'Solo el reparador puede registrar una disminución de presupuesto',
@@ -133,6 +162,16 @@ export class ServicioService {
       );
     }
 
+    // Un aumento solo puede aprobarse mientras el servicio siga activo.
+    if (
+      datos_dictamen.estado_aprobacion === 'aprobado' &&
+      !['programado', 'en_progreso'].includes(incremento.servicio.estado)
+    ) {
+      throw new BadRequestException(
+        'No se puede aprobar un cambio de presupuesto de un servicio completado o cancelado',
+      );
+    }
+
     const incremento_dictaminado =
       await this.servicioRepository.actualizarDictamenIncremento({
         idIncremento: id_incremento,
@@ -168,6 +207,38 @@ export class ServicioService {
   /** Lista servicios con sus propuestas, visitas, pagos y presupuestos. */
   listarTodos() {
     return this.servicioRepository.findAll();
+  }
+
+  /** Devuelve el historial de los servicios vinculados a un cliente. */
+  async listarServiciosCliente(id_cliente: number) {
+    if (!(await this.usuarioRepository.tieneRol(id_cliente, 'cliente'))) {
+      throw new ForbiddenException('Solo un cliente puede consultar estos servicios');
+    }
+
+    const servicios =
+      await this.servicioRepository.findServiciosConHistorialPresupuesto();
+
+    return servicios
+      .filter((servicio) => servicio.propuesta?.trabajo.idCliente === id_cliente)
+      .map((servicio) => this.mapearServicioConHistorial(servicio));
+  }
+
+  /** Devuelve los servicios activos asignados al reparador y su historial. */
+  async listarServiciosReparador(id_reparador: number) {
+    if (!(await this.usuarioRepository.tieneRol(id_reparador, 'reparador'))) {
+      throw new ForbiddenException('Solo un reparador puede consultar estos servicios');
+    }
+
+    const servicios =
+      await this.servicioRepository.findServiciosConHistorialPresupuesto();
+
+    return servicios
+      .filter(
+        (servicio) =>
+          servicio.propuesta?.idReparador === id_reparador &&
+          ['programado', 'en_progreso'].includes(servicio.estado),
+      )
+      .map((servicio) => this.mapearServicioConHistorial(servicio));
   }
 
   /** Busca el detalle de un servicio y notifica cuando no existe. */
@@ -371,5 +442,33 @@ export class ServicioService {
     }
 
     return servicio_cancelado;
+  }
+
+  /** Normaliza las relaciones para las vistas de cliente y reparador. */
+  private mapearServicioConHistorial(servicio: Awaited<ReturnType<ServicioRepository['findServiciosConHistorialPresupuesto']>>[number]) {
+    if (!servicio?.propuesta) {
+      throw new NotFoundException('No se encontró la propuesta asociada al servicio');
+    }
+
+    return {
+      id_servicio: servicio.idServicio,
+      estado: servicio.estado,
+      id_trabajo: servicio.propuesta.trabajo.idTrabajo,
+      titulo_trabajo: servicio.propuesta.trabajo.titulo,
+      id_reparador: servicio.propuesta.idReparador,
+      id_propuesta: servicio.propuesta.idPropuesta,
+      precio_total: Number(servicio.propuesta.precioTotal).toFixed(2),
+      incrementos: servicio.incrementoPresupuestos.map((incremento) => ({
+        id_incremento: incremento.idIncremento,
+        id_solicitante: incremento.idSolicitante,
+        nombre_solicitante: incremento.usuario?.nombre ?? 'Usuario',
+        monto_anterior: Number(incremento.montoAnterior).toFixed(2),
+        monto_nuevo: Number(incremento.montoNuevo).toFixed(2),
+        motivo: incremento.motivo,
+        estado_aprobacion: incremento.estadoAprobacion,
+        fecha_solicitud: incremento.fechaSolicitud,
+        fecha_respuesta: incremento.fechaRespuesta,
+      })),
+    };
   }
 }

@@ -2,7 +2,7 @@
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService, AuthService, mensajeError } from '../core/api';
-import { Categoria, PerfilTrabajador, Propuesta, Solicitud } from '../core/models';
+import { Categoria, PerfilTrabajador, Propuesta, ServicioPresupuesto, Solicitud } from '../core/models';
 
 @Component({
   selector: 'app-trabajador',
@@ -29,7 +29,46 @@ import { Categoria, PerfilTrabajador, Propuesta, Solicitud } from '../core/model
       <button [class.active]="vista() === 'perfil'" (click)="abrirPerfil()">Mi perfil</button>
       <button [class.active]="vista() === 'solicitudes'" (click)="cargarSolicitudes()">Solicitudes disponibles</button>
       <button [class.active]="vista() === 'ofertas'" (click)="cargarOfertas()">Mis presupuestos</button>
+      <button [class.active]="vista() === 'trabajos'" (click)="cargarTrabajos()">Mis trabajos</button>
     </div>
+
+    <!-- Esta vista enlaza cada servicio activo con su historial y formulario de ajustes. -->
+    @if (vista() === 'trabajos') {
+      <div class="result-title"><h3>Servicios activos</h3><span>{{ servicios().length }} servicios</span></div>
+      <div class="list-stack">
+        @for (servicio of servicios(); track servicio.id_servicio) {
+          <article class="job-card">
+            <div class="job-main"><div>
+              <span class="kicker">SERVICIO #{{ servicio.id_servicio }} · PROPUESTA #{{ servicio.id_propuesta }}</span>
+              <h3>{{ servicio.titulo_trabajo }}</h3>
+              <p>Estado: {{ servicio.estado }} · Precio vigente: Bs {{ servicio.precio_total }}</p>
+            </div></div>
+            <h4>Historial de cambios de presupuesto</h4>
+            @for (cambio of servicio.incrementos; track cambio.id_incremento) {
+              <p>#{{ cambio.id_incremento }} · {{ cambio.fecha_solicitud }} · {{ cambio.nombre_solicitante }} · Bs {{ cambio.monto_anterior }} → Bs {{ cambio.monto_nuevo }} · {{ cambio.estado_aprobacion }} · {{ cambio.motivo }}</p>
+            } @empty { <p class="subtle">Todavía no hay cambios solicitados.</p> }
+            @if (!tienePendiente(servicio)) {
+              <button class="btn btn-outline btn-sm" type="button" (click)="alternarFormulario(servicio.id_servicio)">
+                {{ formularioAbiertoId() === servicio.id_servicio ? 'Cerrar formulario' : 'Solicitar cambio de presupuesto' }}
+              </button>
+            }
+            @if (formularioAbiertoId() === servicio.id_servicio && !tienePendiente(servicio)) {
+              <p class="help">Ingresa el total final. Un monto superior solicita aumento; uno inferior solicita disminución inmediata.</p>
+              <form class="form-grid" (ngSubmit)="enviarAjuste(servicio)">
+                <label>Nuevo total (Bs)
+                  <input type="number" [name]="'monto' + servicio.id_servicio" min="0.01" step="0.01" required [(ngModel)]="formulario(servicio).montoNuevo">
+                </label>
+                <label class="full">Motivo
+                  <textarea [name]="'motivo' + servicio.id_servicio" required minlength="3" maxlength="1000" rows="2" [(ngModel)]="formulario(servicio).motivo"></textarea>
+                </label>
+                <p class="help full">Un aumento queda pendiente de aprobación administrativa. Una disminución se aplica al registrarla.</p>
+                <button class="btn btn-primary btn-sm" type="submit" [disabled]="enviandoId() !== null">{{ enviandoId() === servicio.id_servicio ? 'Enviando...' : 'Enviar cambio de presupuesto' }}</button>
+              </form>
+            } @else { <p class="alert info">Ya existe un cambio pendiente para este servicio.</p> }
+          </article>
+        } @empty { <div class="empty">No tienes servicios activos asignados.</div> }
+      </div>
+    }
 
     @if (vista() === 'perfil') {
       <section class="panel form-card">
@@ -154,7 +193,11 @@ export class TrabajadorComponent implements OnInit {
   perfil = signal<PerfilTrabajador | null>(null);
   solicitudes = signal<Solicitud[]>([]);
   ofertas = signal<Propuesta[]>([]);
-  vista = signal<'perfil' | 'solicitudes' | 'ofertas'>('perfil');
+  vista = signal<'perfil' | 'solicitudes' | 'ofertas' | 'trabajos'>('perfil');
+  servicios = signal<ServicioPresupuesto[]>([]);
+  enviandoId = signal<number | null>(null);
+  formularioAbiertoId = signal<number | null>(null);
+  formularios: Record<number, { montoNuevo: number | null; motivo: string }> = {};
   seleccionada = signal<number | null>(null);
   error = signal('');
   exito = signal('');
@@ -266,6 +309,71 @@ export class TrabajadorComponent implements OnInit {
     } catch (e) {
       this.ofertas.set([]);
       this.error.set(mensajeError(e));
+    }
+  }
+
+  /** Carga servicios asignados junto con el precio vigente y su historial. */
+  async cargarTrabajos() {
+    this.vista.set('trabajos');
+    this.error.set('');
+    const id_reparador = this.auth.usuario()?.id;
+    if (!id_reparador) return;
+    try {
+      this.servicios.set(await this.api.serviciosReparador(id_reparador));
+    } catch (error) {
+      this.servicios.set([]);
+      this.error.set(mensajeError(error));
+    }
+  }
+
+  formulario(servicio: ServicioPresupuesto) {
+    return this.formularios[servicio.id_servicio] ??= {
+      montoNuevo: null, motivo: '',
+    };
+  }
+
+  tienePendiente(servicio: ServicioPresupuesto) {
+    return servicio.incrementos.some((cambio) => cambio.estado_aprobacion === 'pendiente');
+  }
+
+  alternarFormulario(id_servicio: number) {
+    this.formularioAbiertoId.set(
+      this.formularioAbiertoId() === id_servicio ? null : id_servicio,
+    );
+  }
+
+  /** Envía un ajuste; el backend decide aprobación de aumentos o aplicación de bajas. */
+  async enviarAjuste(servicio: ServicioPresupuesto) {
+    this.error.set('');
+    this.exito.set('');
+    const usuario = this.auth.usuario();
+    const formulario = this.formulario(servicio);
+    const monto_anterior = Number(servicio.precio_total);
+    const monto_nuevo = Number(formulario.montoNuevo);
+    if (!usuario || formulario.montoNuevo === null || !Number.isFinite(monto_nuevo) ||
+        monto_nuevo <= 0 || monto_nuevo === monto_anterior ||
+        !formulario.motivo.trim()) {
+      this.error.set('El total debe ser positivo y distinto al vigente, e incluye el motivo.');
+      return;
+    }
+    this.enviandoId.set(servicio.id_servicio);
+    try {
+      await this.api.solicitarAjustePresupuesto(servicio.id_servicio, {
+        id_solicitante: usuario.id,
+        monto_anterior,
+        monto_nuevo,
+        motivo: formulario.motivo.trim(),
+      });
+      this.exito.set(monto_nuevo < monto_anterior
+        ? 'La disminución se aplicó al servicio.'
+        : 'Aumento enviado y pendiente de aprobación administrativa.');
+      await this.cargarTrabajos();
+      this.formularioAbiertoId.set(null);
+      this.formularios[servicio.id_servicio] = { montoNuevo: null, motivo: '' };
+    } catch (error) {
+      this.error.set(mensajeError(error));
+    } finally {
+      this.enviandoId.set(null);
     }
   }
 
