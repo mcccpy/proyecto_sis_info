@@ -10,7 +10,8 @@ export class Usuario {
   @Column({name:'password_hash',select:false,length:255}) passwordHash!: string;
   @Column({type:'enum',enum:Rol,default:Rol.CLIENTE}) rol!: Rol;
   @CreateDateColumn({type:'timestamptz'}) creadoEn!: Date;
-  @OneToOne(() => PerfilTrabajador, p => p.usuario) perfil?: PerfilTrabajador;
+  @OneToOne(() => PerfilTrabajador, p => p.usuario)
+  perfil?: any;
   @OneToMany(() => Solicitud, s => s.cliente) solicitudes?: Solicitud[];
 }
 @Entity('categorias')
@@ -37,7 +38,8 @@ export class Solicitud {
   @Column({length:180}) direccion!: string; // Privada: nunca se envía en listados para técnicos
   @Column({length:100}) zona!: string;
   @Column({length:150}) disponibilidad!: string;
-  @Column({length:400,nullable:true}) fotoUrl!: string | null;
+  @Column({ type: 'varchar', length: 400, nullable: true })
+fotoUrl!: string | null;
   @ManyToOne(() => Categoria, {nullable:false}) categoria!: Categoria;
   @Column({type:'enum',enum:EstadoSolicitud,default:EstadoSolicitud.ACTIVA}) estado!: EstadoSolicitud;
   @CreateDateColumn({type:'timestamptz'}) creadaEn!: Date;
@@ -56,3 +58,29 @@ export class Propuesta {
   @Column({type:'enum',enum:EstadoPropuesta,default:EstadoPropuesta.PENDIENTE}) estado!: EstadoPropuesta;
   @CreateDateColumn({type:'timestamptz'}) creadaEn!: Date;
 }
+
+@Entity('calificaciones')
+@Unique('UQ_calificacion_cliente_solicitud', ['cliente', 'solicitud'])
+export class Calificacion {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @ManyToOne(() => Usuario, { nullable: false })
+  trabajador!: Usuario;
+
+  @ManyToOne(() => Usuario, { nullable: false })
+  cliente!: Usuario;
+
+  @ManyToOne(() => Solicitud, { nullable: false })
+  solicitud!: Solicitud;
+
+  @Column({ type: 'int' })
+  puntuacion!: number;
+
+  @Column({ type: 'text', nullable: true })
+  comentario!: string | null;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  creadaEn!: Date;
+}
+

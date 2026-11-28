@@ -1,4 +1,3 @@
-
 import {
     Component,
     inject,
@@ -91,6 +90,20 @@ export class ClienteComponent implements OnInit {
     // Control de botones
     guardando = signal(false);
     cancelando = signal(false);
+
+
+    // ======================================
+    // 4.1 SISTEMA DE RECOMENDACIONES
+    // ======================================
+
+    // Resultados que devuelve el backend
+    recomendacionActual = signal<any>(null);
+
+    // ID de la solicitud cuyas recomendaciones se muestran
+    solicitudRecomendaciones = signal<number | null>(null);
+
+    // Estado de carga del recomendador
+    cargandoRecomendaciones = signal(false);
 
 
     // ======================================
@@ -641,6 +654,49 @@ export class ClienteComponent implements OnInit {
 
         this.seguimientoSeleccionado.set(id);
 
+    }
+
+
+    // ======================================
+    // 15. VER TRABAJADORES RECOMENDADOS
+    // ======================================
+
+    async verRecomendaciones(solicitudId: number) {
+
+        this.error.set('');
+        this.exito.set('');
+
+        // Si el panel de esta solicitud ya está abierto, lo cerramos.
+        if (this.solicitudRecomendaciones() === solicitudId) {
+            this.solicitudRecomendaciones.set(null);
+            this.recomendacionActual.set(null);
+            return;
+        }
+
+        this.solicitudRecomendaciones.set(solicitudId);
+        this.recomendacionActual.set(null);
+        this.cargandoRecomendaciones.set(true);
+
+        try {
+
+            // Consultar al backend. El backend calcula y ordena
+            // los trabajadores según reputación, trabajos,
+            // categoría y zona.
+            const respuesta = await this.api.recomendaciones(solicitudId);
+
+            this.recomendacionActual.set(respuesta);
+
+        } catch (e) {
+
+            this.solicitudRecomendaciones.set(null);
+            this.recomendacionActual.set(null);
+            this.error.set(mensajeError(e));
+
+        } finally {
+
+            this.cargandoRecomendaciones.set(false);
+
+        }
     }
 
 }

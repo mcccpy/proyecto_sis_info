@@ -570,6 +570,18 @@
                             }
 
                         </button>
+                        <button
+                           type="button"
+                           class="btn btn-primary btn-sm"
+                           [disabled]="cargandoRecomendaciones()"
+                           (click)="verRecomendaciones(s.id)"
+                           >
+                           @if (cargandoRecomendaciones() && solicitudRecomendaciones() === s.id) {
+                          Buscando...
+                         } @else {
+                             Ver trabajadores recomendados
+                         }
+                        </button>
 
 
                         <!-- ================================= -->
@@ -625,6 +637,95 @@
 
                     </div>
 
+                    
+                    <!-- ================================= -->
+                    <!-- PANEL DE RECOMENDACIONES -->
+                    <!-- ================================= -->
+
+                    @if (solicitudRecomendaciones() === s.id) {
+
+                        <div class="offers">
+
+                            <h4>Trabajadores recomendados</h4>
+
+                            <p class="help">
+                                Resultados ordenados según su puntuación
+                                de compatibilidad sobre 100 puntos.
+                            </p>
+
+                            @if (cargandoRecomendaciones()) {
+
+                                <p>Calculando recomendaciones...</p>
+
+                            } @else if (recomendacionActual()) {
+
+                                <p>
+                                    Total de trabajadores:
+                                    {{ recomendacionActual()!.totalTrabajadores }}
+                                </p>
+
+                                @for (
+                                    t of recomendacionActual()!.recomendaciones;
+                                    track t.id
+                                ) {
+
+                                    <div class="offer">
+
+                                        <div>
+                                            <strong>{{ t.nombre }}</strong>
+
+                                            <small>
+                                                Especialidad: {{ t.categoria }}
+                                            </small>
+
+                                            <small>
+                                                Zona: {{ t.zona }}
+                                            </small>
+
+                                            <small>
+                                                Disponibilidad: {{ t.disponibilidad }}
+                                            </small>
+
+                                            <small>
+                                                Reputación:
+                                                {{ t.criterios.reputacion.puntos }}/40
+                                            </small>
+
+                                            <small>
+                                                Trabajos completados:
+                                                {{ t.criterios.trabajosCompletados.puntos }}/25
+                                            </small>
+
+                                            <small>
+                                                Categoría:
+                                                {{ t.criterios.categoria.puntos }}/20
+                                            </small>
+
+                                            <small>
+                                                Zona:
+                                                {{ t.criterios.zona.puntos }}/15
+                                            </small>
+                                        </div>
+
+                                        <strong>
+                                            {{ t.puntuacion }}/100 puntos
+                                        </strong>
+
+                                    </div>
+
+                                } @empty {
+
+                                    <p>
+                                        No hay trabajadores disponibles para recomendar.
+                                    </p>
+
+                                }
+
+                            }
+
+                        </div>
+
+                    }
 
                     <!-- ================================= -->
                     <!-- 12. PANEL DE SEGUIMIENTO -->
