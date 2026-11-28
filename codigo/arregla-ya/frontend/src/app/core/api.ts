@@ -19,30 +19,80 @@ import {
     Usuario
 } from './models';
 
-
 // ==========================================
 // 1. DIRECCION DEL BACKEND
 // ==========================================
 
-// Servidor NestJS
 export const API_URL = 'http://localhost:3000/api';
 
+// ==========================================
+// 2. INTERFACES DEL SISTEMA DE RECOMENDACION
+// ==========================================
+
+export interface CriteriosRecomendacion {
+    reputacion: {
+        promedio: number;
+        cantidadCalificaciones: number;
+        puntos: number;
+    };
+
+    trabajosCompletados: {
+        cantidad: number;
+        puntos: number;
+    };
+
+    categoria: {
+        compatible: boolean;
+        puntos: number;
+    };
+
+    zona: {
+        compatible: boolean;
+        puntos: number;
+    };
+}
+
+export interface TrabajadorRecomendado {
+    id: number;
+    nombre: string;
+    categoria: string;
+    zona: string;
+    disponibilidad: string;
+    puntuacion: number;
+    criterios: CriteriosRecomendacion;
+}
+
+export interface RespuestaRecomendaciones {
+    solicitud: {
+        id: number;
+        titulo: string;
+        categoria: string;
+        zona: string;
+    };
+
+    criteriosUtilizados: {
+        reputacion: string;
+        trabajosCompletados: string;
+        categoria: string;
+        zona: string;
+    };
+
+    totalTrabajadores: number;
+    recomendaciones: TrabajadorRecomendado[];
+}
 
 // ==========================================
-// 2. ENVIAR EL TOKEN
+// 3. INTERCEPTOR PARA ENVIAR EL TOKEN
 // ==========================================
 
-// Agrega el token a las peticiones HTTP
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-
-    let token = null;
+    let token: string | null = null;
 
     if (typeof localStorage !== 'undefined') {
         token = localStorage.getItem('ay_token');
     }
 
     if (token) {
-
         const nuevaPeticion = req.clone({
             setHeaders: {
                 Authorization: `Bearer ${token}`
@@ -55,28 +105,22 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
 };
 
-
 // ==========================================
-// 3. MOSTRAR ERRORES
+// 4. MOSTRAR ERRORES
 // ==========================================
 
 export function mensajeError(error: unknown): string {
-
     if (error instanceof HttpErrorResponse) {
-
-        // El servidor no responde
         if (error.status === 0) {
             return 'No se puede contactar con NestJS. Verifica que el backend este encendido en localhost:3000.';
         }
 
         const mensaje = error.error?.message;
 
-        // El servidor envia varios mensajes
         if (Array.isArray(mensaje)) {
             return mensaje.join(' • ');
         }
 
-        // El servidor envia un mensaje
         if (typeof mensaje === 'string') {
             return mensaje;
         }
@@ -87,31 +131,28 @@ export function mensajeError(error: unknown): string {
     return 'Ocurrió un error inesperado.';
 }
 
-
 // ==========================================
-// 4. SERVICIO DE AUTENTICACION
+// 5. SERVICIO DE AUTENTICACION
 // ==========================================
 
 @Injectable({
     providedIn: 'root'
 })
-
 export class AuthService {
 
-    // Conexion HTTP
     private http = inject(HttpClient);
 
-    // Usuario que inicio sesion
     usuario = signal<Usuario | null>(this.leerUsuario());
 
-
     // --------------------------------------
-    // 4.1 LEER USUARIO GUARDADO
+    // 5.1 LEER USUARIO GUARDADO
     // --------------------------------------
 
     private leerUsuario(): Usuario | null {
-
         try {
+            if (typeof localStorage === 'undefined') {
+                return null;
+            }
 
             const datos = localStorage.getItem('ay_usuario');
 
@@ -120,16 +161,13 @@ export class AuthService {
             }
 
             return null;
-
-        } catch (error) {
-
+        } catch {
             return null;
         }
     }
 
-
     // --------------------------------------
-    // 4.2 REGISTRAR USUARIO
+    // 5.2 REGISTRAR USUARIO
     // --------------------------------------
 
     async registro(datos: {
@@ -138,9 +176,7 @@ export class AuthService {
         password: string;
         rol: Rol;
     }) {
-
         const respuesta = await firstValueFrom(
-
             this.http.post<{
                 token: string;
                 usuario: Usuario;
@@ -148,7 +184,6 @@ export class AuthService {
                 `${API_URL}/auth/registro`,
                 datos
             )
-
         );
 
         this.guardar(respuesta);
@@ -156,18 +191,15 @@ export class AuthService {
         return respuesta;
     }
 
-
     // --------------------------------------
-    // 4.3 INICIAR SESION
+    // 5.3 INICIAR SESION
     // --------------------------------------
 
     async login(datos: {
         email: string;
         password: string;
     }) {
-
         const respuesta = await firstValueFrom(
-
             this.http.post<{
                 token: string;
                 usuario: Usuario;
@@ -175,7 +207,6 @@ export class AuthService {
                 `${API_URL}/auth/login`,
                 datos
             )
-
         );
 
         this.guardar(respuesta);
@@ -183,38 +214,32 @@ export class AuthService {
         return respuesta;
     }
 
-
     // --------------------------------------
-    // 4.4 GUARDAR SESION
+    // 5.4 GUARDAR SESION
     // --------------------------------------
 
     private guardar(respuesta: {
         token: string;
         usuario: Usuario;
     }) {
+        localStorage.setItem('ay_token', respuesta.token);
 
-        // Guardamos el token
-        localStorage.setItem(
-            'ay_token',
-            respuesta.token
-        );
-
-        // Guardamos los datos del usuario
         localStorage.setItem(
             'ay_usuario',
             JSON.stringify(respuesta.usuario)
         );
 
-        // Actualizamos el usuario
         this.usuario.set(respuesta.usuario);
     }
 
-
     // --------------------------------------
-    // 4.5 COMPROBAR SESION
+    // 5.5 COMPROBAR SESION
     // --------------------------------------
 
     async comprobar() {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
 
         const token = localStorage.getItem('ay_token');
 
@@ -223,13 +248,10 @@ export class AuthService {
         }
 
         try {
-
             const usuario = await firstValueFrom(
-
                 this.http.get<Usuario>(
                     `${API_URL}/auth/perfil`
                 )
-
             );
 
             this.usuario.set(usuario);
@@ -238,106 +260,92 @@ export class AuthService {
                 'ay_usuario',
                 JSON.stringify(usuario)
             );
-
-        } catch (error) {
-
+        } catch {
             this.salir();
         }
     }
 
-
     // --------------------------------------
-    // 4.6 CERRAR SESION
+    // 5.6 CERRAR SESION
     // --------------------------------------
 
     salir() {
-
-        localStorage.removeItem('ay_token');
-
-        localStorage.removeItem('ay_usuario');
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('ay_token');
+            localStorage.removeItem('ay_usuario');
+        }
 
         this.usuario.set(null);
     }
 }
 
-
 // ==========================================
-// 5. SERVICIO DE API
+// 6. SERVICIO DE API
 // ==========================================
-
-// Contiene las peticiones al backend NestJS
 
 @Injectable({
     providedIn: 'root'
 })
-
 export class ApiService {
 
     private http = inject(HttpClient);
 
-
-    // ======================================
-    // FUNCIONES DEL CLIENTE
-    // ======================================
-
-
     // --------------------------------------
-    // 5.1 OBTENER CATEGORIAS
+    // 6.1 OBTENER CATEGORIAS
     // --------------------------------------
 
     categorias() {
-
         return firstValueFrom(
-
             this.http.get<Categoria[]>(
                 `${API_URL}/catalogo/categorias`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.2 BUSCAR TRABAJADORES
+    // 6.2 BUSCAR TRABAJADORES
     // --------------------------------------
 
     trabajadores(filtros: {
         categoria?: number;
         zona?: string;
     } = {}) {
+        const params: Record<string, string> = {};
 
-        // Filtros para la busqueda
-        let params: Record<string, string> = {};
-
-        // Filtrar por categoria
         if (filtros.categoria) {
             params['categoria'] = String(filtros.categoria);
         }
 
-        // Filtrar por zona
         if (filtros.zona) {
             params['zona'] = filtros.zona;
         }
 
         return firstValueFrom(
-
             this.http.get<Trabajador[]>(
                 `${API_URL}/trabajadores`,
                 { params }
             )
-
         );
     }
 
+    // --------------------------------------
+    // 6.3 SISTEMA DE RECOMENDACION
+    // --------------------------------------
+
+    recomendaciones(solicitudId: number) {
+        return firstValueFrom(
+            this.http.get<RespuestaRecomendaciones>(
+                `${API_URL}/trabajadores/recomendados/${solicitudId}`
+            )
+        );
+    }
 
     // --------------------------------------
-    // 5.3 CREAR SOLICITUD
+    // 6.4 CREAR SOLICITUD
     // --------------------------------------
 
     crearSolicitud(datos: unknown) {
-
         return firstValueFrom(
-
             this.http.post<{
                 id: number;
                 estado: string;
@@ -345,183 +353,167 @@ export class ApiService {
                 `${API_URL}/solicitudes`,
                 datos
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.4 VER MIS SOLICITUDES
+    // 6.5 VER MIS SOLICITUDES
     // --------------------------------------
 
     misSolicitudes() {
-
         return firstValueFrom(
-
             this.http.get<Solicitud[]>(
                 `${API_URL}/solicitudes/mias`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.5 VER SOLICITUDES DISPONIBLES
+    // 6.6 VER SOLICITUDES DISPONIBLES
     // --------------------------------------
 
     disponibles() {
-
         return firstValueFrom(
-
             this.http.get<Solicitud[]>(
                 `${API_URL}/solicitudes/disponibles`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.6 VER PROPUESTAS DE SOLICITUD
+    // 6.7 VER PROPUESTAS DE SOLICITUD
     // --------------------------------------
 
     propuestas(id: number) {
-
         return firstValueFrom(
-
             this.http.get<Propuesta[]>(
                 `${API_URL}/propuestas/solicitud/${id}`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.7 ENVIAR PROPUESTA
-    // FUNCION DEL TRABAJADOR
+    // 6.8 ENVIAR PROPUESTA
     // --------------------------------------
 
     ofrecer(id: number, datos: unknown) {
-
         return firstValueFrom(
-
             this.http.post(
                 `${API_URL}/propuestas/solicitud/${id}`,
                 datos
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.8 ACEPTAR UNA PROPUESTA
+    // 6.9 ACEPTAR UNA PROPUESTA
     // --------------------------------------
 
     aceptar(id: number) {
-
         return firstValueFrom(
-
             this.http.patch(
                 `${API_URL}/propuestas/${id}/aceptar`,
                 {}
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 5.9 CANCELAR SOLICITUD
-    // NUEVA FUNCION
+    // 6.10 CANCELAR SOLICITUD
     // --------------------------------------
 
     cancelarSolicitud(id: number) {
-
-        // Solicita la cancelacion al backend
-        // Esta ruta debe ser confirmada
-        // por el encargado del backend
-
         return firstValueFrom(
-
             this.http.patch(
                 `${API_URL}/solicitudes/${id}/cancelar`,
                 {}
             )
-
         );
     }
 
+    // --------------------------------------
+    // 6.11 FINALIZAR SOLICITUD
+    // --------------------------------------
 
-    // ======================================
-    // FUNCIONES DEL TRABAJADOR
-    // ======================================
-
+    finalizarSolicitud(id: number) {
+        return firstValueFrom(
+            this.http.patch(
+                `${API_URL}/solicitudes/${id}/finalizar`,
+                {}
+            )
+        );
+    }
 
     // --------------------------------------
-    // 6.1 VER MIS PROPUESTAS
+    // 6.12 REGISTRAR CALIFICACION
+    // --------------------------------------
+
+    calificarSolicitud(
+        id: number,
+        datos: {
+            puntuacion: number;
+            comentario?: string;
+        }
+    ) {
+        return firstValueFrom(
+            this.http.post(
+                `${API_URL}/calificaciones/solicitud/${id}`,
+                datos
+            )
+        );
+    }
+
+    // ======================================
+    // 7. FUNCIONES DEL TRABAJADOR
+    // ======================================
+
+    // --------------------------------------
+    // 7.1 VER MIS PROPUESTAS
     // --------------------------------------
 
     misOfertas() {
-
         return firstValueFrom(
-
             this.http.get<Propuesta[]>(
                 `${API_URL}/propuestas/mias`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 6.2 VER MI PERFIL TECNICO
+    // 7.2 VER MI PERFIL TECNICO
     // --------------------------------------
 
     miPerfilTecnico() {
-
         return firstValueFrom(
-
             this.http.get<PerfilTrabajador>(
                 `${API_URL}/trabajadores/mi-perfil`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 6.3 GUARDAR PERFIL TECNICO
+    // 7.3 GUARDAR PERFIL TECNICO
     // --------------------------------------
 
     guardarPerfil(datos: unknown) {
-
         return firstValueFrom(
-
             this.http.patch(
                 `${API_URL}/trabajadores/mi-perfil`,
                 datos
             )
-
         );
     }
 
-
     // ======================================
-    // FUNCIONES DEL ADMINISTRADOR
+    // 8. FUNCIONES DEL ADMINISTRADOR
     // ======================================
-
 
     // --------------------------------------
-    // 7.1 VER TRABAJADORES PENDIENTES
+    // 8.1 VER TRABAJADORES PENDIENTES
     // --------------------------------------
 
     pendientes() {
-
         return firstValueFrom(
-
             this.http.get<{
                 id: number;
                 nombre: string;
@@ -532,25 +524,19 @@ export class ApiService {
             }[]>(
                 `${API_URL}/trabajadores/pendientes`
             )
-
         );
     }
 
-
     // --------------------------------------
-    // 7.2 APROBAR TRABAJADOR
+    // 8.2 APROBAR TRABAJADOR
     // --------------------------------------
 
     aprobar(id: number) {
-
         return firstValueFrom(
-
             this.http.patch(
                 `${API_URL}/trabajadores/${id}/aprobar`,
                 {}
             )
-
         );
     }
-
 }
