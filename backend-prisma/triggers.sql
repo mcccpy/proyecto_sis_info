@@ -5,8 +5,6 @@
 -- 04_triggers.sql · Reglas de negocio y automatización (PostgreSQL)
 -- Compatible con sql_tablas_3.sql
 -- =====================================================================
-trg_republicar_por_cancelacion
-trg_validar_cierre_servicio
 -- ---------------------------------------------------------------------
 -- 1. Límite máximo de 3 zonas fijas por reparador
 -- ---------------------------------------------------------------------

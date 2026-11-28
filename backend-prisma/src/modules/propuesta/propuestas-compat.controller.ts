@@ -17,8 +17,9 @@ export class PropuestasCompatController {
   private async mapear(p: Awaited<ReturnType<PropuestaRepository['findById']>>) {
     if (!p) return null;
     const usuario = await this.usuarios.findById(p.idReparador);
+    // La ruta compatible conserva el formato de estado que consume el frontend.
     return {
-      id: p.idPropuesta, estado: p.estado, precio: String(p.precioTotal),
+      id: p.idPropuesta, estado: p.estado.toUpperCase(), precio: String(p.precioTotal),
       costoVisita: String(p.costoVisita), materialesIncluidos: p.materialesIncluidos,
       detalleMateriales: p.detalleMateriales ?? '',
       solicitud: p.trabajo?.titulo ?? 'Solicitud no disponible',
@@ -63,5 +64,11 @@ export class PropuestasCompatController {
   @Patch(':id/aceptar')
   aceptar(@Param('id', ParseIntPipe) id: number, @Headers('authorization') token?: string) {
     return this.propuestas.aceptarPropuesta(id, { id_cliente: this.id(token) });
+  }
+
+  // Expone el rechazo para el cliente usando la identidad de la sesión actual.
+  @Patch(':id/rechazar')
+  rechazar(@Param('id', ParseIntPipe) id: number, @Headers('authorization') token?: string) {
+    return this.propuestas.rechazarPropuesta(id, { id_cliente: this.id(token) });
   }
 }

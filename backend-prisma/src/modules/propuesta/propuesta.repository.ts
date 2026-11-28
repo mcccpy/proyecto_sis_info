@@ -188,20 +188,40 @@ export class PropuestaRepository {
         estado: 'pendiente',
       }).update({ estado: 'rechazada' });
 
-      const trabajo_cerrado = await transaccion.orm.public.Trabajo.where({
-        idTrabajo: trabajo.idTrabajo,
-        estadoPublicacion: 'abierto',
-      }).update({ estadoPublicacion: 'cerrado' });
+      // El trigger puede cerrar el trabajo; se revisa su resultado antes de aplicar el fallback.
+      const trabajo_despues_del_trigger =
+        await transaccion.orm.public.Trabajo.where({
+          idTrabajo: trabajo.idTrabajo,
+        }).first();
 
-      if (!trabajo_cerrado) {
+      if (trabajo_despues_del_trigger?.estadoPublicacion === 'abierto') {
+        const trabajo_cerrado = await transaccion.orm.public.Trabajo.where({
+          idTrabajo: trabajo.idTrabajo,
+          estadoPublicacion: 'abierto',
+        }).update({ estadoPublicacion: 'cerrado' });
+
+        if (!trabajo_cerrado) {
+          throw new Error(
+            `No se pudo cerrar el trabajo ${trabajo.idTrabajo} al aceptar la propuesta.`,
+          );
+        }
+      } else if (trabajo_despues_del_trigger?.estadoPublicacion !== 'cerrado') {
         throw new Error(
-          `No se pudo cerrar el trabajo ${trabajo.idTrabajo} al aceptar la propuesta.`,
+          `El trabajo ${trabajo.idTrabajo} quedó en un estado inesperado al aceptar la propuesta.`,
         );
       }
 
-      await transaccion.orm.public.Servicio.create({
-        idPropuesta: id_propuesta,
-      });
+      // Evita crear un servicio duplicado si el trigger ya lo generó al aceptar la propuesta.
+      const servicio_creado_por_trigger =
+        await transaccion.orm.public.Servicio.where({
+          idPropuesta: id_propuesta,
+        }).first();
+
+      if (!servicio_creado_por_trigger) {
+        await transaccion.orm.public.Servicio.create({
+          idPropuesta: id_propuesta,
+        });
+      }
 
       return this.findById(id_propuesta, transaccion);
     });

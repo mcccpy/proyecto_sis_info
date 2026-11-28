@@ -1012,204 +1012,58 @@
 
                         <div class="offers">
 
-                            <h4>
-                                Presupuestos y pagos
-                            </h4>
-
-                            <p class="help">
-
-                                Esta sección es una simulación
-                                de la interfaz del cliente.
-
-                                Los aumentos reales deberán
-                                provenir del trabajador y
-                                registrarse mediante NestJS.
-
-                            </p>
-
-
-                            <!-- ================================= -->
-                            <!-- 15. AUMENTO DE PRESUPUESTO -->
-                            <!-- ================================= -->
-
-                            <h4>
-                                Revisar aumento de presupuesto
-                            </h4>
-
-                            <form (ngSubmit)="prepararAumento(s.id)">
-
-                                <div class="form-grid">
-
-
-                                    <!-- Monto original -->
-
-                                    <label>
-
-                                        Presupuesto original (Bs)
-
-                                        <input
-                                            type="number"
-                                            name="montoBase"
-                                            [(ngModel)]="montoBase"
-                                            required
-                                            min="0.01"
-                                            step="0.01"
-                                        >
-
-                                    </label>
-
-
-                                    <!-- Aumento -->
-
-                                    <label>
-
-                                        Aumento propuesto (Bs)
-
-                                        <input
-                                            type="number"
-                                            name="montoExtra"
-                                            [(ngModel)]="montoExtra"
-                                            required
-                                            min="0.01"
-                                            step="0.01"
-                                        >
-
-                                    </label>
-
-
-                                    <!-- Motivo -->
-
-                                    <label class="full">
-
-                                        Motivo del aumento
-
-                                        <textarea
-                                            name="motivoAumento"
-                                            [(ngModel)]="motivoAumento"
-                                            required
-                                            rows="3"
-                                            placeholder="Ej. Materiales adicionales"
-                                        ></textarea>
-
-                                    </label>
-
-                                </div>
-
-
-                                <!-- Calcular -->
-
-                                <button
-                                    type="submit"
-                                    class="btn btn-primary btn-sm"
-                                >
-                                    Calcular presupuesto
-                                </button>
-
-                            </form>
-
-
-                            <!-- ================================= -->
-                            <!-- 16. RESULTADO DEL PRESUPUESTO -->
-                            <!-- ================================= -->
-
-                            @if (borradorAumento(); as presupuesto) {
-
-                                @if (presupuesto.solicitudId === s.id) {
-
-                                    <div class="panel">
-
-                                        <h4>
-                                            Resumen de simulación
-                                        </h4>
-
-                                        <p>
-
-                                            <strong>
-                                                Original:
-                                            </strong>
-
-                                            Bs {{ presupuesto.original.toFixed(2) }}
-
-                                        </p>
-
-                                        <p>
-
-                                            <strong>
-                                                Aumento:
-                                            </strong>
-
-                                            Bs {{ presupuesto.extra.toFixed(2) }}
-
-                                        </p>
-
-                                        <p>
-
-                                            <strong>
-                                                Nuevo total:
-                                            </strong>
-
-                                            Bs {{
-                                                (
-                                                    presupuesto.original +
-                                                    presupuesto.extra
-                                                ).toFixed(2)
-                                            }}
-
-                                        </p>
-
-                                        <p>
-
-                                            <strong>
-                                                Motivo:
-                                            </strong>
-
-                                            {{ presupuesto.motivo }}
-
-                                        </p>
-
-
-                                        <!-- Simular decision -->
-
-                                        <div class="job-actions">
-
-                                            <button
-                                                type="button"
-                                                class="btn btn-outline btn-sm"
-                                                (click)="simularDecision(false)"
-                                            >
-                                                Simular rechazo
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                class="btn btn-primary btn-sm"
-                                                (click)="simularDecision(true)"
-                                            >
-                                                Simular aprobación
-                                            </button>
-
-                                        </div>
-
-
-                                        <!-- Mensaje -->
-
-                                        @if (decisionAumento()) {
-
-                                            <div class="alert info">
-                                                {{ decisionAumento() }}
-                                            </div>
-
-                                        }
-
-                                    </div>
-
-                                }
-
-                            }
-
-
-                            <!-- ================================= -->
-                            <!-- 17. PAGO EN EFECTIVO -->
+                            <h4>Presupuesto e historial de cambios</h4>
+<p class="help">El precio vigente se toma de la propuesta aceptada. Los aumentos quedan pendientes hasta que un administrador los apruebe.</p>
+<!-- El historial y el formulario se muestran por servicio ligado a la propuesta aceptada. -->
+@if (serviciosDeTrabajo(s.id).length === 0) {
+    <p class="empty">Este trabajo todavía no tiene un servicio asignado.</p>
+}
+@for (servicio of serviciosDeTrabajo(s.id); track servicio.id_servicio) {
+    <article class="panel" style="margin: 12px 0">
+        <div class="result-title">
+            <div>
+                <h4>Servicio #{{ servicio.id_servicio }} · {{ servicio.estado }}</h4>
+                <p>Propuesta #{{ servicio.id_propuesta }} · Precio vigente: Bs {{ servicio.precio_total }}</p>
+            </div>
+        </div>
+        <h5>Historial de modificaciones</h5>
+        <div class="list-stack">
+            @for (cambio of servicio.incrementos; track cambio.id_incremento) {
+                <div class="job-tags">
+                    <span>#{{ cambio.id_incremento }} · {{ cambio.fecha_solicitud }}</span>
+                    <span>{{ cambio.nombre_solicitante }}</span>
+                    <span>Bs {{ cambio.monto_anterior }} → Bs {{ cambio.monto_nuevo }}</span>
+                    <span>{{ cambio.estado_aprobacion }}</span>
+                    <span>{{ cambio.motivo }}</span>
+                </div>
+            } @empty {
+                <p class="subtle">Aún no hay cambios de presupuesto para este servicio.</p>
+            }
+        </div>
+        @if (servicio.estado === 'programado' || servicio.estado === 'en_progreso') {
+            @if (!tieneCambioPendiente(servicio)) {
+                <p class="help">Escribe el total final, no solo el aumento. Si el precio actual es Bs {{ servicio.precio_total }}, solicita un total superior.</p>
+                <form (ngSubmit)="enviarAjustePresupuesto(servicio)" class="form-grid">
+                    <label>Precio actual (Bs)
+                        <input type="number" [value]="servicio.precio_total" readonly>
+                    </label>
+                    <label>Nuevo total solicitado (Bs)
+                        <input type="number" [name]="'nuevoTotal' + servicio.id_servicio" min="0.01" step="0.01" required [(ngModel)]="formularioAjuste(servicio).montoNuevo">
+                    </label>
+                    <label class="full">Motivo
+                        <textarea [name]="'motivoAjuste' + servicio.id_servicio" required minlength="3" maxlength="1000" rows="2" [(ngModel)]="formularioAjuste(servicio).motivo"></textarea>
+                    </label>
+                    <button class="btn btn-primary btn-sm" type="submit" [disabled]="enviandoAjuste() !== null">
+                        {{ enviandoAjuste() === servicio.id_servicio ? 'Enviando...' : 'Solicitar aumento' }}
+                    </button>
+                </form>
+            } @else {
+                <p class="alert info">Hay un cambio pendiente de revisión; espera el dictamen antes de solicitar otro.</p>
+            }
+        }
+    </article>
+}
+<!-- 17. PAGO EN EFECTIVO -->
                             <!-- ================================= -->
 
                             <h4>
@@ -1661,13 +1515,22 @@
                                         s.estado === 'ACTIVA'
                                     ) {
 
-                                        <button
-                                            type="button"
-                                            class="btn btn-primary btn-sm"
-                                            (click)="aceptar(o.id, s.id)"
-                                        >
-                                            Aceptar
-                                        </button>
+                                        <div class="job-actions">
+                                            <button
+                                                type="button"
+                                                class="btn btn-primary btn-sm"
+                                                (click)="aceptar(o.id, s.id)"
+                                            >
+                                                Aceptar
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline btn-sm"
+                                                (click)="rechazar(o.id, s.id)"
+                                            >
+                                                Rechazar
+                                            </button>
+                                        </div>
 
                                     } @else {
 

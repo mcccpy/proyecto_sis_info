@@ -18,6 +18,7 @@ import {
 import {
     Categoria,
     Propuesta,
+    ServicioPresupuesto,
     Solicitud,
     Trabajador
 } from '../core/models';
@@ -79,6 +80,9 @@ export class ClienteComponent implements OnInit {
     visitaAbierta = signal<number | null>(null);
 
     presupuestoAbierto = signal<number | null>(null);
+    serviciosPresupuesto = signal<ServicioPresupuesto[]>([]);
+    enviandoAjuste = signal<number | null>(null);
+    formularioAjustes: Record<number, { montoNuevo: number | null; motivo: string }> = {};
 
     opinionesAbiertas = signal<number | null>(null);
 
@@ -141,21 +145,7 @@ export class ClienteComponent implements OnInit {
     // 9. PRESUPUESTOS ADICIONALES
     // ======================================
 
-    // Montos de una simulacion de interfaz
-    montoBase = 0;
-    montoExtra = 0;
-    motivoAumento = '';
-
-    // Borrador del aumento
-    borradorAumento = signal<{
-        solicitudId: number;
-        original: number;
-        extra: number;
-        motivo: string;
-    } | null>(null);
-
-    // Resultado visual de la simulacion
-    decisionAumento = signal('');
+    // Los montos de ajuste se guardan por servicio en formularioAjustes.
 
 
     // ======================================
@@ -607,6 +597,19 @@ export class ClienteComponent implements OnInit {
         }
     }
 
+    /** Rechaza una propuesta y actualiza su estado en la lista visible. */
+    async rechazar(id_propuesta: number, id_trabajo: number) {
+        this.error.set('');
+        this.exito.set('');
+        try {
+            await this.api.rechazar(id_propuesta);
+            this.exito.set('Propuesta rechazada.');
+            this.ofertas.set(await this.api.propuestas(id_trabajo));
+        } catch (error) {
+            this.error.set(mensajeError(error));
+        }
+    }
+
 
     // ======================================
     // 19. CANCELAR UNA SOLICITUD
@@ -817,7 +820,8 @@ export class ClienteComponent implements OnInit {
     // 23. ABRIR PRESUPUESTOS Y PAGOS
     // ======================================
 
-    abrirPresupuesto(id: number) {
+    /** Carga los servicios y refleja el precio vigente de cada propuesta aceptada. */
+    async abrirPresupuesto(id: number) {
 
         // Cerrar si ya esta abierto
         if (this.presupuestoAbierto() === id) {
@@ -829,104 +833,77 @@ export class ClienteComponent implements OnInit {
 
         this.presupuestoAbierto.set(id);
 
-        // Limpiar datos de demostracion
-        this.montoBase = 0;
-        this.montoExtra = 0;
-        this.motivoAumento = '';
-
-        this.borradorAumento.set(null);
-        this.decisionAumento.set('');
-
         this.notaPago = '';
         this.borradorPago.set(null);
+
+        const id_cliente = this.auth.usuario()?.id;
+        if (!id_cliente) return;
+        try {
+            const servicios = await this.api.serviciosCliente(id_cliente);
+            this.serviciosPresupuesto.set(servicios);
+            this.ofertas.update((propuestas) => propuestas.map((propuesta) => {
+                const servicio = servicios.find(
+                    (elemento) => elemento.id_propuesta === propuesta.id,
+                );
+                return servicio
+                    ? { ...propuesta, precio: servicio.precio_total }
+                    : propuesta;
+            }));
+        } catch (error) {
+            this.error.set(mensajeError(error));
+        }
     }
 
 
-    // ======================================
-    // 24. CALCULAR AUMENTO DE PRESUPUESTO
-    // ======================================
+    /** Filtra historial y servicios para el trabajo que abrió el cliente. */
+    serviciosDeTrabajo(id_trabajo: number) {
+        return this.serviciosPresupuesto().filter((servicio) => servicio.id_trabajo === id_trabajo);
+    }
 
-    prepararAumento(id: number) {
+    /** Bloquea otro envío mientras el servicio tenga una solicitud por resolver. */
+    tieneCambioPendiente(servicio: ServicioPresupuesto) {
+        return servicio.incrementos.some((cambio) => cambio.estado_aprobacion === 'pendiente');
+    }
 
+    formularioAjuste(servicio: ServicioPresupuesto) {
+        return this.formularioAjustes[servicio.id_servicio] ??= {
+            montoNuevo: null, motivo: '',
+        };
+    }
+
+    /** Envía el aumento del cliente y recarga el historial desde el backend. */
+    async enviarAjustePresupuesto(servicio: ServicioPresupuesto) {
         this.error.set('');
-        this.decisionAumento.set('');
+        this.exito.set('');
+        const usuario = this.auth.usuario();
+        const formulario = this.formularioAjuste(servicio);
+        const monto_anterior = Number(servicio.precio_total);
+        const monto_nuevo = Number(formulario.montoNuevo);
 
-
-        // Validar presupuesto original
-        if (
-            !Number.isFinite(this.montoBase) ||
-            this.montoBase <= 0
-        ) {
-
-            this.error.set(
-                'Ingresa un presupuesto original válido.'
-            );
-
+        if (!usuario || formulario.montoNuevo === null ||
+            !Number.isFinite(monto_nuevo) || monto_nuevo <= monto_anterior ||
+            !formulario.motivo.trim()) {
+            this.error.set('El nuevo total debe ser mayor al actual e incluir el motivo del cambio.');
             return;
         }
 
-
-        // Validar aumento
-        if (
-            !Number.isFinite(this.montoExtra) ||
-            this.montoExtra <= 0
-        ) {
-
-            this.error.set(
-                'El aumento debe ser mayor que cero.'
-            );
-
-            return;
-        }
-
-
-        // Validar motivo
-        this.motivoAumento =
-            this.motivoAumento.trim();
-
-        if (this.motivoAumento === '') {
-
-            this.error.set(
-                'Debes indicar el motivo del aumento.'
-            );
-
-            return;
-        }
-
-
-        // Guardar solamente una simulacion
-        this.borradorAumento.set({
-            solicitudId: id,
-            original: this.montoBase,
-            extra: this.montoExtra,
-            motivo: this.motivoAumento
-        });
-    }
-
-
-    // ======================================
-    // 25. SIMULAR APROBACION O RECHAZO
-    // ======================================
-
-    simularDecision(aprobado: boolean) {
-
-        // No se envia ninguna aprobacion real
-        if (!this.borradorAumento()) {
-            return;
-        }
-
-        if (aprobado) {
-
-            this.decisionAumento.set(
-                'Aprobación simulada. No se envió al técnico.'
-            );
-
-        } else {
-
-            this.decisionAumento.set(
-                'Rechazo simulado. No se envió al técnico.'
-            );
-
+        this.enviandoAjuste.set(servicio.id_servicio);
+        try {
+            await this.api.solicitarAjustePresupuesto(servicio.id_servicio, {
+                id_solicitante: usuario.id,
+                monto_anterior,
+                monto_nuevo,
+                motivo: formulario.motivo.trim(),
+            });
+            this.exito.set('Solicitud enviada. El precio cambiará cuando un administrador la apruebe.');
+            this.serviciosPresupuesto.set(await this.api.serviciosCliente(usuario.id));
+            this.formularioAjustes[servicio.id_servicio] = {
+                montoNuevo: null, motivo: '',
+            };
+        } catch (error) {
+            this.error.set(mensajeError(error));
+        } finally {
+            this.enviandoAjuste.set(null);
         }
     }
 

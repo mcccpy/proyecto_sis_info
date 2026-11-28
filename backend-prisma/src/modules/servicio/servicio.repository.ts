@@ -56,8 +56,22 @@ export class ServicioRepository {
       'propuesta',
       (propuesta) => propuesta.include('trabajo'),
     )
+      .include('incrementoPresupuestos')
       .where({ idServicio: id_servicio })
       .first();
+  }
+
+  /** Recupera servicios con su trabajo y el historial para filtrar por participante. */
+  // Recupera en una consulta la propuesta y el historial usados por ambas partes.
+  findServiciosConHistorialPresupuesto() {
+    return this.prisma.db.orm.public.Servicio.include(
+      'propuesta',
+      (propuesta) => propuesta.include('trabajo'),
+    )
+      .include('incrementoPresupuestos', (incremento) =>
+        incremento.include('usuario'),
+      )
+      .all();
   }
 
   /** Obtiene un servicio junto a su propuesta y los pagos asociados. */
@@ -84,6 +98,14 @@ export class ServicioRepository {
       ...datos_incremento,
       estadoAprobacion: 'pendiente',
     });
+  }
+
+  /** Consulta si existe otro ajuste esperando dictamen para el servicio. */
+  tieneAjustePendiente(id_servicio: number) {
+    return this.prisma.db.orm.public.IncrementoPresupuesto.where({
+      idServicio: id_servicio,
+      estadoAprobacion: 'pendiente',
+    }).first();
   }
 
   /** Registra una disminución aprobada y cambia el precio dentro de una transacción. */
@@ -224,27 +246,34 @@ export class ServicioRepository {
     return this.findByIdWithDetails(id_servicio);
   }
 
-  /** Actualiza el precio y crea el registro de disminución en una transacción. */
+  /** Registra la disminución y sincroniza el precio dentro de una transacción. */
   private async registrarDisminucionEnTransaccion(
     datos_incremento: CrearIncrementoPresupuestoData,
     id_propuesta: number,
     fecha_respuesta: Date,
     query_context: PrismaQueryContext,
   ) {
+    // El trigger de la base toma el precio vigente antes de insertar el historial.
+    // Por eso primero se crea el ajuste y después se sincroniza la propuesta.
+    const disminucion_creada =
+      await query_context.orm.public.IncrementoPresupuesto.create({
+      ...datos_incremento,
+      estadoAprobacion: 'aprobado',
+      fechaRespuesta: fecha_respuesta,
+    });
+
     const propuesta_actualizada =
       await query_context.orm.public.Propuesta.where({
         idPropuesta: id_propuesta,
       }).update({ precioTotal: datos_incremento.montoNuevo });
 
     if (!propuesta_actualizada) {
-      return null;
+      throw new Error(
+        `No se pudo sincronizar la propuesta ${id_propuesta} con la disminución registrada.`,
+      );
     }
 
-    return query_context.orm.public.IncrementoPresupuesto.create({
-      ...datos_incremento,
-      estadoAprobacion: 'aprobado',
-      fechaRespuesta: fecha_respuesta,
-    });
+    return disminucion_creada;
   }
 
   /** Incluye trabajo, datos públicos del cliente y categorías de cada servicio. */
